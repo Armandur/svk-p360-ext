@@ -74,44 +74,47 @@ async function triggerDagboksblad() {
     return;
   }
 
-  // Anropa invokePrintDialog för att Report Viewer ska rendera utskriftsdialogen
-  // och populera download-länkens href med korrekt .axd-URL (inkl. dynamiskt ControlID).
+  // Visa utskriftsdialogen – skapar .msrs-printdialog-downloadlink med tom href
   rv.invokePrintDialog();
 
-  // Polla tills en giltig PDF-URL hittas i popup-dokumentet (max 20 s).
-  // Tre strategier i prioritetsordning:
-  //   1. .msrs-printdialog-downloadlink – den normala MSRS-länken
-  //   2. Valfri <a href="...axd..."> – fallback om klassnamnet skiljer sig
-  //   3. <iframe src="...axd...">     – vissa versioner renderar via iframe
+  // Vänta på att Print-knappen och download-länken renderats (max 8 s)
+  const printKnapp = await new Promise(resolve => {
+    const start = Date.now();
+    const check = setInterval(() => {
+      try {
+        const btn = popup.document.querySelector('.msrs-printdialog-divprintbutton');
+        if (btn) { clearInterval(check); resolve(btn); }
+      } catch { /* popup stängd */ }
+      if (Date.now() - start > 8000) { clearInterval(check); resolve(null); }
+    }, 150);
+  });
+
+  if (!printKnapp) {
+    alert('Kunde inte hitta utskriftsknappen i dagboksbladet.');
+    return;
+  }
+
+  // Klicka Print – MSRS genererar PDF:en och populerar download-länkens href
+  printKnapp.click();
+
+  // Polla tills download-länken har fått ett href med PDF-URL:en (max 20 s)
   const pdfUrl = await new Promise(resolve => {
     const start = Date.now();
     const check = setInterval(() => {
       try {
-        const doc = popup.document;
-
-        const dl = doc.querySelector('.msrs-printdialog-downloadlink');
-        if (dl?.href?.includes('.axd')) { clearInterval(check); resolve(dl.href); return; }
-
-        const a = Array.from(doc.querySelectorAll('a')).find(a => a.href?.includes('.axd'));
-        if (a) { clearInterval(check); resolve(a.href); return; }
-
-        const f = Array.from(doc.querySelectorAll('iframe')).find(f => f.src?.includes('.axd'));
-        if (f?.src) { clearInterval(check); resolve(f.src); return; }
-      } catch {
-        // Popup stängd eller tillfälligt cross-origin
-      }
+        const dl = popup.document.querySelector('.msrs-printdialog-downloadlink');
+        if (dl?.href?.includes('.axd')) { clearInterval(check); resolve(dl.href); }
+      } catch { /* popup stängd */ }
       if (Date.now() - start > 20000) { clearInterval(check); resolve(null); }
     }, 150);
   });
 
   if (pdfUrl) {
-    // Öppna PDF:en direkt i en ny flik – webbläsarens inbyggda PDF-visare visar den.
-    // Chrome blockerar auto-print från programmatiskt öppnade PDF:er, men användaren
-    // kan enkelt klicka skrivarikonen i PDF-visaren.
+    // Öppna PDF:en i en ny flik – användaren klickar skrivarikonen i PDF-visaren
     window.open(pdfUrl, '_blank');
     popup.close();
   } else {
-    alert('Kunde inte hitta PDF-länken.');
+    alert('Kunde inte hämta PDF:en från dagboksbladet.');
   }
 }
 
