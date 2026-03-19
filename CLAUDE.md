@@ -39,6 +39,33 @@ __doPostBack('ctl00$PlaceHolderMain$MainView$MainContextMenu_DropDownMenu', '<ny
 | `OrderCaseSummary` | Producera ärendesammanfattning |
 | `AddProgressPlan` | Tilldela processplan |
 
+## Sätt status (dialog)
+
+Öppnas via dold länk – **inte** via MainContextMenu:
+```js
+__doPostBack(
+  'ctl00$PlaceHolderMain$MainView$CaseDetailActions_EditCaseStatusDialogOperation_POSTBACK',
+  ''
+)
+```
+Element-ID för länken: `PlaceHolderMain_MainView_CaseDetailActions_EditCaseStatusDialogOperation_POSTBACK`
+
+Dialogen laddas som en **iframe** (`/locator/DMS/Dialog/EditCaseStatus`).
+Statusfältet är ett `<select>` med Selectize.js som UI-lager:
+- Native select: `select#PlaceHolderMain_MainView_CaseStatusComboControl`
+- Sätt värde via `select.selectize.setValue(value)` om Selectize är initialiserat,
+  annars direkt på `select.value`
+
+| Värde | Text |
+|-------|------|
+| `5`   | B - Öppet |
+| `6`   | A - Avslutat |
+| `8`   | M - Makulerat |
+| `17`  | AH - Avslutat från handläggare |
+
+OK-knapp: `#PlaceHolderMain_MainView_Finish-Button` (type=submit)
+Avbryt: `__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'cancel')`
+
 ## Hur man identifierar att man är på en ärendesida
 ```js
 // Finns detta element → vi är på en ärendesida

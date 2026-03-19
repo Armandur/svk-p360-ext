@@ -51,9 +51,54 @@ async function skickaÅtgärd(action) {
   }
 }
 
+/**
+ * Skickar sätt-status-åtgärd med valt statusvärde.
+ */
+async function skickaStatusÅtgärd() {
+  const statusVärde = document.getElementById('status-val').value;
+
+  let tab;
+  try {
+    [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  } catch {
+    visaFel('Kunde inte hämta aktiv flik.');
+    return;
+  }
+
+  if (!tab.url || !tab.url.startsWith('https://p360.svenskakyrkan.se/')) {
+    visaFel('Öppna ett ärende i 360° innan du använder det här verktyget.');
+    return;
+  }
+
+  let svar;
+  try {
+    [svar] = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: (värde) => {
+        return new Promise((resolve) => {
+          chrome.runtime.sendMessage({ action: 'sättStatus', statusVärde: värde }, resolve);
+        });
+      },
+      args: [statusVärde],
+    });
+  } catch {
+    visaFel('Kunde inte kommunicera med sidan. Är du på en ärendesida?');
+    return;
+  }
+
+  if (svar?.result?.success) {
+    window.close();
+  } else {
+    visaFel(svar?.result?.fel ?? 'Något gick fel. Kontrollera att du är på ett ärende.');
+  }
+}
+
 // Koppla alla knappar via data-action-attributet
 document.querySelectorAll('button[data-action]').forEach((knapp) => {
   knapp.addEventListener('click', () => {
     skickaÅtgärd(knapp.dataset.action);
   });
 });
+
+// Sätt status-knappen har eget flöde med dropdown
+document.getElementById('btn-sätt-status').addEventListener('click', skickaStatusÅtgärd);
