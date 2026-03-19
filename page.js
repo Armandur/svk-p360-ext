@@ -49,36 +49,32 @@ async function triggerDagboksblad() {
     return;
   }
 
-  // Vänta på att popup laddats klart och att Report Viewer-elementet finns.
+  // Vänta på att popup laddats klart och att $find returnerar Report Viewer-instansen.
+  // $find är en global funktion i popup-fönstret (inte i huvudfönstret).
   // Intervall: 300 ms, max timeout: 10 s
-  const redo = await new Promise(resolve => {
+  const rv = await new Promise(resolve => {
     const start = Date.now();
     const check = setInterval(() => {
       try {
-        if (
-          popup.document.readyState === 'complete' &&
-          popup.document.getElementById('ctl00_PlaceHolderMain_MainView_ReportView')
-        ) {
-          clearInterval(check);
-          resolve(true);
-        } else if (Date.now() - start > 10000) {
-          clearInterval(check);
-          resolve(false);
+        if (popup.document.readyState === 'complete' && typeof popup.$find === 'function') {
+          const instans = popup.$find('ctl00_PlaceHolderMain_MainView_ReportView');
+          if (instans) { clearInterval(check); resolve(instans); }
         }
+        if (Date.now() - start > 10000) { clearInterval(check); resolve(null); }
       } catch {
         // Popup stängd eller cross-origin-fel
         clearInterval(check);
-        resolve(false);
+        resolve(null);
       }
     }, 300);
   });
 
-  if (!redo) {
+  if (!rv) {
     alert('Dagboksbladet laddades inte inom rimlig tid.');
     return;
   }
 
-  popup.print();
+  rv.invokePrintDialog();
 }
 
 /**
