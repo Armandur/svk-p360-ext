@@ -109,14 +109,25 @@ async function triggerDagboksblad() {
     }, 150);
   });
 
-  if (pdfUrl) {
-    // Skicka URL:en till content.js som ber background.js öppna den som Chrome-flik.
-    // chrome.tabs.create öppnar PDF:en i Chromes inbyggda PDF-visare (inte Acrobat).
-    window.dispatchEvent(new CustomEvent('p360-öppna-pdf', { detail: { url: pdfUrl } }));
-    popup.close();
-  } else {
+  if (!pdfUrl) {
     alert('Kunde inte hämta PDF:en från dagboksbladet.');
+    return;
   }
+
+  // Hämta PDF:en som blob med sessionscookies – kringgår Content-Disposition: attachment
+  // som servern sätter på .axd-URL:en. Blob-URL:er öppnas alltid inline i Chrome.
+  let blobUrl;
+  try {
+    const resp = await fetch(pdfUrl, { credentials: 'include' });
+    const blob = await resp.blob();
+    blobUrl = URL.createObjectURL(blob);
+  } catch {
+    alert('Kunde inte ladda PDF:en.');
+    return;
+  }
+
+  popup.close();
+  window.open(blobUrl, '_blank');
 }
 
 /**
