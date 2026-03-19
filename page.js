@@ -78,18 +78,29 @@ async function triggerDagboksblad() {
   // och populera download-länkens href med korrekt .axd-URL (inkl. dynamiskt ControlID).
   rv.invokePrintDialog();
 
-  // Polla tills download-länken har ett href (max 8 s) – populeras asynkront
+  // Polla tills en giltig PDF-URL hittas i popup-dokumentet (max 20 s).
+  // Tre strategier i prioritetsordning:
+  //   1. .msrs-printdialog-downloadlink – den normala MSRS-länken
+  //   2. Valfri <a href="...axd..."> – fallback om klassnamnet skiljer sig
+  //   3. <iframe src="...axd...">     – vissa versioner renderar via iframe
   const pdfUrl = await new Promise(resolve => {
     const start = Date.now();
     const check = setInterval(() => {
-      const dl = popup.document.querySelector('.msrs-printdialog-downloadlink');
-      if (dl?.href) {
-        clearInterval(check);
-        resolve(dl.href);
-      } else if (Date.now() - start > 8000) {
-        clearInterval(check);
-        resolve(null);
+      try {
+        const doc = popup.document;
+
+        const dl = doc.querySelector('.msrs-printdialog-downloadlink');
+        if (dl?.href?.includes('.axd')) { clearInterval(check); resolve(dl.href); return; }
+
+        const a = Array.from(doc.querySelectorAll('a')).find(a => a.href?.includes('.axd'));
+        if (a) { clearInterval(check); resolve(a.href); return; }
+
+        const f = Array.from(doc.querySelectorAll('iframe')).find(f => f.src?.includes('.axd'));
+        if (f?.src) { clearInterval(check); resolve(f.src); return; }
+      } catch {
+        // Popup stängd eller tillfälligt cross-origin
       }
+      if (Date.now() - start > 20000) { clearInterval(check); resolve(null); }
     }, 150);
   });
 
