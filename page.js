@@ -74,22 +74,30 @@ async function triggerDagboksblad() {
     return;
   }
 
-  // Anropa invokePrintDialog för att Report Viewer ska bygga upp sin iframe med PDF-URL:en.
-  // URL:en innehåller dynamiskt ControlID, Format=PDF och rc:PrintOnOpen=true.
+  // Anropa invokePrintDialog för att Report Viewer ska rendera utskriftsdialogen
+  // och populera download-länkens href med korrekt .axd-URL (inkl. dynamiskt ControlID).
   rv.invokePrintDialog();
 
-  // Vänta på att iframe-URL:en populeras i DOM:en
-  await sleep(800);
+  // Polla tills download-länken har ett href (max 8 s) – populeras asynkront
+  const pdfUrl = await new Promise(resolve => {
+    const start = Date.now();
+    const check = setInterval(() => {
+      const dl = popup.document.querySelector('.msrs-printdialog-downloadlink');
+      if (dl?.href) {
+        clearInterval(check);
+        resolve(dl.href);
+      } else if (Date.now() - start > 8000) {
+        clearInterval(check);
+        resolve(null);
+      }
+    }, 150);
+  });
 
-  // Hämta iframe:ns src – den pekar på .axd med korrekt ControlID och alla parametrar
-  const iframe = Array.from(popup.document.querySelectorAll('iframe'))
-    .find(f => f.src && f.src.includes('.axd'));
-
-  if (iframe?.src) {
+  if (pdfUrl) {
     // Öppna PDF:en direkt i en ny flik – webbläsarens inbyggda PDF-visare visar den.
     // Chrome blockerar auto-print från programmatiskt öppnade PDF:er, men användaren
     // kan enkelt klicka skrivarikonen i PDF-visaren.
-    window.open(iframe.src, '_blank');
+    window.open(pdfUrl, '_blank');
     popup.close();
   } else {
     alert('Kunde inte hitta PDF-länken.');
