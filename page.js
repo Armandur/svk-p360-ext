@@ -13,59 +13,117 @@ function anropaPostBack(nyckel) {
 }
 
 /**
- * Öppnar "Sätt status"-dialogen och sätter valt statusvärde.
+ * Öppnar "Sätt status"-dialogen via rätt PostBack beroende på URL-format.
+ * Returnerar true om dialogen kunde triggas, annars false.
+ *
+ * 360° har två URL-format med olika PostBack-nycklar:
+ * - /DMS/Case/Details/Simplified/... → CaseDetailActions_EditCaseStatusDialogOperation_POSTBACK
+ * - /view.aspx?id=...                → SetStatusButton_DetailFunctionControl
  */
-async function sättStatus(statusVärde) {
-  // 360° har två URL-format med olika PostBack-nycklar för "Sätt status":
-  // - /DMS/Case/Details/Simplified/... → CaseDetailActions_EditCaseStatusDialogOperation_POSTBACK
-  // - /view.aspx?id=...                → SetStatusButton_DetailFunctionControl
-  const harDetaljerFormat = document.getElementById(
+function triggerSetStatusDialog() {
+  if (document.getElementById(
     'PlaceHolderMain_MainView_CaseDetailActions_EditCaseStatusDialogOperation_POSTBACK'
-  );
-  if (harDetaljerFormat) {
+  )) {
     __doPostBack(
       'ctl00$PlaceHolderMain$MainView$CaseDetailActions_EditCaseStatusDialogOperation_POSTBACK',
       ''
     );
-  } else {
+    return true;
+  }
+  if (document.getElementById(
+    'PlaceHolderMain_MainView_SetStatusButton_DetailFunctionControl'
+  )) {
     __doPostBack(
       'ctl00$PlaceHolderMain$MainView$SetStatusButton_DetailFunctionControl',
       ''
     );
+    return true;
   }
+  return false;
+}
 
-  // Vänta på att iframen med EditCaseStatus laddas färdigt (max 10 s)
-  const iframe = await new Promise((resolve, reject) => {
-    const startTid = Date.now();
-    const kontroll = setInterval(() => {
-      const funnen = Array.from(document.querySelectorAll('iframe'))
-        .find(f => f.src && f.src.includes('EditCaseStatus'));
-      if (funnen && funnen.contentDocument?.readyState === 'complete') {
-        clearInterval(kontroll);
-        resolve(funnen);
-      } else if (Date.now() - startTid > 10000) {
-        clearInterval(kontroll);
-        reject(new Error('Dialogen laddades inte i tid.'));
+/**
+ * Väntar på att en iframe vars src innehåller urlFragment laddas färdigt.
+ * Returnerar iframen eller null vid timeout.
+ */
+function waitForIframe(urlFragment, timeout = 8000) {
+  return new Promise(resolve => {
+    const start = Date.now();
+    const check = setInterval(() => {
+      const f = Array.from(document.querySelectorAll('iframe'))
+        .find(f => f.src?.includes(urlFragment));
+      if (f && f.contentDocument?.readyState === 'complete') {
+        clearInterval(check);
+        resolve(f);
+      } else if (Date.now() - start > timeout) {
+        clearInterval(check);
+        resolve(null);
       }
     }, 200);
   });
+}
 
-  const doc = iframe.contentDocument;
-  const select = doc.getElementById('PlaceHolderMain_MainView_CaseStatusComboControl');
-  if (!select) throw new Error('Hittade inte statusfältet i dialogen.');
+/**
+ * Väntar på att ett element matchar selector inuti ett givet document.
+ * Returnerar elementet eller null vid timeout.
+ */
+function waitForElement(doc, selector, timeout = 3000) {
+  return new Promise(resolve => {
+    const start = Date.now();
+    const check = setInterval(() => {
+      const el = doc.querySelector(selector);
+      if (el) {
+        clearInterval(check);
+        resolve(el);
+      } else if (Date.now() - start > timeout) {
+        clearInterval(check);
+        resolve(null);
+      }
+    }, 100);
+  });
+}
 
-  // Sätt värdet – både via Selectize API och direkt på native select
-  // för att säkerställa att rätt värde skickas vid formulärinlämning
-  if (select.selectize) {
-    select.selectize.setValue(statusVärde);
+function sleep(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+/**
+ * Öppnar "Sätt status"-dialogen och sätter valt statusvärde.
+ *
+ * Statusvärden: '5' = Öppet, '6' = Avslutat, '8' = Makulerat, '17' = Avslutat från handläggare
+ */
+async function sättStatus(statusVärde) {
+  const opened = triggerSetStatusDialog();
+  if (!opened) {
+    alert('Hittade inte "Sätt status"-knappen på den här sidan.');
+    return;
   }
-  select.value = statusVärde;
-  select.dispatchEvent(new Event('change', { bubbles: true }));
 
-  // Kort paus så att Selectize hinner synkronisera internt innan OK klickas
-  await new Promise(r => setTimeout(r, 150));
+  const iframe = await waitForIframe('EditCaseStatus', 8000);
+  if (!iframe) {
+    alert('Dialogen laddades inte inom rimlig tid.');
+    return;
+  }
 
-  doc.getElementById('PlaceHolderMain_MainView_Finish-Button')?.click();
+  const select = await waitForElement(
+    iframe.contentDocument,
+    '#PlaceHolderMain_MainView_CaseStatusComboControl',
+    3000
+  );
+  if (!select || !select.selectize) {
+    alert('Statusfältet hittades inte.');
+    return;
+  }
+
+  select.selectize.setValue(statusVärde);
+  await sleep(400);
+
+  const okBtn = iframe.contentDocument.getElementById('PlaceHolderMain_MainView_Finish-Button');
+  if (!okBtn) {
+    alert('OK-knappen hittades inte.');
+    return;
+  }
+  okBtn.click();
 }
 
 // Tar emot anrop från content.js och skickar tillbaka svar
