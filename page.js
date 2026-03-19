@@ -110,8 +110,9 @@ async function triggerDagboksblad() {
   });
 
   if (pdfUrl) {
-    // Öppna PDF:en i en ny flik – användaren klickar skrivarikonen i PDF-visaren
-    window.open(pdfUrl, '_blank');
+    // Skicka URL:en till content.js som ber background.js öppna den som Chrome-flik.
+    // chrome.tabs.create öppnar PDF:en i Chromes inbyggda PDF-visare (inte Acrobat).
+    window.dispatchEvent(new CustomEvent('p360-öppna-pdf', { detail: { url: pdfUrl } }));
     popup.close();
   } else {
     alert('Kunde inte hämta PDF:en från dagboksbladet.');

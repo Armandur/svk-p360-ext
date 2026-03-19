@@ -29,6 +29,11 @@ function anropaSidan(action, data = {}) {
   });
 }
 
+// Tar emot PDF-URL från page.js och ber background.js öppna den som Chrome-flik
+window.addEventListener('p360-öppna-pdf', (event) => {
+  chrome.runtime.sendMessage({ action: 'öppnaPdf', url: event.detail.url });
+});
+
 // Tar emot meddelanden från popup.js
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (!ärPåÄrendesida()) {

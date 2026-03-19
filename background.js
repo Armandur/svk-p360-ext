@@ -1,6 +1,13 @@
 // background.js – service worker (MV3)
 // Lyssnar på tangentbordskommandon och vidarebefordrar dem till content.js.
 
+// Öppnar PDF-URL som en ny Chrome-flik (inbyggd PDF-visare, inte Acrobat)
+chrome.runtime.onMessage.addListener((request) => {
+  if (request.action === 'öppnaPdf' && request.url) {
+    chrome.tabs.create({ url: request.url });
+  }
+});
+
 chrome.commands.onCommand.addListener(async (command) => {
   if (command !== 'dagboksblad-skriv-ut') return;
 
