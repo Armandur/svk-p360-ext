@@ -3,7 +3,7 @@
   "name": "360° Svenska kyrkan – Hjälptillägg",
   "version": "1.0",
   "description": "Automatiserar repetitiva åtgärder i 360° för Svenska kyrkan. Fungerar i Chrome och Edge.",
-  "permissions": ["activeTab", "scripting"],
+  "permissions": ["activeTab", "scripting", "tabs"],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
