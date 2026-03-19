@@ -16,10 +16,23 @@ function anropaPostBack(nyckel) {
  * Öppnar "Sätt status"-dialogen och sätter valt statusvärde.
  */
 async function sättStatus(statusVärde) {
-  __doPostBack(
-    'ctl00$PlaceHolderMain$MainView$CaseDetailActions_EditCaseStatusDialogOperation_POSTBACK',
-    ''
+  // 360° har två URL-format med olika PostBack-nycklar för "Sätt status":
+  // - /DMS/Case/Details/Simplified/... → CaseDetailActions_EditCaseStatusDialogOperation_POSTBACK
+  // - /view.aspx?id=...                → SetStatusButton_DetailFunctionControl
+  const harDetaljerFormat = document.getElementById(
+    'PlaceHolderMain_MainView_CaseDetailActions_EditCaseStatusDialogOperation_POSTBACK'
   );
+  if (harDetaljerFormat) {
+    __doPostBack(
+      'ctl00$PlaceHolderMain$MainView$CaseDetailActions_EditCaseStatusDialogOperation_POSTBACK',
+      ''
+    );
+  } else {
+    __doPostBack(
+      'ctl00$PlaceHolderMain$MainView$SetStatusButton_DetailFunctionControl',
+      ''
+    );
+  }
 
   // Vänta på att iframen med EditCaseStatus laddas färdigt (max 10 s)
   const iframe = await new Promise((resolve, reject) => {

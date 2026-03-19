@@ -41,14 +41,23 @@ __doPostBack('ctl00$PlaceHolderMain$MainView$MainContextMenu_DropDownMenu', '<ny
 
 ## Sätt status (dialog)
 
-Öppnas via dold länk – **inte** via MainContextMenu:
+360° har **två URL-format** med olika PostBack-nycklar. Detektera via element-ID:
+
+| URL-format | PostBack-nyckel |
+|-----------|----------------|
+| `/DMS/Case/Details/Simplified/...` | `CaseDetailActions_EditCaseStatusDialogOperation_POSTBACK` |
+| `/view.aspx?id=...` (stängda ärenden) | `SetStatusButton_DetailFunctionControl` |
+
 ```js
-__doPostBack(
-  'ctl00$PlaceHolderMain$MainView$CaseDetailActions_EditCaseStatusDialogOperation_POSTBACK',
-  ''
-)
+// Detektera format och anropa rätt PostBack
+const harDetaljerFormat = document.getElementById(
+  'PlaceHolderMain_MainView_CaseDetailActions_EditCaseStatusDialogOperation_POSTBACK'
+);
+const nyckel = harDetaljerFormat
+  ? 'ctl00$PlaceHolderMain$MainView$CaseDetailActions_EditCaseStatusDialogOperation_POSTBACK'
+  : 'ctl00$PlaceHolderMain$MainView$SetStatusButton_DetailFunctionControl';
+__doPostBack(nyckel, '');
 ```
-Element-ID för länken: `PlaceHolderMain_MainView_CaseDetailActions_EditCaseStatusDialogOperation_POSTBACK`
 
 Dialogen laddas som en **iframe** (`/locator/DMS/Dialog/EditCaseStatus`).
 Statusfältet är ett `<select>` med Selectize.js som UI-lager:
