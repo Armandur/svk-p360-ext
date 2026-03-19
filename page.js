@@ -21,23 +21,11 @@ function anropaPostBack(nyckel) {
  */
 async function triggerDagboksblad() {
   // Patcha window.open för att fånga popup-referensen.
-  // Om URL:en innehåller "Innehallsforteckning" stryps standalone=true bort så att
-  // rapporten laddas utan 360°:s navigationsskal – då räcker det att vänta på
-  // readyState === 'complete' utan att behöva invänta Report Viewer-komponenten.
   // Återställs direkt vid första anropet så att övrig kod inte påverkas.
   let popup = null;
   const originalOpen = window.open;
   window.open = function (url, ...rest) {
     window.open = originalOpen;
-    if (typeof url === 'string' && url.includes('Innehallsforteckning')) {
-      try {
-        const u = new URL(url, location.origin);
-        u.searchParams.delete('standalone');
-        url = u.pathname + u.search + u.hash;
-      } catch {
-        // URL-parsning misslyckades, använd url oförändrad
-      }
-    }
     popup = originalOpen.call(window, url, ...rest);
     return popup;
   };
@@ -61,14 +49,16 @@ async function triggerDagboksblad() {
     return;
   }
 
-  // Vänta på att popup laddats klart.
-  // Utan standalone=true laddas enbart rapporten, så readyState === 'complete' räcker.
+  // Vänta på att popup laddats klart och att Report Viewer-elementet finns.
   // Intervall: 300 ms, max timeout: 10 s
   const redo = await new Promise(resolve => {
     const start = Date.now();
     const check = setInterval(() => {
       try {
-        if (popup.document.readyState === 'complete') {
+        if (
+          popup.document.readyState === 'complete' &&
+          popup.document.getElementById('ctl00_PlaceHolderMain_MainView_ReportView')
+        ) {
           clearInterval(check);
           resolve(true);
         } else if (Date.now() - start > 10000) {
