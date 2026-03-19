@@ -31,6 +31,9 @@ async function hämtaAktivFlik() {
 /**
  * Skickar ett meddelande till content.js via tabs.sendMessage och
  * hanterar svaret. Stänger popupen vid lyckat resultat.
+ *
+ * Om content.js inte är aktivt (t.ex. direkt efter sidladdning) injiceras
+ * scripts programmatiskt och ett nytt försök görs automatiskt.
  */
 async function skicka(meddelande) {
   const tab = await hämtaAktivFlik();
@@ -40,8 +43,25 @@ async function skicka(meddelande) {
   try {
     svar = await chrome.tabs.sendMessage(tab.id, meddelande);
   } catch {
-    visaFel('Kunde inte kommunicera med sidan. Prova att ladda om fliken.');
-    return;
+    // Content script saknas – injicera och försök en gång till
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['page.js'],
+        world: 'MAIN',
+      });
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['content.js'],
+        world: 'ISOLATED',
+      });
+      // Ge scripts tid att registrera sina lyssnare
+      await new Promise(r => setTimeout(r, 300));
+      svar = await chrome.tabs.sendMessage(tab.id, meddelande);
+    } catch {
+      visaFel('Kunde inte kommunicera med sidan. Prova att ladda om fliken.');
+      return;
+    }
   }
 
   if (svar?.success) {

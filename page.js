@@ -244,6 +244,10 @@ async function sättStatus(statusVärde) {
   okBtn.click();
 }
 
+// Skydda mot dubbel-registrering vid programmatisk återinjicering
+if (!window.__p360Initierat) {
+  window.__p360Initierat = true;
+
 // Tar emot anrop från content.js och skickar tillbaka svar
 window.addEventListener('p360-anrop', async (event) => {
   const { id, action, data } = event.detail;
@@ -274,3 +278,4 @@ window.addEventListener('p360-anrop', async (event) => {
     window.dispatchEvent(new CustomEvent('p360-svar', { detail: { id, success: false, fel: err.message } }));
   }
 });
+} // slut: window.__p360Initierat
