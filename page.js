@@ -13,6 +13,79 @@ function anropaPostBack(nyckel) {
 }
 
 /**
+ * Öppnar dagboksbladet och triggar webbläsarens utskriftsdialog automatiskt.
+ *
+ * 360° öppnar rapporten via window.open med en URL som innehåller "Innehallsforteckning".
+ * Vi fångar popup-referensen genom att tillfälligt patcha window.open, och väntar sedan
+ * på att Report Viewer-elementet laddats klart innan popup.print() anropas.
+ */
+async function triggerDagboksblad() {
+  // Patcha window.open för att fånga popup-referensen.
+  // Om URL:en innehåller "Innehallsforteckning" stryps standalone=true bort så att
+  // rapporten laddas utan 360°:s navigationsskal – då räcker det att vänta på
+  // readyState === 'complete' utan att behöva invänta Report Viewer-komponenten.
+  // Återställs direkt vid första anropet så att övrig kod inte påverkas.
+  let popup = null;
+  const originalOpen = window.open;
+  window.open = function (url, ...rest) {
+    window.open = originalOpen;
+    if (typeof url === 'string' && url.includes('Innehallsforteckning')) {
+      url = url.replace(/[&?]standalone=true/i, '').replace(/standalone=true[&]?/i, '');
+    }
+    popup = originalOpen.call(window, url, ...rest);
+    return popup;
+  };
+
+  anropaPostBack('key_innehallsforteckning');
+
+  // Vänta tills window.open anropats (max 5 s) – sker via PostBack-svar
+  const väntatPåOpen = await new Promise(resolve => {
+    const start = Date.now();
+    const check = setInterval(() => {
+      if (popup !== null) { clearInterval(check); resolve(true); }
+      else if (Date.now() - start > 5000) {
+        window.open = originalOpen; // säkerställ återställning vid timeout
+        clearInterval(check); resolve(false);
+      }
+    }, 100);
+  });
+
+  if (!väntatPåOpen || !popup) {
+    alert('Dagboksbladsfönstret öppnades inte. Kontrollera att popup-fönster är tillåtna i webbläsaren.');
+    return;
+  }
+
+  // Vänta på att popup laddats klart.
+  // Utan standalone=true laddas enbart rapporten, så readyState === 'complete' räcker.
+  // Intervall: 300 ms, max timeout: 10 s
+  const redo = await new Promise(resolve => {
+    const start = Date.now();
+    const check = setInterval(() => {
+      try {
+        if (popup.document.readyState === 'complete') {
+          clearInterval(check);
+          resolve(true);
+        } else if (Date.now() - start > 10000) {
+          clearInterval(check);
+          resolve(false);
+        }
+      } catch {
+        // Popup stängd eller cross-origin-fel
+        clearInterval(check);
+        resolve(false);
+      }
+    }, 300);
+  });
+
+  if (!redo) {
+    alert('Dagboksbladet laddades inte inom rimlig tid.');
+    return;
+  }
+
+  popup.print();
+}
+
+/**
  * Öppnar "Sätt status"-dialogen via rätt PostBack beroende på URL-format.
  * Returnerar true om dialogen kunde triggas, annars false.
  *
@@ -144,6 +217,8 @@ window.addEventListener('p360-anrop', async (event) => {
   try {
     if (action === 'sättStatus') {
       await sättStatus(data.statusVärde);
+    } else if (action === 'dagboksblad') {
+      await triggerDagboksblad();
     } else if (postbackNycklar[action]) {
       anropaPostBack(postbackNycklar[action]);
     } else {
