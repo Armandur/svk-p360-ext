@@ -39,6 +39,42 @@ __doPostBack('ctl00$PlaceHolderMain$MainView$MainContextMenu_DropDownMenu', '<ny
 | `OrderCaseSummary` | Producera ärendesammanfattning |
 | `AddProgressPlan` | Tilldela processplan |
 
+## Sätt status (dialog)
+
+360° har **två URL-format** med olika PostBack-nycklar. Detektera via element-ID:
+
+| URL-format | PostBack-nyckel |
+|-----------|----------------|
+| `/DMS/Case/Details/Simplified/...` | `CaseDetailActions_EditCaseStatusDialogOperation_POSTBACK` |
+| `/view.aspx?id=...` (stängda ärenden) | `SetStatusButton_DetailFunctionControl` |
+
+```js
+// Detektera format och anropa rätt PostBack
+const harDetaljerFormat = document.getElementById(
+  'PlaceHolderMain_MainView_CaseDetailActions_EditCaseStatusDialogOperation_POSTBACK'
+);
+const nyckel = harDetaljerFormat
+  ? 'ctl00$PlaceHolderMain$MainView$CaseDetailActions_EditCaseStatusDialogOperation_POSTBACK'
+  : 'ctl00$PlaceHolderMain$MainView$SetStatusButton_DetailFunctionControl';
+__doPostBack(nyckel, '');
+```
+
+Dialogen laddas som en **iframe** (`/locator/DMS/Dialog/EditCaseStatus`).
+Statusfältet är ett `<select>` med Selectize.js som UI-lager:
+- Native select: `select#PlaceHolderMain_MainView_CaseStatusComboControl`
+- Sätt värde via `select.selectize.setValue(value)` om Selectize är initialiserat,
+  annars direkt på `select.value`
+
+| Värde | Text |
+|-------|------|
+| `5`   | B - Öppet |
+| `6`   | A - Avslutat |
+| `8`   | M - Makulerat |
+| `17`  | AH - Avslutat från handläggare |
+
+OK-knapp: `#PlaceHolderMain_MainView_Finish-Button` (type=submit)
+Avbryt: `__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'cancel')`
+
 ## Hur man identifierar att man är på en ärendesida
 ```js
 // Finns detta element → vi är på en ärendesida
@@ -50,13 +86,56 @@ document.getElementById(
 window.location.pathname.includes('/DMS/Case/Details/')
 ```
 
+## Dagboksblad – utskrift via Report Viewer
+
+Dagboksbladet öppnas via PostBack-nyckeln `key_innehallsforteckning`. 360° anropar
+`window.open()` med en URL till en rapport-sida som innehåller Microsoft Report Services
+(MSRS) Report Viewer.
+
+### Flöde i `triggerDagboksblad()` (page.js)
+
+1. **Fånga popup-referensen** – `window.open` patchas tillfälligt för att fånga
+   fönsterobjektet som 360° skapar. Återställs direkt efter första anropet.
+
+2. **Vänta på Report Viewer** – Polla tills `popup.$find('ctl00_PlaceHolderMain_MainView_ReportView')`
+   returnerar en instans (max 10 s). `$find` är en global ASP.NET-funktion i popup-fönstret.
+
+3. **Visa utskriftsdialogen** – `rv.invokePrintDialog()` renderar MSRS utskriftsdialog
+   i popup-fönstret. Dialogen innehåller:
+   - `.msrs-printdialog-divprintbutton` – den röda Print-knappen
+   - `.msrs-printdialog-downloadlink` – en `<a href="" download="">` med **tom** href
+
+4. **Klicka Print-knappen** – `.msrs-printdialog-divprintbutton` klickas programmatiskt.
+   Därefter populerar MSRS `href` på download-länken med en URL till
+   `/Reserved.ReportViewerWebControl.axd` med dynamiskt `ControlID` och `rc:PrintOnOpen=true`.
+
+5. **Polla tills href finns** – När `.msrs-printdialog-downloadlink` har ett `href`
+   som innehåller `.axd` är PDF:en redo (max 20 s).
+
+6. **Hämta som blob** – `fetch(pdfUrl, { credentials: 'include' })` hämtar PDF:en med
+   sessionscookies. Servern sätter `Content-Disposition: attachment` vilket tvingar
+   nedladdning om URL:en öppnas direkt. Blob-URL saknar detta header.
+
+7. **Öppna i Chrome** – `URL.createObjectURL(blob)` skapar en blob-URL som öppnas med
+   `window.open(blobUrl, '_blank')`. Chrome öppnar blob-URL:er alltid i inbyggd PDF-visare.
+
+### Kända begränsningar
+
+- Popup-fönster måste vara tillåtna för `p360.svenskakyrkan.se` i Chrome.
+- Tillägget måste laddas om (`chrome://extensions`) efter kodändringar för att
+  content scripts och service worker ska uppdateras.
+- Snabbkommando: **Alt+Shift+D** (konfigurerbart via `chrome://extensions/shortcuts`)
+
 ## Projektstruktur
 ```
 /
 ├── manifest.json          # Chrome Manifest V3
 ├── popup.html             # Tilläggets popup-UI
 ├── popup.js               # Logik för popup-knappar
-├── content.js             # Injiceras på p360.svenskakyrkan.se
+├── content.js             # Injiceras på p360.svenskakyrkan.se (ISOLATED world)
+├── page.js                # Injiceras i sidans eget scope (MAIN world) – har tillgång
+│                          # till sidans globala JS-funktioner (t.ex. __doPostBack)
+├── background.js          # Service worker – hanterar tangentbordskommandon
 ├── icons/
 │   ├── icon16.png
 │   ├── icon48.png

@@ -1,0 +1,52 @@
+name: Bygg tillägg
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - 'claude/**'
+
+jobs:
+  bygg:
+    name: Paketera tillägg
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Hämta kod
+        uses: actions/checkout@v4
+
+      - name: Läs version från manifest.json
+        id: version
+        run: |
+          VERSION=$(jq -r '.version' manifest.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Skapa zip
+        run: |
+          zip -r extension.zip . \
+            --exclude "*.git*" \
+            --exclude ".github/*" \
+            --exclude "CLAUDE.md"
+
+      # --- Utvecklingsbygge (dev / claude/**) ---
+      - name: Ladda upp som artefakt (utvecklingsbygge)
+        if: github.ref_name != 'main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tillagg-dev-${{ github.sha }}
+          path: extension.zip
+          retention-days: 14
+
+      # --- Release (main) ---
+      - name: Skapa GitHub Release
+        if: github.ref_name == 'main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Version ${{ steps.version.outputs.version }}
+          body: |
+            Automatiskt byggd release från main.
+            Ladda in `extension.zip` som ett okomprimerat tillägg i Chrome eller Edge.
+          files: extension.zip
+          fail_on_unmatched_files: true

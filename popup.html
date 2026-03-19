@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <title>360° Hjälptillägg</title>
+  <style>
+    body {
+      min-width: 220px;
+      padding: 12px;
+      font-family: sans-serif;
+      font-size: 14px;
+    }
+    h3 {
+      margin: 0 0 10px 0;
+      font-size: 15px;
+      color: #333;
+    }
+    .grupp {
+      margin-bottom: 10px;
+    }
+    .grupp-rubrik {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #888;
+      margin-bottom: 4px;
+    }
+    button {
+      width: 100%;
+      padding: 7px 10px;
+      margin: 2px 0;
+      cursor: pointer;
+      background: #f5f5f5;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      text-align: left;
+      font-size: 13px;
+    }
+    button:hover {
+      background: #e8e8e8;
+    }
+    .status-rad {
+      display: flex;
+      gap: 4px;
+      margin: 2px 0;
+    }
+    .status-rad select {
+      flex: 1;
+      padding: 6px 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 13px;
+      background: #f5f5f5;
+    }
+    .status-rad button {
+      width: auto;
+      flex-shrink: 0;
+      margin: 0;
+    }
+    #felmeddelande {
+      display: none;
+      margin-top: 8px;
+      padding: 6px 8px;
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #856404;
+    }
+  </style>
+</head>
+<body>
+  <h3>360° Verktyg</h3>
+
+  <div class="grupp">
+    <div class="grupp-rubrik">Dagbok</div>
+    <button data-action="dagboksblad">Dagboksblad</button>
+  </div>
+
+  <div class="grupp">
+    <div class="grupp-rubrik">Status</div>
+    <div class="status-rad">
+      <select id="status-val">
+        <option value="5">B - Öppet</option>
+        <option value="6">A - Avslutat</option>
+        <option value="17">AH - Avslutat från handläggare</option>
+        <option value="8">M - Makulerat</option>
+      </select>
+      <button id="btn-sätt-status">Sätt status</button>
+    </div>
+  </div>
+
+  <div class="grupp">
+    <div class="grupp-rubrik">Ärendefunktioner</div>
+    <button data-action="redigeraEgenskaper">Redigera egenskaper</button>
+    <button data-action="registreraUtlaning">Registrera utlåning</button>
+    <button data-action="gallring">Gallring</button>
+    <button data-action="sparaSomNytt">Spara som nytt ärende</button>
+    <button data-action="kopieraHyperlank">Kopiera hyperlänk</button>
+    <button data-action="arendesammanfattning">Ärendesammanfattning</button>
+    <button data-action="processplan">Tilldela processplan</button>
+  </div>
+
+  <div id="felmeddelande"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
