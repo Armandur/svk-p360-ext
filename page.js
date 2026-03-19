@@ -74,7 +74,20 @@ async function triggerDagboksblad() {
     return;
   }
 
+  // Anropa invokePrintDialog för att bygga upp länken i DOM
   rv.invokePrintDialog();
+
+  // Vänta på att länken populeras (synkront anrop, men DOM-uppdatering tar en liten stund)
+  await sleep(800);
+
+  // Klicka download-länken direkt – PDF:en öppnas med rc:PrintOnOpen=true
+  // vilket gör att webbläsarens utskriftsdialog visas automatiskt
+  const dl = popup.document.querySelector('.msrs-printdialog-downloadlink');
+  if (dl?.href) {
+    dl.click();
+  } else {
+    alert('Kunde inte hitta utskriftslänken.');
+  }
 }
 
 /**
