@@ -86,13 +86,56 @@ document.getElementById(
 window.location.pathname.includes('/DMS/Case/Details/')
 ```
 
+## Dagboksblad – utskrift via Report Viewer
+
+Dagboksbladet öppnas via PostBack-nyckeln `key_innehallsforteckning`. 360° anropar
+`window.open()` med en URL till en rapport-sida som innehåller Microsoft Report Services
+(MSRS) Report Viewer.
+
+### Flöde i `triggerDagboksblad()` (page.js)
+
+1. **Fånga popup-referensen** – `window.open` patchas tillfälligt för att fånga
+   fönsterobjektet som 360° skapar. Återställs direkt efter första anropet.
+
+2. **Vänta på Report Viewer** – Polla tills `popup.$find('ctl00_PlaceHolderMain_MainView_ReportView')`
+   returnerar en instans (max 10 s). `$find` är en global ASP.NET-funktion i popup-fönstret.
+
+3. **Visa utskriftsdialogen** – `rv.invokePrintDialog()` renderar MSRS utskriftsdialog
+   i popup-fönstret. Dialogen innehåller:
+   - `.msrs-printdialog-divprintbutton` – den röda Print-knappen
+   - `.msrs-printdialog-downloadlink` – en `<a href="" download="">` med **tom** href
+
+4. **Klicka Print-knappen** – `.msrs-printdialog-divprintbutton` klickas programmatiskt.
+   Därefter populerar MSRS `href` på download-länken med en URL till
+   `/Reserved.ReportViewerWebControl.axd` med dynamiskt `ControlID` och `rc:PrintOnOpen=true`.
+
+5. **Polla tills href finns** – När `.msrs-printdialog-downloadlink` har ett `href`
+   som innehåller `.axd` är PDF:en redo (max 20 s).
+
+6. **Hämta som blob** – `fetch(pdfUrl, { credentials: 'include' })` hämtar PDF:en med
+   sessionscookies. Servern sätter `Content-Disposition: attachment` vilket tvingar
+   nedladdning om URL:en öppnas direkt. Blob-URL saknar detta header.
+
+7. **Öppna i Chrome** – `URL.createObjectURL(blob)` skapar en blob-URL som öppnas med
+   `window.open(blobUrl, '_blank')`. Chrome öppnar blob-URL:er alltid i inbyggd PDF-visare.
+
+### Kända begränsningar
+
+- Popup-fönster måste vara tillåtna för `p360.svenskakyrkan.se` i Chrome.
+- Tillägget måste laddas om (`chrome://extensions`) efter kodändringar för att
+  content scripts och service worker ska uppdateras.
+- Snabbkommando: **Alt+Shift+D** (konfigurerbart via `chrome://extensions/shortcuts`)
+
 ## Projektstruktur
 ```
 /
 ├── manifest.json          # Chrome Manifest V3
 ├── popup.html             # Tilläggets popup-UI
 ├── popup.js               # Logik för popup-knappar
-├── content.js             # Injiceras på p360.svenskakyrkan.se
+├── content.js             # Injiceras på p360.svenskakyrkan.se (ISOLATED world)
+├── page.js                # Injiceras i sidans eget scope (MAIN world) – har tillgång
+│                          # till sidans globala JS-funktioner (t.ex. __doPostBack)
+├── background.js          # Service worker – hanterar tangentbordskommandon
 ├── icons/
 │   ├── icon16.png
 │   ├── icon48.png
