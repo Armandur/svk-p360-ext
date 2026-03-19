@@ -16,6 +16,11 @@
     {
       "matches": ["https://p360.svenskakyrkan.se/*"],
       "js": ["content.js"]
+    },
+    {
+      "matches": ["https://p360.svenskakyrkan.se/*"],
+      "js": ["page.js"],
+      "world": "MAIN"
     }
   ]
 }
