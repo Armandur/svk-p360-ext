@@ -1,9 +1,19 @@
-// content.js – injiceras på p360.svenskakyrkan.se
-// Tillhandahåller hjälpfunktioner som anropas från popup.js via chrome.scripting
+// content.js – injiceras på p360.svenskakyrkan.se (körs i isolerat scope)
+// Sidans egna JS-funktioner (t.ex. __doPostBack) nås via script-injektion i sidans DOM.
+
+/**
+ * Injicerar och kör JavaScript-kod i sidans eget scope (MAIN world).
+ * Används för att anropa sidfunktioner som __doPostBack och Selectize.
+ */
+function körIPageScope(kod, doc = document) {
+  const script = doc.createElement('script');
+  script.textContent = kod;
+  doc.documentElement.appendChild(script);
+  script.remove();
+}
 
 /**
  * Kontrollerar om den aktiva sidan är en ärendesida i 360°.
- * Returnerar true om dagboksblad-länken finns i DOM.
  */
 function ärPåÄrendesida() {
   return !!document.getElementById(
@@ -12,28 +22,27 @@ function ärPåÄrendesida() {
 }
 
 /**
- * Anropar __doPostBack med given nyckel.
- * Förutsätter att vi är på en ärendesida.
+ * Triggar en åtgärd via huvudmenyn i 360° (MainContextMenu).
  */
 function anropaPostBack(nyckel) {
-  // __doPostBack är global på alla 360°-sidor (ASP.NET WebForms)
-  // eslint-disable-next-line no-undef
-  __doPostBack(
-    'ctl00$PlaceHolderMain$MainView$MainContextMenu_DropDownMenu',
-    nyckel
+  körIPageScope(
+    `__doPostBack(
+      'ctl00$PlaceHolderMain$MainView$MainContextMenu_DropDownMenu',
+      ${JSON.stringify(nyckel)}
+    )`
   );
 }
 
 /**
  * Öppnar "Sätt status"-dialogen (iframe) och väljer angett statusvärde.
- * Dialogen laddas asynkront, så vi pollar tills iframen är redo.
  */
 async function sättStatus(statusVärde) {
-  // Öppna dialogen via dold PostBack-länk (ej MainContextMenu)
-  // eslint-disable-next-line no-undef
-  __doPostBack(
-    'ctl00$PlaceHolderMain$MainView$CaseDetailActions_EditCaseStatusDialogOperation_POSTBACK',
-    ''
+  // Öppna dialogen – anropas via en dold länk, inte MainContextMenu
+  körIPageScope(
+    `__doPostBack(
+      'ctl00$PlaceHolderMain$MainView$CaseDetailActions_EditCaseStatusDialogOperation_POSTBACK',
+      ''
+    )`
   );
 
   // Vänta på att iframen med EditCaseStatus laddas färdigt (max 10 s)
@@ -53,21 +62,24 @@ async function sättStatus(statusVärde) {
   });
 
   const doc = iframe.contentDocument;
-  const select = doc.getElementById('PlaceHolderMain_MainView_CaseStatusComboControl');
-
-  if (!select) {
+  if (!doc.getElementById('PlaceHolderMain_MainView_CaseStatusComboControl')) {
     throw new Error('Hittade inte statusfältet i dialogen.');
   }
 
-  // Selectize.js wrapprar native select – sätt värdet via API:et om möjligt
-  if (select.selectize) {
-    select.selectize.setValue(statusVärde);
-  } else {
-    select.value = statusVärde;
-  }
-
-  // Klicka OK-knappen för att spara
-  doc.getElementById('PlaceHolderMain_MainView_Finish-Button')?.click();
+  // Sätt värdet via Selectize.js (körs i iframens page scope) och klicka OK
+  körIPageScope(
+    `(function() {
+      var select = document.getElementById('PlaceHolderMain_MainView_CaseStatusComboControl');
+      if (select && select.selectize) {
+        select.selectize.setValue(${JSON.stringify(statusVärde)});
+      } else if (select) {
+        select.value = ${JSON.stringify(statusVärde)};
+      }
+      var okKnapp = document.getElementById('PlaceHolderMain_MainView_Finish-Button');
+      if (okKnapp) okKnapp.click();
+    })()`,
+    doc
+  );
 }
 
 // Lyssnar på meddelanden från popup.js
@@ -77,7 +89,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return;
   }
 
-  // Sätt status är ett asynkront flöde med iframe
   if (request.action === 'sättStatus') {
     sättStatus(request.statusVärde)
       .then(() => sendResponse({ success: true }))
