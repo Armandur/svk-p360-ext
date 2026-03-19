@@ -131,143 +131,102 @@ async function triggerDagboksblad() {
 }
 
 /**
- * Öppnar "Sätt status"-dialogen via rätt PostBack beroende på URL-format.
- * Returnerar true om dialogen kunde triggas, annars false.
+ * Sätter status på ärendet direkt via HTTP GET + POST mot dialog-URL:en,
+ * utan att öppna den synliga dialogen. Laddar om sidan efter lyckat sparande.
  *
- * 360° har två URL-format med olika PostBack-nycklar:
- * - /DMS/Case/Details/Simplified/... → CaseDetailActions_EditCaseStatusDialogOperation_POSTBACK
- * - /view.aspx?id=...                → SetStatusButton_DetailFunctionControl
- */
-function triggerSetStatusDialog() {
-  if (document.getElementById(
-    'PlaceHolderMain_MainView_CaseDetailActions_EditCaseStatusDialogOperation_POSTBACK'
-  )) {
-    __doPostBack(
-      'ctl00$PlaceHolderMain$MainView$CaseDetailActions_EditCaseStatusDialogOperation_POSTBACK',
-      ''
-    );
-    return true;
-  }
-  if (document.getElementById(
-    'PlaceHolderMain_MainView_SetStatusButton_DetailFunctionControl'
-  )) {
-    __doPostBack(
-      'ctl00$PlaceHolderMain$MainView$SetStatusButton_DetailFunctionControl',
-      ''
-    );
-    return true;
-  }
-  return false;
-}
-
-/**
- * Väntar på att en iframe vars src innehåller urlFragment laddas färdigt.
- * Returnerar iframen eller null vid timeout.
- *
- * Kräver att vi sett readyState === 'loading' INNAN vi accepterar 'complete',
- * för att undvika att snappa upp ett gammalt complete-state från föregående
- * dialogvisning (race condition).
- */
-function waitForIframe(urlFragment, timeout = 8000) {
-  return new Promise(resolve => {
-    const start = Date.now();
-    let hittadeLaddning = false;
-
-    const check = setInterval(() => {
-      const f = Array.from(document.querySelectorAll('iframe'))
-        .find(f => { try { return f.src?.includes(urlFragment); } catch { return false; } });
-
-      if (f) {
-        const state = f.contentDocument?.readyState;
-        if (state === 'loading' || state === 'interactive') {
-          hittadeLaddning = true;
-        }
-        // Acceptera 'complete' bara om vi redan sett 'loading' för den här iframen
-        if (hittadeLaddning && state === 'complete') {
-          clearInterval(check);
-          resolve(f);
-        }
-      }
-
-      if (Date.now() - start > timeout) {
-        clearInterval(check);
-        resolve(null);
-      }
-    }, 100); // tätare polling (200→100 ms) för att inte missa loading-state
-  });
-}
-
-/**
- * Väntar på att ett element matchar selector inuti ett givet document.
- * Returnerar elementet eller null vid timeout.
- */
-function waitForElement(doc, selector, timeout = 3000) {
-  return new Promise(resolve => {
-    const start = Date.now();
-    const check = setInterval(() => {
-      const el = doc.querySelector(selector);
-      if (el) {
-        clearInterval(check);
-        resolve(el);
-      } else if (Date.now() - start > timeout) {
-        clearInterval(check);
-        resolve(null);
-      }
-    }, 100);
-  });
-}
-
-function sleep(ms) {
-  return new Promise(r => setTimeout(r, ms));
-}
-
-/**
- * Öppnar "Sätt status"-dialogen och sätter valt statusvärde.
+ * Flöde:
+ *   1. GET dialog-URL → hämtar formulär med VIEWSTATE och alla dolda fält
+ *   2. POST tillbaka med nytt statusvärde + simulerat OK-klick
+ *   3. Kontrollera att svaret innehåller commonModalDialogClose → ladda om sidan
  *
  * Statusvärden: '5' = Öppet, '6' = Avslutat, '8' = Makulerat, '17' = Avslutat från handläggare
  */
 async function sättStatus(statusVärde) {
-  const opened = triggerSetStatusDialog();
-  if (!opened) {
-    alert('Hittade inte "Sätt status"-knappen på den här sidan.');
+  const params = new URLSearchParams(window.location.search);
+  const recno = params.get('recno');
+  if (!recno) {
+    alert('Kunde inte läsa ärendets recno från URL:en.');
     return;
   }
 
-  const iframe = await waitForIframe('EditCaseStatus', 8000);
-  if (!iframe) {
-    alert('Dialogen laddades inte inom rimlig tid.');
+  // Extrahera subtype från query-parametern eller URL-sökvägen
+  const subtype = params.get('subtype') ||
+    window.location.pathname.match(/Simplified\/([^/?]+)/)?.[1] || '';
+
+  // UUID för dialog-vyn "Sätt status" i P360 (troligen stabil för Svenska kyrkan).
+  const dialogUuid = '886CBB26-06CA-4BDB-B3F7-09D19094B426';
+
+  const kontextData = [
+    `subtype,Primary,${subtype}`,
+    `recno,Primary,${recno}`,
+    `dialogHeight,Primary,450px`,
+    `dialogCaption,Primary,Sätt status`,
+    `dialogTitle,Primary,360°`,
+    `dialog,Primary,modal`,
+    `dialogOpenMode,Primary,spdialog`,
+    `dialogCloseMode,Primary,spdialog`,
+    `IsDlg,Primary,1`,
+    `name,Primary,DMS.Dialog.EditCaseStatus`,
+  ].join(';');
+
+  const dialogUrl = `/view.aspx?id=${dialogUuid}` +
+    `&dialogmode=true&IsDlg=1&dialogOpenMode=spdialog&dialogHeight=450px` +
+    `&dialogTitle=360%c2%b0&dialog=modal&dialogCloseMode=spdialog` +
+    `&context-data=${encodeURIComponent(kontextData)}`;
+
+  // Steg 1: GET – hämta formuläret med VIEWSTATE och alla dolda fält
+  let html;
+  try {
+    const svar = await fetch(dialogUrl, { credentials: 'include' });
+    if (!svar.ok) throw new Error(`HTTP ${svar.status}`);
+    html = await svar.text();
+  } catch (err) {
+    alert(`Kunde inte ladda statusdialogen: ${err.message}`);
     return;
   }
 
-  const select = await waitForElement(
-    iframe.contentDocument,
-    '#PlaceHolderMain_MainView_CaseStatusComboControl',
-    3000
-  );
-
-  // Vänta tills Selectize hunnit initialiseras (max 2 s extra)
-  const selectize = await new Promise(resolve => {
-    const t = Date.now();
-    const poll = setInterval(() => {
-      if (select?.selectize) { clearInterval(poll); resolve(select.selectize); }
-      if (Date.now() - t > 2000) { clearInterval(poll); resolve(null); }
-    }, 50);
-  });
-
-  if (!select || !selectize) {
-    alert('Statusfältet hittades inte.');
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const form = doc.querySelector('form');
+  if (!form) {
+    alert('Hittade inte formuläret i statusdialogen.');
     return;
   }
 
-  selectize.setValue(statusVärde);
-  await sleep(400);
+  // Steg 2: Bygg POST-body från formulärets alla fält (VIEWSTATE m.fl. fångas automatiskt)
+  const body = new URLSearchParams();
+  for (const el of form.querySelectorAll('input, select, textarea')) {
+    if (el.name) body.set(el.name, el.value ?? '');
+  }
 
-  const okBtn = iframe.contentDocument.getElementById('PlaceHolderMain_MainView_Finish-Button');
-  if (!okBtn) {
-    alert('OK-knappen hittades inte.');
+  // Sätt rätt statusvärde och simulera klick på OK-knappen
+  body.set('ctl00$PlaceHolderMain$MainView$CaseStatusComboControl', statusVärde);
+  body.set('__EVENTTARGET', 'ctl00$PlaceHolderMain$MainView$Finish-Button');
+  body.set('__EVENTARGUMENT', '');
+  body.set('ctl00$PlaceHolderMain$MainView$Finish-Button', 'OK');
+
+  // Steg 3: POST
+  let respText;
+  try {
+    const svar = await fetch(dialogUrl, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString(),
+    });
+    if (!svar.ok) throw new Error(`HTTP ${svar.status}`);
+    respText = await svar.text();
+  } catch (err) {
+    alert(`Statusändringen misslyckades: ${err.message}`);
     return;
   }
-  okBtn.click();
+
+  // 360° returnerar SP.UI.ModalDialog.commonModalDialogClose(...) vid lyckat sparande
+  if (!respText.includes('commonModalDialogClose')) {
+    alert('Statusändringen verkar inte ha sparats. Kontrollera ärendet manuellt.');
+    return;
+  }
+
+  location.reload();
 }
 
 // Skydda mot dubbel-registrering vid programmatisk återinjicering
