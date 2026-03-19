@@ -41,12 +41,16 @@ async function sättStatus(statusVärde) {
   const select = doc.getElementById('PlaceHolderMain_MainView_CaseStatusComboControl');
   if (!select) throw new Error('Hittade inte statusfältet i dialogen.');
 
-  // Selectize.js wrapprar native select – sätt värdet via API:et om möjligt
+  // Sätt värdet – både via Selectize API och direkt på native select
+  // för att säkerställa att rätt värde skickas vid formulärinlämning
   if (select.selectize) {
     select.selectize.setValue(statusVärde);
-  } else {
-    select.value = statusVärde;
   }
+  select.value = statusVärde;
+  select.dispatchEvent(new Event('change', { bubbles: true }));
+
+  // Kort paus så att Selectize hinner synkronisera internt innan OK klickas
+  await new Promise(r => setTimeout(r, 150));
 
   doc.getElementById('PlaceHolderMain_MainView_Finish-Button')?.click();
 }
