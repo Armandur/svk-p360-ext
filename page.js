@@ -163,21 +163,37 @@ function triggerSetStatusDialog() {
 /**
  * Väntar på att en iframe vars src innehåller urlFragment laddas färdigt.
  * Returnerar iframen eller null vid timeout.
+ *
+ * Kräver att vi sett readyState === 'loading' INNAN vi accepterar 'complete',
+ * för att undvika att snappa upp ett gammalt complete-state från föregående
+ * dialogvisning (race condition).
  */
 function waitForIframe(urlFragment, timeout = 8000) {
   return new Promise(resolve => {
     const start = Date.now();
+    let hittadeLaddning = false;
+
     const check = setInterval(() => {
       const f = Array.from(document.querySelectorAll('iframe'))
-        .find(f => f.src?.includes(urlFragment));
-      if (f && f.contentDocument?.readyState === 'complete') {
-        clearInterval(check);
-        resolve(f);
-      } else if (Date.now() - start > timeout) {
+        .find(f => { try { return f.src?.includes(urlFragment); } catch { return false; } });
+
+      if (f) {
+        const state = f.contentDocument?.readyState;
+        if (state === 'loading' || state === 'interactive') {
+          hittadeLaddning = true;
+        }
+        // Acceptera 'complete' bara om vi redan sett 'loading' för den här iframen
+        if (hittadeLaddning && state === 'complete') {
+          clearInterval(check);
+          resolve(f);
+        }
+      }
+
+      if (Date.now() - start > timeout) {
         clearInterval(check);
         resolve(null);
       }
-    }, 200);
+    }, 100); // tätare polling (200→100 ms) för att inte missa loading-state
   });
 }
 
@@ -228,12 +244,22 @@ async function sättStatus(statusVärde) {
     '#PlaceHolderMain_MainView_CaseStatusComboControl',
     3000
   );
-  if (!select || !select.selectize) {
+
+  // Vänta tills Selectize hunnit initialiseras (max 2 s extra)
+  const selectize = await new Promise(resolve => {
+    const t = Date.now();
+    const poll = setInterval(() => {
+      if (select?.selectize) { clearInterval(poll); resolve(select.selectize); }
+      if (Date.now() - t > 2000) { clearInterval(poll); resolve(null); }
+    }, 50);
+  });
+
+  if (!select || !selectize) {
     alert('Statusfältet hittades inte.');
     return;
   }
 
-  select.selectize.setValue(statusVärde);
+  selectize.setValue(statusVärde);
   await sleep(400);
 
   const okBtn = iframe.contentDocument.getElementById('PlaceHolderMain_MainView_Finish-Button');
