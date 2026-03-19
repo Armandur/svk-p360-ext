@@ -30,7 +30,13 @@ async function triggerDagboksblad() {
   window.open = function (url, ...rest) {
     window.open = originalOpen;
     if (typeof url === 'string' && url.includes('Innehallsforteckning')) {
-      url = url.replace(/[&?]standalone=true/i, '').replace(/standalone=true[&]?/i, '');
+      try {
+        const u = new URL(url, location.origin);
+        u.searchParams.delete('standalone');
+        url = u.pathname + u.search + u.hash;
+      } catch {
+        // URL-parsning misslyckades, använd url oförändrad
+      }
     }
     popup = originalOpen.call(window, url, ...rest);
     return popup;
