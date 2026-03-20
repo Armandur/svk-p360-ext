@@ -482,17 +482,9 @@ async function läsInAlternativ() {
         .map(o => ({ value: o.value, label: o.text.trim() }));
     }
 
-    // Klassificeringar finns i ett dolt <select>-fält (_dropDownList) som innehåller
-    // alla tillgängliga klassificeringskoder. Returformat: { display, value } för att
-    // matcha hur mallen sparar klassificeringar (display = synlig text, value = recno).
-    const klassDropdown = doc.getElementById(
-      'PlaceHolderMain_MainView_ClassificationCode1ComboControl_dropDownList'
-    );
-    const klassificeringar = klassDropdown
-      ? Array.from(klassDropdown.options)
-          .filter(o => o.value !== '' && o.value !== '0')
-          .map(o => ({ display: o.text.trim(), value: o.value }))
-      : await försökLäsKlassificeringar(doc, iWin); // fallback om select saknas
+    // Klassificeringar kräver en wildcard-sökning (%) för att populera _dropDownList.
+    // Trigga sökning och vänta tills select-elementet fyllts av AJAX-svaret.
+    const klassificeringar = await försökLäsKlassificeringar(doc, iWin);
 
     return {
       diarieenheter:     läsOptions('PlaceHolderMain_MainView_JournalUnitComboControl'),
@@ -511,132 +503,48 @@ async function läsInAlternativ() {
  * Försöker läsa alla klassificeringsalternativ från formulärets typeahead
  * genom att söka med jokertecknet %.
  *
- * 360° klassificering använder en ASP.NET PostBack mot AjaxReaderService.asmx.
- * Sökningen triggas via ett onclick-postback på klassificeringsfältet, och
- * resultaten renderas i DOM:en som autocomplete-listobjekt.
+ * Klassificeringsfältet är en typeahead kopplad till AjaxReaderService.asmx.
+ * En sökning med jokertecknet % populerar det dolda select-elementet
+ * ClassificationCode1ComboControl_dropDownList med alla tillgängliga koder.
+ * Sökningen triggas via input-events och/eller _OnClick_PostBack, sedan pollar
+ * vi tills dropDownList har fyllts (max 12 s).
  *
- * Strategi 1: jQuery UI Autocomplete source-funktion (om tillgänglig).
- * Strategi 2: Fånga XHR-svar via XMLHttpRequest-patch och plocka ut data.
- * Strategi 3: Trigga PostBack + poll DOM för synliga listresultat.
  * Returnerar alltid en array (tom om inget hittas – manuell inmatning som fallback).
  */
 async function försökLäsKlassificeringar(doc, win) {
   const visFält = doc.getElementById(
     'PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY'
   );
-  const doltFält = doc.getElementById(
-    'PlaceHolderMain_MainView_ClassificationCode1ComboControl'
+  const dropDown = doc.getElementById(
+    'PlaceHolderMain_MainView_ClassificationCode1ComboControl_dropDownList'
   );
-  if (!visFält) return [];
+  if (!visFält || !dropDown) return [];
 
-  // Strategi 1: jQuery UI Autocomplete source-funktion
+  // Sätt % i sökfältet och trigga sökning
+  visFält.value = '%';
+  for (const t of ['focus', 'input', 'keydown', 'keyup', 'change']) {
+    try { visFält.dispatchEvent(new Event(t, { bubbles: true })); } catch { /* */ }
+  }
   try {
-    const jq = win.jQuery || win.$;
-    if (jq) {
-      const $el = jq(visFält);
-      if ($el.autocomplete && $el.autocomplete('instance')) {
-        const källa = $el.autocomplete('option', 'source');
-        if (typeof källa === 'function') {
-          const res = await new Promise(resolve => källa({ term: '%' }, r => resolve(r || [])));
-          if (res.length > 0) {
-            return res.map(i => ({
-              display: typeof i === 'string' ? i : (i.label || i.value || i.text || ''),
-              value:   typeof i === 'string' ? '' : (i.recno || i.id || i.value || ''),
-            })).filter(k => k.display);
-          }
-        }
+    win.__doPostBack(
+      'ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_OnClick_PostBack', ''
+    );
+  } catch { /* PostBack ej tillgänglig */ }
+
+  // Poll tills _dropDownList har fyllts av AJAX-svaret
+  await new Promise(resolve => {
+    const start = Date.now();
+    const check = setInterval(() => {
+      if (dropDown.options.length > 0 || Date.now() - start > 12000) {
+        clearInterval(check);
+        resolve();
       }
-    }
-  } catch { /* */ }
-
-  // Strategi 2: Fånga XHR-svar från AjaxReaderService genom att patcha XMLHttpRequest
-  const xhrResultat = await new Promise(resolve => {
-    const origOpen = win.XMLHttpRequest.prototype.open;
-    const origSend = win.XMLHttpRequest.prototype.send;
-    let löst = false;
-    const lös = val => { if (!löst) { löst = true; resolve(val); } };
-
-    const timer = setTimeout(() => lös([]), 8000);
-
-    win.XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-      this._url = url;
-      return origOpen.call(this, method, url, ...rest);
-    };
-    win.XMLHttpRequest.prototype.send = function(body) {
-      if (this._url?.includes('AjaxReaderService') || body?.includes('ClassificationCode')) {
-        this.addEventListener('load', () => {
-          try {
-            // Svaret är antingen JSON eller XML med items
-            const text = this.responseText;
-            let items = [];
-            // Försök JSON
-            try {
-              const json = JSON.parse(text);
-              const arr = Array.isArray(json) ? json : (json.d ?? json.items ?? json.Items ?? []);
-              items = arr.map(i => ({
-                display: i.display || i.Display || i.label || i.Label || i.text || i.Text || i.name || i.Name || '',
-                value:   String(i.recno || i.Recno || i.value || i.Value || i.id || i.Id || ''),
-              })).filter(k => k.display && k.value);
-            } catch {
-              // Försök extrahera recno + text ur XML/HTML-sträng
-              const matcher = /recno['":\s]+(\d+)[^<>"]*?['">\s]([^<"']+)/gi;
-              let m;
-              while ((m = matcher.exec(text)) !== null) {
-                items.push({ value: m[1], display: m[2].trim() });
-              }
-            }
-            if (items.length > 0) { clearTimeout(timer); lös(items); }
-          } catch { /* */ }
-        });
-      }
-      return origSend.call(this, body);
-    };
-
-    // Trigga sökning: sätt % i fältet och trigga PostBack
-    visFält.value = '%';
-    try {
-      win.__doPostBack(
-        'ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_OnClick_PostBack', ''
-      );
-    } catch {
-      // Fallback: trigga input-events
-      for (const t of ['focus', 'input', 'keydown', 'keyup']) {
-        visFält.dispatchEvent(new Event(t, { bubbles: true }));
-      }
-    }
+    }, 300);
   });
 
-  // Återställ XHR (byt tillbaka prototyperna)
-  // (patcharna är lokala i win-kontexten och försvinner med iframe)
-
-  if (xhrResultat.length > 0) return xhrResultat;
-
-  // Strategi 3: Poll DOM för synliga autocomplete-listelement
-  for (let i = 0; i < 25; i++) {
-    await sleep(200);
-    for (const sel of [
-      '.ui-autocomplete .ui-menu-item a',
-      '.ui-autocomplete .ui-menu-item',
-      '.ui-autocomplete li',
-      '.ac_results li',
-      '[class*="autocomplete"] li',
-      '[id*="autocomplete"] li',
-    ]) {
-      const items = [...doc.querySelectorAll(sel)].filter(
-        el => el.textContent.trim().length > 2
-      );
-      if (items.length > 1) {
-        return items.map(el => {
-          const display = el.textContent.trim();
-          const value = el.dataset.recno || el.dataset.value ||
-                        el.getAttribute('data-recno') || el.getAttribute('data-value') || '';
-          return { display, value };
-        }).filter(k => k.display);
-      }
-    }
-  }
-
-  return [];
+  return Array.from(dropDown.options)
+    .filter(o => o.value !== '' && o.value !== '0')
+    .map(o => ({ display: o.text.trim(), value: o.value }));
 }
 
 /**
