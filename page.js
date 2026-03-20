@@ -379,12 +379,16 @@ async function sättSelectize(id, value, doc) {
         el.selectize.setValue(value);
         el.selectize.close();
         el.selectize.blur();
-        // Säkerställ att native change-event skickas (trigger för 360°:s onchange-attribut)
-        el.dispatchEvent(new Event('change', { bubbles: true }));
+        // Selectize triggar internt ett jQuery change-event som jQuery 3.x
+        // propagerar som ett nativt DOM-event → 360°:s onchange-attribut anropas.
+        // Extra dispatchEvent får INTE skickas – det dubbeldirigerar PostBack-anropet
+        // och ASP.NET ScriptManager avbryter det första UpdatePanel-svaret.
         resolve();
       } else if (Date.now() - t > 3000) {
-        // Selectize ej initierad – sätt direkt på native select
+        // Selectize ej initierad – sätt direkt och trigga change manuellt
+        // (native el.value = x triggar inte DOM change-event automatiskt).
         el.value = value;
+        el.dispatchEvent(new Event('change', { bubbles: true }));
         clearInterval(poll);
         resolve();
       }
