@@ -643,15 +643,21 @@ async function skapaFrånMall(mall) {
     }
 
     // Klassificering sätts EFTER diarieenhets-UpdatePanel – annars återställs
-    // hidden-fältets värde av UpdatePanel-svaret (sätter hidden-fältet direkt,
-    // inget PostBack triggas för detta fält).
+    // hidden-fältets värde av UpdatePanel-svaret.
+    // Bockknappen (_OnClick_PostBack) måste triggas för att servern ska validera
+    // och låsa valet; utan det ignoreras hidden-fältets värde vid submit.
     if (mall.klassificering?.value) {
       console.log('[p360] Sätter klassificering:', mall.klassificering.value, mall.klassificering.display);
       const vis  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
       const dolt = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
       if (vis)  vis.value  = mall.klassificering.display || '';
       if (dolt) dolt.value = mall.klassificering.value;
-      console.log('[p360] Klassificering satt. vis.value=', vis?.value, 'dolt.value=', dolt?.value);
+      // Trigga bockknappens PostBack (validerar valet på servern)
+      pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_OnClick_PostBack', '');
+      await sleep(800);
+      // Sätt hidden-fältet igen ifall PostBack-svaret återställde det
+      if (dolt) dolt.value = mall.klassificering.value;
+      console.log('[p360] Klassificering satt och bekräftad. dolt.value=', dolt?.value);
     }
 
     if (mall.delarkiv?.value) {
@@ -782,6 +788,7 @@ async function skapaFrånMall(mall) {
     console.log('[p360] Snapshot innan submit:', {
       titel:          iDoc.getElementById('PlaceHolderMain_MainView_TitleTextBoxControl')?.value,
       diarieenhet:    iDoc.getElementById('PlaceHolderMain_MainView_JournalUnitComboControl')?.value,
+      klassificering: iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl')?.value,
       accessCode:     iDoc.getElementById('PlaceHolderMain_MainView_AccessCodeComboControl')?.value,
       sparatPaPapper: iDoc.getElementById('PlaceHolderMain_MainView_PaperDocAllowedComboControl')?.value,
       status:         iDoc.getElementById('PlaceHolderMain_MainView_StatusCaseComboControl')?.value,
@@ -790,52 +797,47 @@ async function skapaFrånMall(mall) {
     visaStatus('Skapar ärende…');
     await sleep(300);
 
-    // Sätt upp navigeringsfångst innan finish-PostBacken anropas.
-    // finish hanteras ofta som asynkront ScriptManager-anrop (UpdatePanel XHR),
-    // vilket innebär att iframe:ns location.href INTE ändras direkt – istället
-    // uppdaterar ScriptManager DOM:en och/eller anropar window.location-redirect
-    // inne i iframe-fönstret. Vi fångar detta på två sätt:
-    //   1. load-event på iframe:n (fångar fullständig navigering)
-    //   2. Polling som också letar efter recno-länkar i iframe:ns DOM
-    //      (fångar UpdatePanel-svar som bäddar in en ärendelänk)
+    // Fånga ärendets URL via XHR-interceptor på ScriptManagers async-svar.
+    // finish-PostBacken är ett asynkront UpdatePanel-anrop: ScriptManager skickar
+    // svaret som "pageRedirect||/locator/DMS/Case/Details/...| " i response-texten.
+    // Iframe:ns location.href ändras INTE direkt, så URL-polling fungerar inte.
+    // Sekundärt: load-event fångar om ScriptManager ändå navigerar iframe:n.
     const ärendeUrlPromise = new Promise(resolve => {
       let resolved = false;
       const done = url => { if (!resolved) { resolved = true; resolve(url); } };
 
-      // load-event: iframen laddade en ny sida
+      // Primär: intercepta ScriptManagers XHR-svar och extrahera pageRedirect-URL
+      const origSend = iWin.XMLHttpRequest.prototype.send;
+      iWin.XMLHttpRequest.prototype.send = function(body) {
+        this.addEventListener('load', function() {
+          try {
+            if (this.responseText?.includes('pageRedirect')) {
+              const match = this.responseText.match(/pageRedirect\|\|([^|]+)\|/);
+              if (match) {
+                console.log('[p360] ScriptManager pageRedirect fångad:', match[1]);
+                iWin.XMLHttpRequest.prototype.send = origSend;
+                done(match[1]);
+              }
+            }
+          } catch {}
+        });
+        origSend.apply(this, arguments);
+      };
+
+      // Sekundär: load-event om ScriptManager navigerar iframe:n direkt
       iframe.addEventListener('load', function onFinishLoad() {
         iframe.removeEventListener('load', onFinishLoad);
         try {
           const href = iWin.location.href;
           console.log('[p360] Iframe load efter finish. URL:', href);
-          if (href.includes('/DMS/Case/Details/') || href.includes('recno=')) {
+          if (href.includes('/DMS/Case/Details/')) {
+            iWin.XMLHttpRequest.prototype.send = origSend;
             done(href);
           }
         } catch { /* location tillfälligt otillgänglig */ }
       });
 
-      // Polling: kolla URL och DOM efter ärende-recno/länk
-      const t = Date.now();
-      const check = setInterval(() => {
-        try {
-          const href = iWin.location.href;
-          if (href.includes('/DMS/Case/Details/') || href.includes('recno=')) {
-            clearInterval(check);
-            done(href);
-            return;
-          }
-          // Kolla om ScriptManager-svaret lagt in en länk till det nya ärendet
-          const ärendeLänk = iDoc.querySelector(
-            'a[href*="/DMS/Case/Details/"], a[href*="recno="]'
-          );
-          if (ärendeLänk) {
-            clearInterval(check);
-            done(ärendeLänk.href);
-            return;
-          }
-        } catch { /* location otillgänglig under redirect */ }
-        if (Date.now() - t > 30000) { clearInterval(check); done(null); }
-      }, 150);
+      setTimeout(() => { iWin.XMLHttpRequest.prototype.send = origSend; done(null); }, 30000);
     });
 
     console.log('[p360] Anropar finish-postback.');
@@ -844,15 +846,8 @@ async function skapaFrånMall(mall) {
 
     console.log('[p360] Ärendenavigering. URL:', nyUrl);
     overlay.remove();
-    if (nyUrl && (nyUrl.includes('/DMS/Case/Details/') || nyUrl.includes('recno='))) {
-      // Säkerställ att URL:en leder till ärendesidan (inte bara dialogsidan med recno-param)
-      const recnoMatch = nyUrl.match(/[?&]recno=(\d+)/);
-      if (recnoMatch && !nyUrl.includes('/DMS/Case/Details/')) {
-        window.location.href =
-          `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${recnoMatch[1]}`;
-      } else {
-        window.location.href = nyUrl;
-      }
+    if (nyUrl?.includes('/DMS/Case/Details/')) {
+      window.location.href = nyUrl;
     } else {
       alert('Ärendet skapades men navigering misslyckades. Sök upp ärendet i 360°.');
     }
