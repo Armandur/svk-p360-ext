@@ -313,12 +313,19 @@
       </div>
 
       <div class="faltrad">
-        <label for="mall-klass-display">Klassificering</label>
-        <div class="klassificering-rad">
+        <label for="mall-klass-select">Klassificering</label>
+        <!-- Dropdown – visas och fylls i efter "Läs in" -->
+        <select id="mall-klass-select" style="display:none;">
+          <option value="">– välj klassificering –</option>
+        </select>
+        <!-- Manuella inmatningsfält – visas om klassificeringar EJ laddats in -->
+        <div id="klass-manuell-rad" class="klassificering-rad">
           <input type="text" id="mall-klass-display" placeholder="Visningstext (t.ex. 2.5 - Ge internt verksamhetsstöd)">
           <input type="text" id="mall-klass-recno" placeholder="Recno-kod" style="width:120px">
         </div>
-        <span style="font-size:11px;color:#888">Slå upp klassificeringskod i 360° och ange recno-kod (siffra i URL).</span>
+        <span id="klass-hjalp" style="font-size:11px;color:#888">
+          Klicka "Läs in fältalternativ" för att hämta listan, eller ange recno-kod manuellt.
+        </span>
       </div>
 
       <div class="tvakol">

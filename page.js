@@ -428,15 +428,86 @@ async function läsInAlternativ() {
         .map(o => ({ value: o.value, label: o.text.trim() }));
     }
 
+    // Försök hämta klassificeringar via typeahead-sökning med jokertecken.
+    // 360° använder sannolikt jQuery UI Autocomplete på detta fält.
+    const klassificeringar = await försökLäsKlassificeringar(doc, iframe.contentWindow);
+
     return {
       diarieenheter:     läsOptions('PlaceHolderMain_MainView_JournalUnitComboControl'),
       atkomstgrupper:    läsOptions('PlaceHolderMain_MainView_AccessGroupComboControl'),
       ansvarigaEnheter:  läsOptions('PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl'),
       ansvarigaPersoner: läsOptions('PlaceHolderMain_MainView_ResponsibleUserComboControl'),
+      klassificeringar,
     };
   } finally {
     iframe.remove();
   }
+}
+
+/**
+ * Försöker läsa alla klassificeringsalternativ från formulärets typeahead
+ * genom att söka med jokertecknet %.
+ *
+ * Strategi 1: jQuery UI Autocomplete – anropa source-funktionen direkt.
+ * Strategi 2: Sätt värdet och trigga events, vänta på synliga dropdown-items.
+ * Returnerar alltid en array (tom om inget hittas – användaren kan då skriva manuellt).
+ */
+async function försökLäsKlassificeringar(doc, win) {
+  const visFält = doc.getElementById(
+    'PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY'
+  );
+  if (!visFält) return [];
+
+  // Strategi 1: jQuery UI Autocomplete har en source-funktion vi kan anropa direkt
+  try {
+    const jq = win.jQuery || win.$;
+    if (jq) {
+      const $el = jq(visFält);
+      if ($el.autocomplete && $el.autocomplete('instance')) {
+        const källFunktion = $el.autocomplete('option', 'source');
+        if (typeof källFunktion === 'function') {
+          const resultat = await new Promise(resolve => {
+            källFunktion({ term: '%' }, items => resolve(items || []));
+          });
+          if (resultat.length > 0) {
+            return resultat.map(i => ({
+              display: typeof i === 'string' ? i : (i.label || i.value || ''),
+              value:   typeof i === 'string' ? '' : (i.recno || i.id || i.value || ''),
+            })).filter(k => k.display);
+          }
+        }
+      }
+    }
+  } catch { /* jQuery ej tillgängligt eller Autocomplete ej initierat */ }
+
+  // Strategi 2: Trigga typeahead manuellt och läs DOM-resultaten
+  visFält.value = '%';
+  for (const typ of ['focus', 'input', 'keyup', 'keydown', 'change']) {
+    try { visFält.dispatchEvent(new Event(typ, { bubbles: true })); } catch { /* */ }
+  }
+
+  // Vänta upp till 4 s på att autocomplete-listan dyker upp
+  for (let i = 0; i < 20; i++) {
+    await sleep(200);
+    for (const sel of [
+      '.ui-autocomplete .ui-menu-item',
+      '.ui-autocomplete li',
+      '.ac_results li',
+      '.autocomplete-results li',
+      '[id*="autocomplete"] li',
+    ]) {
+      const items = [...doc.querySelectorAll(sel)].filter(
+        el => el.textContent.trim().length > 1
+      );
+      if (items.length > 1) {
+        return items.map(el => ({
+          display: el.textContent.trim(),
+          value: el.dataset.value || el.dataset.recno || el.getAttribute('data-value') || '',
+        })).filter(k => k.display);
+      }
+    }
+  }
+  return [];
 }
 
 /**

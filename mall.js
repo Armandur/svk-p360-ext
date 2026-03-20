@@ -169,6 +169,11 @@ async function läsIn() {
   fyllSelectFrånAlternativ('mall-ansvarig-enhet', inlästaAlternativ.ansvarigaEnheter);
   fyllSelectFrånAlternativ('mall-ansvarig-person', inlästaAlternativ.ansvarigaPersoner, true);
 
+  // Klassificeringar – visa dropdown om vi fick in data, annars behåll manuella fält
+  if (inlästaAlternativ.klassificeringar?.length > 0) {
+    fyllKlassificeringSelect(inlästaAlternativ.klassificeringar);
+  }
+
   // Återställ sparade val om vi redigerar
   if (mallId) {
     const { mallar } = await chrome.storage.local.get('mallar');
@@ -184,6 +189,41 @@ async function läsIn() {
   status.textContent = `✓ Inläst: ${inlästaAlternativ.diarieenheter.length} diarieenheter, ${inlästaAlternativ.ansvarigaEnheter.length} enheter.`;
   knapp.disabled = false;
   knapp.textContent = 'Läs in igen';
+}
+
+/**
+ * Visar klassificerings-dropdown och döljer de manuella textfälten.
+ * Bevarar eventuellt redan valt värde (vid redigering).
+ */
+function fyllKlassificeringSelect(klassificeringar) {
+  const sel = document.getElementById('mall-klass-select');
+  const manuellRad = document.getElementById('klass-manuell-rad');
+  const hjalp = document.getElementById('klass-hjalp');
+
+  // Hämta nuvarande manuella värden för att kunna förväljas i dropdown
+  const nuvarandeDisplay = document.getElementById('mall-klass-display').value.trim();
+  const nuvarandeRecno  = document.getElementById('mall-klass-recno').value.trim();
+
+  sel.innerHTML = '<option value="">– välj klassificering –</option>';
+  klassificeringar.forEach(k => {
+    const opt = document.createElement('option');
+    // value-formatet: "recno||display" – lätt att dela upp vid inläsning
+    opt.value = (k.value || '') + '||' + (k.display || '');
+    opt.textContent = k.display;
+    sel.appendChild(opt);
+  });
+
+  // Förvälj om vi redigerar och redan har ett värde
+  if (nuvarandeRecno || nuvarandeDisplay) {
+    const träff = klassificeringar.find(
+      k => k.value === nuvarandeRecno || k.display === nuvarandeDisplay
+    );
+    if (träff) sel.value = (träff.value || '') + '||' + (träff.display || '');
+  }
+
+  sel.style.display = '';
+  manuellRad.style.display = 'none';
+  hjalp.textContent = `${klassificeringar.length} klassificeringar inlästa.`;
 }
 
 function fyllSelectFrånAlternativ(elId, alternativ, läggTillTom = false) {
@@ -384,12 +424,7 @@ async function sparaMall() {
     atkomstgrupp: atkomstgruppVärde ? { value: atkomstgruppVärde, label: atkomstgruppLabel } : null,
     ansvarigEnhet: ansvarigEnhetVärde ? { value: ansvarigEnhetVärde, label: ansvarigEnhetLabel } : null,
     ansvarigPerson: ansvarigPersonVärde ? { value: ansvarigPersonVärde, label: ansvarigPersonLabel } : null,
-    klassificering: (document.getElementById('mall-klass-recno').value.trim())
-      ? {
-          value: document.getElementById('mall-klass-recno').value.trim(),
-          display: document.getElementById('mall-klass-display').value.trim(),
-        }
-      : null,
+    klassificering: läsKlassificering(),
     sparatPaPapper: document.getElementById('mall-sparat-papper').value,
     skyddskod,
     sekretessParag: skyddskod !== '0' ? document.getElementById('mall-paragraf').value : '',
@@ -415,6 +450,20 @@ async function sparaMall() {
 
   await chrome.storage.local.set({ mallar: befintliga });
   window.close();
+}
+
+/**
+ * Läser klassificeringsvärdet från antingen dropdown (om inläst) eller manuella fält.
+ */
+function läsKlassificering() {
+  const sel = document.getElementById('mall-klass-select');
+  if (sel.style.display !== 'none' && sel.value) {
+    const [value, ...rest] = sel.value.split('||');
+    return { value: value.trim(), display: rest.join('||').trim() };
+  }
+  const recno   = document.getElementById('mall-klass-recno').value.trim();
+  const display = document.getElementById('mall-klass-display').value.trim();
+  return recno ? { value: recno, display } : null;
 }
 
 // ------------------------------------------------------------------
