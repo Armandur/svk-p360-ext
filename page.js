@@ -614,9 +614,6 @@ async function skapaFrånMall(mall) {
     if (mall.ansvarigPerson?.value) await sättSel('PlaceHolderMain_MainView_ResponsibleUserComboControl', mall.ansvarigPerson.value);
     await sättSel('PlaceHolderMain_MainView_StatusCaseComboControl', mall.status || '5');
 
-    titelFält.value = mall.titel || '';
-    titelFält.dispatchEvent(new Event('input', { bubbles: true }));
-
     if (mall.skyddskod && mall.skyddskod !== '0') {
       // Sätt skyddskod och vänta på UpdatePanel-refresh (laddar paragraf-fälten).
       await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', mall.skyddskod);
@@ -626,28 +623,34 @@ async function skapaFrånMall(mall) {
         iDoc, '#PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', 10000
       );
 
-      // UpdatePanel-svaret kan ha återställt AccessCode till default i sin HTML-patch –
-      // sätt värdet igen tyst (silent=true = inget nytt PostBack triggas).
+      // UpdatePanel-svaret kan ha återställt AccessCode – sätt om tyst (ingen ny PostBack).
       const accessEl = iDoc.getElementById('PlaceHolderMain_MainView_AccessCodeComboControl');
       if (accessEl?.selectize) accessEl.selectize.setValue(mall.skyddskod, true);
 
+      // Ge Selectize tid att initieras på paragraf-fältet (laddas via UpdatePanel).
+      await sleep(600);
       if (paragrafFält && mall.sekretessParag) {
         await sättSel('PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', mall.sekretessParag);
       }
+
       const checkbox = iDoc.getElementById('PlaceHolderMain_MainView_UnofficialContactCheckBoxControl');
       if (checkbox) checkbox.checked = !!mall.skyddaKontakter;
+
+      // SelectOfficialTitleComboBox har ett PostBack-onchange som laddar offentligTitel-fältet.
+      // Sätt värdet och vänta på eventuell UpdatePanel om val=3.
       await sättSel('PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl', mall.offentligTitelVal || '1');
       if (mall.offentligTitelVal === '3') {
-        await sleep(500);
-        const offFält = await waitForElement(iDoc, '#PlaceHolderMain_MainView_PublicTitleTextBoxControl', 5000);
+        const offFält = await waitForElement(iDoc, '#PlaceHolderMain_MainView_PublicTitleTextBoxControl', 8000);
         if (offFält) offFält.value = mall.offentligTitel || '';
       }
     } else {
       await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', '0');
     }
 
-    // Sparat på papper sätts sist bland fälten – UpdatePanel-svaret för skyddskod
-    // kan annars återställa det till sitt defaultvärde.
+    // Titel och sparat på papper sätts efter skyddskod-blocket –
+    // AccessCode-UpdatePanelens svar återställer annars dessa fält.
+    titelFält.value = mall.titel || '';
+    titelFält.dispatchEvent(new Event('input', { bubbles: true }));
     await sättSel('PlaceHolderMain_MainView_PaperDocAllowedComboControl', mall.sparatPaPapper || '0');
 
     if (mall.externaKontakter?.length > 0) {
