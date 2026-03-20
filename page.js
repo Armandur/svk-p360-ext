@@ -592,91 +592,162 @@ async function skapaFrånMall(mall) {
     const titelFält = await waitForElement(iDoc, '#PlaceHolderMain_MainView_TitleTextBoxControl', 10000);
     if (!titelFält) throw new Error('Formuläret laddades inte korrekt.');
 
+    console.log('[p360] Formulär laddat. Startar fällfyllning. Mall:', JSON.stringify({
+      titel: mall.titel, diarieenhet: mall.diarieenhet?.value,
+      klassificering: mall.klassificering?.value, skyddskod: mall.skyddskod,
+    }));
     visaStatus('Fyller i fält…');
 
     // Klassificering sätts först – fältet kan trigga en UpdatePanel-refresh
     // som annars skulle nolla övriga fält om det sattes senare.
     if (mall.klassificering?.value) {
+      console.log('[p360] Sätter klassificering:', mall.klassificering.value, mall.klassificering.display);
       const vis  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
       const dolt = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
       if (vis)  vis.value  = mall.klassificering.display || '';
       if (dolt) dolt.value = mall.klassificering.value;
+      console.log('[p360] Klassificering satt. vis.value=', vis?.value, 'dolt.value=', dolt?.value);
       await sleep(600);
     }
 
     if (mall.diarieenhet?.value) {
+      console.log('[p360] Sätter diarieenhet:', mall.diarieenhet.value);
       await sättSel('PlaceHolderMain_MainView_JournalUnitComboControl', mall.diarieenhet.value);
+      console.log('[p360] Diarieenhet satt. Väntar 800 ms på eventuell UpdatePanel…');
       await sleep(800);
     }
-    if (mall.delarkiv?.value)    await sättSel('PlaceHolderMain_MainView_CaseSubArchiveComboControl', mall.delarkiv.value);
-    if (mall.atkomstgrupp?.value) await sättSel('PlaceHolderMain_MainView_AccessGroupComboControl', mall.atkomstgrupp.value);
-    if (mall.ansvarigEnhet?.value) await sättSel('PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl', mall.ansvarigEnhet.value);
-    if (mall.ansvarigPerson?.value) await sättSel('PlaceHolderMain_MainView_ResponsibleUserComboControl', mall.ansvarigPerson.value);
-    await sättSel('PlaceHolderMain_MainView_StatusCaseComboControl', mall.status || '5');
 
+    if (mall.delarkiv?.value) {
+      console.log('[p360] Sätter delarkiv:', mall.delarkiv.value);
+      await sättSel('PlaceHolderMain_MainView_CaseSubArchiveComboControl', mall.delarkiv.value);
+      console.log('[p360] Delarkiv satt.');
+    }
+    if (mall.atkomstgrupp?.value) {
+      console.log('[p360] Sätter åtkomstgrupp:', mall.atkomstgrupp.value);
+      await sättSel('PlaceHolderMain_MainView_AccessGroupComboControl', mall.atkomstgrupp.value);
+      console.log('[p360] Åtkomstgrupp satt.');
+    }
+    if (mall.ansvarigEnhet?.value) {
+      console.log('[p360] Sätter ansvarig enhet:', mall.ansvarigEnhet.value);
+      await sättSel('PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl', mall.ansvarigEnhet.value);
+      console.log('[p360] Ansvarig enhet satt.');
+    }
+    if (mall.ansvarigPerson?.value) {
+      console.log('[p360] Sätter ansvarig person:', mall.ansvarigPerson.value);
+      await sättSel('PlaceHolderMain_MainView_ResponsibleUserComboControl', mall.ansvarigPerson.value);
+      console.log('[p360] Ansvarig person satt.');
+    }
+
+    console.log('[p360] Sätter status:', mall.status || '5');
+    await sättSel('PlaceHolderMain_MainView_StatusCaseComboControl', mall.status || '5');
+    console.log('[p360] Status satt.');
+
+    console.log('[p360] Sätter sparat på papper:', mall.sparatPaPapper || '0');
     await sättSel('PlaceHolderMain_MainView_PaperDocAllowedComboControl', mall.sparatPaPapper || '0');
+    console.log('[p360] Sparat på papper satt.');
 
     if (mall.skyddskod && mall.skyddskod !== '0') {
+      console.log('[p360] Sätter skyddskod:', mall.skyddskod);
       // Sätt skyddskod och vänta på UpdatePanel-refresh (laddar paragraf-fälten).
       await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', mall.skyddskod);
+      console.log('[p360] Skyddskod satt. Väntar på paragraf-fält i DOM…');
 
       // Vänta tills paragraf-fältet dyker upp (bekräftar att servern svarat).
       const paragrafFält = await waitForElement(
         iDoc, '#PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', 10000
       );
+      console.log('[p360] Paragraf-fält hittades:', !!paragrafFält);
 
       // Selectize på paragraf-fältet är initialiserat direkt när UpdatePanel-svaret laddats –
       // ingen extra sleep behövs. Övriga fält (titel, accessCode m.m.) påverkas inte av svaret.
       if (paragrafFält && mall.sekretessParag) {
+        console.log('[p360] Sätter paragraf:', mall.sekretessParag);
         await sättSel('PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', mall.sekretessParag);
+        console.log('[p360] Paragraf satt.');
       }
 
       const checkbox = iDoc.getElementById('PlaceHolderMain_MainView_UnofficialContactCheckBoxControl');
-      if (checkbox) checkbox.checked = !!mall.skyddaKontakter;
+      if (checkbox) {
+        checkbox.checked = !!mall.skyddaKontakter;
+        console.log('[p360] Skydda kontakter satt till:', checkbox.checked);
+      }
 
       // SelectOfficialTitleComboBox har ett PostBack-onchange som laddar offentligTitel-fältet.
       // Sätt värdet och vänta på eventuell UpdatePanel om val=3.
+      console.log('[p360] Sätter offentligTitelVal:', mall.offentligTitelVal || '1');
       await sättSel('PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl', mall.offentligTitelVal || '1');
       if (mall.offentligTitelVal === '3') {
+        console.log('[p360] Väntar på offentlig titel-fält…');
         const offFält = await waitForElement(iDoc, '#PlaceHolderMain_MainView_PublicTitleTextBoxControl', 8000);
-        if (offFält) offFält.value = mall.offentligTitel || '';
+        if (offFält) {
+          offFält.value = mall.offentligTitel || '';
+          console.log('[p360] Offentlig titel satt:', offFält.value);
+        } else {
+          console.warn('[p360] Offentlig titel-fält hittades inte inom timeout.');
+        }
       }
     } else {
+      console.log('[p360] Skyddskod = offentlig (0), sätter AccessCode till 0.');
       await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', '0');
+      console.log('[p360] AccessCode satt till 0.');
     }
 
     if (mall.externaKontakter?.length > 0) {
+      console.log('[p360] Lägger till', mall.externaKontakter.length, 'externa kontakter.');
       pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'ContactsStep');
       visaStatus('Lägger till externa kontakter…');
       await sleep(1500);
       for (const kontakt of mall.externaKontakter) {
+        console.log('[p360] Lägger till kontakt:', kontakt.namn);
         // pb skickas med för att postback-anrop ska ske i formulärets iframe-kontext.
         // Kontaktdialogerna hamnar i huvud-dokumentets body (window.top) som syskoniframes.
         await läggTillExternKontakt(kontakt, pb);
+        console.log('[p360] Kontakt tillagd:', kontakt.namn);
         await sleep(500);
       }
     }
 
     if (mall.kommentar) {
+      console.log('[p360] Sätter kommentar.');
       pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'NotesStep');
       await sleep(1000);
       const kFält = await waitForElement(iDoc, '#PlaceHolderMain_MainView_NotesStep_Control', 3000);
-      if (kFält) kFält.value = mall.kommentar;
+      if (kFält) {
+        kFält.value = mall.kommentar;
+        console.log('[p360] Kommentar satt.');
+      } else {
+        console.warn('[p360] Kommentar-fält hittades inte.');
+      }
     }
 
     // Titel sätts sist, direkt innan submit – undviker att UpdatePanel-svar från
     // övriga fält (diarieenhet, ansvarig enhet m.m.) hinner ersätta DOM-noder och
     // nollställa värdet. Hämtar elementet färskt ur aktuell DOM (inte gammal referens).
+    console.log('[p360] Sätter titel (sist, färskt element):', mall.titel);
     const titelElNu = iDoc.getElementById('PlaceHolderMain_MainView_TitleTextBoxControl');
+    console.log('[p360] titelElNu hittades:', !!titelElNu, '| isConnected:', titelElNu?.isConnected);
     if (titelElNu) {
       titelElNu.value = mall.titel || '';
       titelElNu.dispatchEvent(new Event('input',  { bubbles: true }));
       titelElNu.dispatchEvent(new Event('change', { bubbles: true }));
       titelElNu.dispatchEvent(new Event('blur',   { bubbles: true }));
+      console.log('[p360] Titel satt. titelElNu.value=', titelElNu.value);
+    } else {
+      console.error('[p360] FEL: titelElNu är null – formuläret kan ha laddats om.');
     }
+
+    // Snapshot av kritiska fält direkt innan submit
+    console.log('[p360] Snapshot innan submit:', {
+      titel:          iDoc.getElementById('PlaceHolderMain_MainView_TitleTextBoxControl')?.value,
+      diarieenhet:    iDoc.getElementById('PlaceHolderMain_MainView_JournalUnitComboControl')?.value,
+      accessCode:     iDoc.getElementById('PlaceHolderMain_MainView_AccessCodeComboControl')?.value,
+      sparatPaPapper: iDoc.getElementById('PlaceHolderMain_MainView_PaperDocAllowedComboControl')?.value,
+      status:         iDoc.getElementById('PlaceHolderMain_MainView_StatusCaseComboControl')?.value,
+    });
 
     visaStatus('Skapar ärende…');
     await sleep(300);
+    console.log('[p360] Anropar finish-postback.');
     pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
 
     // Vänta på att iframen navigeras till det nyskapade ärendet
