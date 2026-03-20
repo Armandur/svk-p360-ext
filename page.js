@@ -270,6 +270,58 @@ async function sättStatus(statusVärde) {
   okBtn.click();
 }
 
+/**
+ * Växlar ärendets status mellan Öppet (5) och Avslutat (6).
+ *
+ * Öppnar statusdialogen, läser nuvarande värde och sätter det motsatta.
+ * Om nuvarande status är något annat än Öppet sätts det alltid till Avslutat.
+ */
+async function växlaStatus() {
+  const opened = triggerSetStatusDialog();
+  if (!opened) {
+    alert('Hittade inte "Sätt status"-knappen på den här sidan.');
+    return;
+  }
+
+  const iframe = await waitForIframe('EditCaseStatus', 8000);
+  if (!iframe) {
+    alert('Dialogen laddades inte inom rimlig tid.');
+    return;
+  }
+
+  const select = await waitForElement(
+    iframe.contentDocument,
+    '#PlaceHolderMain_MainView_CaseStatusComboControl',
+    3000
+  );
+
+  const selectize = await new Promise(resolve => {
+    const t = Date.now();
+    const poll = setInterval(() => {
+      if (select?.selectize) { clearInterval(poll); resolve(select.selectize); }
+      if (Date.now() - t > 2000) { clearInterval(poll); resolve(null); }
+    }, 50);
+  });
+
+  if (!select || !selectize) {
+    alert('Statusfältet hittades inte.');
+    return;
+  }
+
+  // Läs nuvarande värde och sätt det motsatta
+  const nuvarandeVärde = select.value;
+  const nyttVärde = nuvarandeVärde === '5' ? '6' : '5';
+  selectize.setValue(nyttVärde);
+  await sleep(400);
+
+  const okBtn = iframe.contentDocument.getElementById('PlaceHolderMain_MainView_Finish-Button');
+  if (!okBtn) {
+    alert('OK-knappen hittades inte.');
+    return;
+  }
+  okBtn.click();
+}
+
 // Skydda mot dubbel-registrering vid programmatisk återinjicering
 if (!window.__p360Initierat) {
   window.__p360Initierat = true;
@@ -292,6 +344,8 @@ window.addEventListener('p360-anrop', async (event) => {
   try {
     if (action === 'sättStatus') {
       await sättStatus(data.statusVärde);
+    } else if (action === 'växlaStatus') {
+      await växlaStatus();
     } else if (action === 'dagboksblad') {
       await triggerDagboksblad();
     } else if (postbackNycklar[action]) {
