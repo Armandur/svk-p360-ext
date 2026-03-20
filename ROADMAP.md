@@ -13,7 +13,46 @@ _(ingenting just nu)_
 
 ## Planerat / Prioriterat
 
-_(lägg till funktioner här i prioritetsordning)_
+### Mall-ärenden med förifyllda fält
+
+Möjlighet att skapa nya ärenden utifrån sparade mallar där fält som ärendetyp, status,
+handläggare, enhet m.m. redan är förifyllda. Användaren väljer en mall i popupen och
+tillägget fyller i formuläret automatiskt via `__doPostBack` och DOM-manipulation.
+
+- Mallarna lagras lokalt i `chrome.storage.local` (inga externa API-anrop)
+- Gränssnitt för att skapa, redigera och ta bort mallar (inställningssida)
+- Stöd för valfritt antal mallar med egna namn
+
+### Massregistrering av in-/utträdesärenden från Excel/CSV
+
+Funktion för att skapa ett stort antal ärenden i batch utifrån en Excel- eller CSV-fil.
+Primär användning: utträdesärenden (och inträden) från exportfiler ur pastoratets system.
+
+**Förväntade kolumner i CSV/Excel:**
+
+| Kolumn | Beskrivning |
+|--------|-------------|
+| `Diarium` | Diarienummer (om känt) eller lämnas tomt |
+| `Ankomstdatum` | Ärendets ankomstdatum (ÅÅÅÅ-MM-DD) |
+| `Förnamn` | Kontaktpersonens förnamn |
+| `Efternamn` | Kontaktpersonens efternamn |
+| `In/utträde` | `I` för inträde, `U` för utträde |
+| `PDF-fil` | Filnamn på bifogad PDF (skannat dokument) |
+
+**Flöde:**
+1. Användaren laddar upp CSV/Excel-filen i en dedikerad sida (extension-page)
+2. Tillägget visar en förhandsgranskning av raderna
+3. Vid bekräftelse skapas ärendena ett i taget i 360° via automatisering
+4. Tillägget fångar upp det tilldelade diarienumret för varje skapat ärende
+5. En resultatrapport visas och kan laddas ned som CSV:
+   `Förnamn, Efternamn, In/utträde, Diarienummer, Skapad`
+
+**Tekniska utmaningar att lösa:**
+- Identifiera hur 360° returnerar det nya diarienumret efter att ett ärende skapats
+  (URL-redirect, DOM-element eller response-header)
+- Bifoga PDF-filer programmatiskt (kräver troligen access till File API + formulär-upload)
+- Hantera fel per rad utan att avbryta hela batchen
+- Köhantering så att 360° inte överbelastas (fördröjning mellan ärenden)
 
 ---
 
