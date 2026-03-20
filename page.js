@@ -642,24 +642,6 @@ async function skapaFrånMall(mall) {
       await sleep(800);
     }
 
-    // Klassificering sätts EFTER diarieenhets-UpdatePanel – annars återställs
-    // hidden-fältets värde av UpdatePanel-svaret.
-    // Bockknappen (_OnClick_PostBack) måste triggas för att servern ska validera
-    // och låsa valet; utan det ignoreras hidden-fältets värde vid submit.
-    if (mall.klassificering?.value) {
-      console.log('[p360] Sätter klassificering:', mall.klassificering.value, mall.klassificering.display);
-      const vis  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
-      const dolt = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
-      if (vis)  vis.value  = mall.klassificering.display || '';
-      if (dolt) dolt.value = mall.klassificering.value;
-      // Trigga bockknappens PostBack (validerar valet på servern)
-      pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_OnClick_PostBack', '');
-      await sleep(800);
-      // Sätt hidden-fältet igen ifall PostBack-svaret återställde det
-      if (dolt) dolt.value = mall.klassificering.value;
-      console.log('[p360] Klassificering satt och bekräftad. dolt.value=', dolt?.value);
-    }
-
     if (mall.delarkiv?.value) {
       console.log('[p360] Sätter delarkiv:', mall.delarkiv.value);
       await sättSelTyst('PlaceHolderMain_MainView_CaseSubArchiveComboControl', mall.delarkiv.value);
@@ -784,6 +766,19 @@ async function skapaFrånMall(mall) {
       console.error('[p360] FEL: titelElNu är null – formuläret kan ha laddats om.');
     }
 
+    // Klassificering sätts SIST – direkt innan submit, efter samtliga PostBacks.
+    // OnClick-PostBack triggas INTE: anropet kan rensa hidden-fältet om display-texten
+    // inte matchar exakt och triggar dessutom onödiga UpdatePanel-anrop.
+    // Servern accepterar hidden-fältets recno-värde om det är satt vid submit.
+    if (mall.klassificering?.value) {
+      console.log('[p360] Sätter klassificering (sist):', mall.klassificering.value, mall.klassificering.display);
+      const vis  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
+      const dolt = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
+      if (vis)  vis.value  = mall.klassificering.display || '';
+      if (dolt) dolt.value = mall.klassificering.value;
+      console.log('[p360] Klassificering satt. vis.value=', vis?.value, 'dolt.value=', dolt?.value);
+    }
+
     // Snapshot av kritiska fält direkt innan submit
     console.log('[p360] Snapshot innan submit:', {
       titel:          iDoc.getElementById('PlaceHolderMain_MainView_TitleTextBoxControl')?.value,
@@ -798,46 +793,78 @@ async function skapaFrånMall(mall) {
     await sleep(300);
 
     // Fånga ärendets URL via XHR-interceptor på ScriptManagers async-svar.
-    // finish-PostBacken är ett asynkront UpdatePanel-anrop: ScriptManager skickar
-    // svaret som "pageRedirect||/locator/DMS/Case/Details/...| " i response-texten.
-    // Iframe:ns location.href ändras INTE direkt, så URL-polling fungerar inte.
-    // Sekundärt: load-event fångar om ScriptManager ändå navigerar iframe:n.
+    // Fångst av ärendets URL efter finish. Svaret kan komma via flera kanaler:
+    //   1. ScriptManager XHR-svar med "pageRedirect||<url>|" (asynkront UpdatePanel)
+    //   2. ScriptManager XHR-svar med scriptBlock som sätter window.location
+    //   3. Fullständig formulärnavigering (synkront form.submit → iframe load-event)
+    // Debug: XHR-svar och iframe-URL sparas i localStorage och kan läsas i konsolen
+    // EFTER navigering: JSON.parse(localStorage.getItem('p360_nav_debug'))
+    const debugInfo = { xhrResponses: [], iframeLoads: [], finishUrl: null };
+
     const ärendeUrlPromise = new Promise(resolve => {
       let resolved = false;
-      const done = url => { if (!resolved) { resolved = true; resolve(url); } };
+      const done = url => {
+        if (!resolved) {
+          resolved = true;
+          debugInfo.finishUrl = url;
+          localStorage.setItem('p360_nav_debug', JSON.stringify(debugInfo));
+          resolve(url);
+        }
+      };
 
-      // Primär: intercepta ScriptManagers XHR-svar och extrahera pageRedirect-URL
+      // Primär: intercepta alla XHR-svar i iframe-fönstret och leta efter ärendeURL
       const origSend = iWin.XMLHttpRequest.prototype.send;
+      const restoreXhr = () => { iWin.XMLHttpRequest.prototype.send = origSend; };
       iWin.XMLHttpRequest.prototype.send = function(body) {
         this.addEventListener('load', function() {
           try {
-            if (this.responseText?.includes('pageRedirect')) {
-              const match = this.responseText.match(/pageRedirect\|\|([^|]+)\|/);
-              if (match) {
-                console.log('[p360] ScriptManager pageRedirect fångad:', match[1]);
-                iWin.XMLHttpRequest.prototype.send = origSend;
-                done(match[1]);
-              }
+            const resp = this.responseText || '';
+            // Spara de första 800 tecknen för debug (localStorage-loggen)
+            debugInfo.xhrResponses.push(resp.substring(0, 800));
+
+            // Försök alla kända URL-mönster i svaret
+            let url = null;
+            const m1 = resp.match(/pageRedirect\|\|([^|]+)\|/);
+            if (m1) url = m1[1];
+            if (!url) {
+              const m2 = resp.match(/window\.location[^'"]*['"]([^'"]*\/DMS\/Case\/Details\/[^'"]*)['"]/);
+              if (m2) url = m2[1];
+            }
+            if (!url) {
+              const m3 = resp.match(/(\/locator\/DMS\/Case\/Details\/[^|"'<\s]+)/);
+              if (m3) url = m3[1];
+            }
+            if (url) {
+              console.log('[p360] Ärendenavigering fångad i XHR-svar:', url);
+              restoreXhr();
+              done(url);
             }
           } catch {}
         });
         origSend.apply(this, arguments);
       };
 
-      // Sekundär: load-event om ScriptManager navigerar iframe:n direkt
-      iframe.addEventListener('load', function onFinishLoad() {
-        iframe.removeEventListener('load', onFinishLoad);
+      // Sekundär: load-event fångar synkron formulärnavigering (behåll listener aktiv
+      // tills rätt URL hittas – ignorera mellanliggande redirects)
+      const onFinishLoad = () => {
         try {
           const href = iWin.location.href;
+          debugInfo.iframeLoads.push(href);
           console.log('[p360] Iframe load efter finish. URL:', href);
           if (href.includes('/DMS/Case/Details/')) {
-            iWin.XMLHttpRequest.prototype.send = origSend;
+            iframe.removeEventListener('load', onFinishLoad);
+            restoreXhr();
             done(href);
           }
-        } catch { /* location tillfälligt otillgänglig */ }
-      });
+        } catch { /* location tillfälligt otillgänglig under redirect */ }
+      };
+      iframe.addEventListener('load', onFinishLoad);
 
-      setTimeout(() => { iWin.XMLHttpRequest.prototype.send = origSend; done(null); }, 30000);
+      setTimeout(() => {
+        iframe.removeEventListener('load', onFinishLoad);
+        restoreXhr();
+        done(null);
+      }, 30000);
     });
 
     console.log('[p360] Anropar finish-postback.');
@@ -849,7 +876,8 @@ async function skapaFrånMall(mall) {
     if (nyUrl?.includes('/DMS/Case/Details/')) {
       window.location.href = nyUrl;
     } else {
-      alert('Ärendet skapades men navigering misslyckades. Sök upp ärendet i 360°.');
+      console.log('[p360] Navigering misslyckades. Debug:', JSON.stringify(debugInfo));
+      alert('Ärendet skapades men navigering misslyckades.\nDebuginfo i konsolen: JSON.parse(localStorage.getItem(\'p360_nav_debug\'))');
     }
 
   } catch (err) {
