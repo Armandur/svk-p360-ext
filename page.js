@@ -602,7 +602,10 @@ async function skapaFrånMall(mall) {
       await sleep(600);
     }
 
-    if (mall.diarieenhet?.value) await sättSel('PlaceHolderMain_MainView_JournalUnitComboControl', mall.diarieenhet.value);
+    if (mall.diarieenhet?.value) {
+      await sättSel('PlaceHolderMain_MainView_JournalUnitComboControl', mall.diarieenhet.value);
+      await sleep(800);
+    }
     if (mall.delarkiv?.value)    await sättSel('PlaceHolderMain_MainView_CaseSubArchiveComboControl', mall.delarkiv.value);
     if (mall.atkomstgrupp?.value) await sättSel('PlaceHolderMain_MainView_AccessGroupComboControl', mall.atkomstgrupp.value);
     if (mall.ansvarigEnhet?.value) await sättSel('PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl', mall.ansvarigEnhet.value);
