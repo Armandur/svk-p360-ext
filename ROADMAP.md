@@ -17,11 +17,21 @@ _(ingenting just nu)_
 
 Möjlighet att skapa nya ärenden utifrån sparade mallar där fält som ärendetyp, status,
 handläggare, enhet m.m. redan är förifyllda. Användaren väljer en mall i popupen och
-tillägget fyller i formuläret automatiskt via `__doPostBack` och DOM-manipulation.
+tillägget fyller i formuläret automatiskt.
 
 - Mallarna lagras lokalt i `chrome.storage.local` (inga externa API-anrop)
 - Gränssnitt för att skapa, redigera och ta bort mallar (inställningssida)
 - Stöd för valfritt antal mallar med egna namn
+
+**Teknisk ansats (kartlagd 2026-03-20):**
+Formuläret öppnas via dialog-iframe, fält fylls med `element.selectize.setValue()` och
+`textarea.value`, sedan anropas `__doPostBack('...WizardNavigationButton', 'finish')` i
+iframe-kontexten. Se CLAUDE.md → "Skapa nytt ärende" för komplett teknisk spec.
+
+**Återstår att kartlägga:**
+- Sekretessfältens element-ID och beteende (extra fält vid val av KO/OSL):
+  paragraf-/skyddskodsfältet samt alternativ för ärendetitelns sekretesshantering
+  (skyddad / manuell / samma som ärendetitel)
 
 ### Massregistrering av in-/utträdesärenden från Excel/CSV
 

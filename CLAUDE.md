@@ -93,6 +93,133 @@ Statusfältet är ett `<select>` med Selectize.js som UI-lager:
 OK-knapp: `#PlaceHolderMain_MainView_Finish-Button` (type=submit)
 Avbryt: `__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'cancel')`
 
+## Skapa nytt ärende – teknisk kartläggning
+
+### POST-URL och formulärstruktur
+
+Formuläret "Nytt ärende" laddas i en iframe inuti en modal dialog. Subtype 61000 = "Ärende".
+
+```
+POST https://p360.svenskakyrkan.se/locator/DMS/Case/New/61000
+Content-Type: application/x-www-form-urlencoded
+```
+
+Dialogen öppnas initialt via en `GET`/`POST` mot:
+```
+/view.aspx?id=cf7c6540-7018-4c8c-9da8-783d6ce5d8cf&dialogmode=true&IsDlg=1&context-data=subtype,Primary,61000...
+```
+
+### Formulärfält (element-ID → POST-nyckel)
+
+| Element-ID | POST-nyckel (namn) | Typ | Obl. | Syfte |
+|---|---|---|---|---|
+| `PlaceHolderMain_MainView_JournalUnitComboControl` | `ctl00$...JournalUnitComboControl` | SELECT + Selectize | Ja | Diarieenhet |
+| `PlaceHolderMain_MainView_CaseSubArchiveComboControl` | `ctl00$...CaseSubArchiveComboControl` | SELECT + Selectize | Ja | Delarkiv |
+| `PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY` | `ctl00$...ClassificationCode1ComboControl_DISPLAY` | INPUT text (typeahead) | Ja | Klassificering – synligt |
+| `PlaceHolderMain_MainView_ClassificationCode1ComboControl` | `ctl00$...ClassificationCode1ComboControl` | INPUT hidden | Ja | Klassificering – recno-värde |
+| `PlaceHolderMain_MainView_PaperDocAllowedComboControl` | `ctl00$...PaperDocAllowedComboControl` | SELECT + Selectize | Nej | Sparat på papper |
+| `PlaceHolderMain_MainView_AccessCodeComboControl` | `ctl00$...AccessCodeComboControl` | SELECT + Selectize | Ja | Skyddskod |
+| `PlaceHolderMain_MainView_AccessGroupComboControl` | `ctl00$...AccessGroupComboControl` | SELECT + Selectize | Ja | Åtkomstgrupp |
+| `PlaceHolderMain_MainView_TitleTextBoxControl` | `ctl00$...TitleTextBoxControl` | TEXTAREA | Ja | Ärendetitel |
+| `PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl` | `ctl00$...ResponsibleOrgUnitComboControl` | SELECT + Selectize | Ja | Ansvarig enhet |
+| `PlaceHolderMain_MainView_ResponsibleUserComboControl` | `ctl00$...ResponsibleUserComboControl` | SELECT + Selectize | Nej | Ansvarig person |
+| `PlaceHolderMain_MainView_StatusCaseComboControl` | `ctl00$...StatusCaseComboControl` | SELECT + Selectize | Ja | Status |
+
+Alla synliga dropdowns använder **Selectize.js** (jQuery 3.6.1). Sätt värden via:
+```js
+element.selectize.setValue('200171')
+```
+
+### Dropdown-värden
+
+**Skyddskod (AccessCodeComboControl):**
+| Värde | Text |
+|-------|------|
+| `0` | Offentlig (default) |
+| `100031` | Sekretess KO |
+| `100032` | Sekretess OSL |
+
+> **OBS – sekretessfält ej helt kartlagda:** När KO eller OSL väljs dyker ytterligare
+> fält upp: (1) specifik paragraf/skyddskod att ange, (2) val om ärendetiteln ska
+> skyddas, anges manuellt eller vara densamma. Dessa fälts element-ID och värden
+> behöver kartläggas via Chrome DevTools (inspektera DOM efter att sekretess valts).
+
+**Sparat på papper (PaperDocAllowedComboControl):**
+| Värde | Text |
+|-------|------|
+| `0` | Nej (default) |
+| `1` | Delvis |
+| `-1` | Ja |
+
+**Status (StatusCaseComboControl):** Se tabell i avsnittet "Sätt status" ovan.
+
+**Delarkiv (CaseSubArchiveComboControl):** `100009` = Församling/pastorat (default)
+
+### Klassificering (typeahead)
+
+Klassificering är ett typeahead-fält. Sökning sker via PostBack:
+```
+__doPostBack('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_OnClick_PostBack', '')
+```
+mot `/Services/AjaxReaderService.asmx`. Det synliga fältet (`_DISPLAY`) sätts till
+textrepresentationen (t.ex. `2.5 - Ge internt verksamhetsstöd`) och det dolda fältet
+sätts till recno-koden. För mall-funktionen: hårdkoda kända klassificeringskoder per mall.
+
+### Spara-knappen
+
+```js
+// Knappen "Slutför" anropar:
+__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish')
+// vilket sätter __EVENTTARGET och __EVENTARGUMENT och submittar form1
+```
+
+I tillägget – anropa detta i iframe-kontexten:
+```js
+const doc = iframe.contentDocument;
+doc.getElementById('__EVENTTARGET').value =
+  'ctl00$PlaceHolderMain$MainView$WizardNavigationButton';
+doc.getElementById('__EVENTARGUMENT').value = 'finish';
+doc.getElementById('form1').submit();
+```
+
+### Diarienumret efter skapande
+
+Servern returnerar 302 redirect till:
+```
+/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=[RECNO]
+```
+
+Diarienumret kan läsas på tre sätt i DOM efter redirect:
+
+| Element-ID | Innehåll | Rekommenderat |
+|---|---|---|
+| `PlaceHolderMain_MainView_DetailDescription` | `Ärende: P 2022-0076` | Ja – enklast att parsa |
+| `PlaceHolderMain_MainView_DetailTitle_generic` | `testärende` | Nej |
+| `TopHeaderTitle` | `testärende\nÄrende: P 2022-0076` | Nej |
+
+```js
+// Läs diarienummer från DOM:
+const diarieNr = document.getElementById('PlaceHolderMain_MainView_DetailDescription')
+  ?.textContent.replace('Ärende: ', '').trim(); // => "P 2022-0076"
+
+// Alternativt recno ur URL:
+const recno = new URLSearchParams(window.location.search).get('recno');
+```
+
+### Tekniska hinder
+
+| Hinder | Beskrivning | Lösning |
+|--------|-------------|---------|
+| `__VIEWSTATE` (~55 kB) | Måste hämtas färskt från formuläret – sessions- och tidsberoende | Hämta via `iframe.contentDocument.getElementById('__VIEWSTATE').value` precis innan POST |
+| `BIFViewState` (GUID) | Session-GUID genereras per formulärinstans | Hämta från `[name*="BIFViewState"]` |
+| `keepViewAlive`-pingning | Servern pingar var 30:e sekund – session dör annars | Håll formuläret öppet tills POST skickas |
+| Klassificering | Kräver giltigt recno i hidden-fältet | Hårdkoda kända klassificeringskoder per mall |
+| Selectize.js | Native `<select>` är dolt | Anropa `element.selectize.setValue(val)` |
+| `Wizard_CheckSum` | Skickas som `%5Bobject%20HTMLTableElement%5D` | Skicka rakt av – verkar ej strikt validerat |
+| Sekretessfält | Extra fält visas vid KO/OSL – ej kartlagda ännu | Se OBS-rutan ovan |
+
+---
+
 ## Hur man identifierar att man är på en ärendesida
 ```js
 // Finns detta element → vi är på en ärendesida
