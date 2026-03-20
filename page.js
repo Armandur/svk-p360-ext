@@ -3,8 +3,9 @@
 // Kommunicerar med content.js (ISOLATED world) via CustomEvents.
 
 // Skydda mot dubbel-injektion (executeScript körs ibland flera gånger).
-// Eftersom const-deklarationer lever i sidans JS-kontext ger ominjicering
-// "Identifier already declared"-fel utan denna guard.
+// IIFE skapar ett eget scope – const-deklarationer krockar inte och
+// return är giltigt för tidig exit vid ominjicering.
+(function () {
 if (window._p360PageJsLoaded) return;
 window._p360PageJsLoaded = true;
 
@@ -1064,3 +1065,5 @@ window.addEventListener('p360-anrop', async (event) => {
   }
 });
 } // slut: window.__p360Initierat
+
+})(); // slut: IIFE-skydd mot dubbel-injektion
