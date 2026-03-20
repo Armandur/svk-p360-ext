@@ -421,23 +421,44 @@ async function läsInAlternativ() {
       throw new Error('Formuläret öppnades men innehöll inte de förväntade fälten. Kontrollera behörigheter i 360°.');
     }
 
-    // Vänta tills Selectize på diarieenhetsfältet har laddat alternativ
-    const diarieSel = doc.getElementById('PlaceHolderMain_MainView_JournalUnitComboControl');
+    // Vänta tills Selectize på diarieenhet OCH ansvarig enhet har laddat alternativ.
+    // Ansvariga personer beror på ansvarig enhet – triggas separat nedan.
+    function selectizeAntal(id) {
+      const el = doc.getElementById(id);
+      if (!el) return 0;
+      if (el.selectize) return Object.keys(el.selectize.options || {}).length;
+      return el.options?.length ?? 0;
+    }
+
     await new Promise(resolve => {
       const start = Date.now();
       const check = setInterval(() => {
-        const harAlternativ =
-          (diarieSel?.selectize && Object.keys(diarieSel.selectize.options || {}).length > 0) ||
-          (diarieSel?.options?.length > 1);
-        if (harAlternativ || Date.now() - start > 10000) {
-          clearInterval(check);
-          resolve();
-        }
+        const redo =
+          selectizeAntal('PlaceHolderMain_MainView_JournalUnitComboControl') > 0 &&
+          selectizeAntal('PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl') > 0;
+        if (redo || Date.now() - start > 10000) { clearInterval(check); resolve(); }
       }, 300);
     });
 
-    // Lite extra tid för övriga fält att laddas klart
-    await sleep(500);
+    // Trigga laddning av ansvariga personer genom att tillfälligt välja första enheten.
+    // ResponsibleUserComboControl är ett beroende fält som laddas via UpdatePanel
+    // när ansvarig enhet ändras.
+    const enhetSel = doc.getElementById('PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl');
+    const personSel = doc.getElementById('PlaceHolderMain_MainView_ResponsibleUserComboControl');
+    if (enhetSel?.selectize && Object.keys(enhetSel.selectize.options || {}).length > 0) {
+      const förstaEnhet = Object.keys(enhetSel.selectize.options)[0];
+      enhetSel.selectize.setValue(förstaEnhet);
+      // Vänta tills personlistan laddats
+      await new Promise(resolve => {
+        const start = Date.now();
+        const check = setInterval(() => {
+          const harPersoner = selectizeAntal('PlaceHolderMain_MainView_ResponsibleUserComboControl') > 0;
+          if (harPersoner || Date.now() - start > 8000) { clearInterval(check); resolve(); }
+        }, 300);
+      });
+    }
+
+    await sleep(300);
 
     /**
      * Läser alternativ från ett Selectize-fält (primärt) eller native select (fallback).
@@ -481,65 +502,131 @@ async function läsInAlternativ() {
  * Försöker läsa alla klassificeringsalternativ från formulärets typeahead
  * genom att söka med jokertecknet %.
  *
- * Strategi 1: jQuery UI Autocomplete – anropa source-funktionen direkt.
- * Strategi 2: Sätt värdet och trigga events, vänta på synliga dropdown-items.
- * Returnerar alltid en array (tom om inget hittas – användaren kan då skriva manuellt).
+ * 360° klassificering använder en ASP.NET PostBack mot AjaxReaderService.asmx.
+ * Sökningen triggas via ett onclick-postback på klassificeringsfältet, och
+ * resultaten renderas i DOM:en som autocomplete-listobjekt.
+ *
+ * Strategi 1: jQuery UI Autocomplete source-funktion (om tillgänglig).
+ * Strategi 2: Fånga XHR-svar via XMLHttpRequest-patch och plocka ut data.
+ * Strategi 3: Trigga PostBack + poll DOM för synliga listresultat.
+ * Returnerar alltid en array (tom om inget hittas – manuell inmatning som fallback).
  */
 async function försökLäsKlassificeringar(doc, win) {
   const visFält = doc.getElementById(
     'PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY'
   );
+  const doltFält = doc.getElementById(
+    'PlaceHolderMain_MainView_ClassificationCode1ComboControl'
+  );
   if (!visFält) return [];
 
-  // Strategi 1: jQuery UI Autocomplete har en source-funktion vi kan anropa direkt
+  // Strategi 1: jQuery UI Autocomplete source-funktion
   try {
     const jq = win.jQuery || win.$;
     if (jq) {
       const $el = jq(visFält);
       if ($el.autocomplete && $el.autocomplete('instance')) {
-        const källFunktion = $el.autocomplete('option', 'source');
-        if (typeof källFunktion === 'function') {
-          const resultat = await new Promise(resolve => {
-            källFunktion({ term: '%' }, items => resolve(items || []));
-          });
-          if (resultat.length > 0) {
-            return resultat.map(i => ({
-              display: typeof i === 'string' ? i : (i.label || i.value || ''),
+        const källa = $el.autocomplete('option', 'source');
+        if (typeof källa === 'function') {
+          const res = await new Promise(resolve => källa({ term: '%' }, r => resolve(r || [])));
+          if (res.length > 0) {
+            return res.map(i => ({
+              display: typeof i === 'string' ? i : (i.label || i.value || i.text || ''),
               value:   typeof i === 'string' ? '' : (i.recno || i.id || i.value || ''),
             })).filter(k => k.display);
           }
         }
       }
     }
-  } catch { /* jQuery ej tillgängligt eller Autocomplete ej initierat */ }
+  } catch { /* */ }
 
-  // Strategi 2: Trigga typeahead manuellt och läs DOM-resultaten
-  visFält.value = '%';
-  for (const typ of ['focus', 'input', 'keyup', 'keydown', 'change']) {
-    try { visFält.dispatchEvent(new Event(typ, { bubbles: true })); } catch { /* */ }
-  }
+  // Strategi 2: Fånga XHR-svar från AjaxReaderService genom att patcha XMLHttpRequest
+  const xhrResultat = await new Promise(resolve => {
+    const origOpen = win.XMLHttpRequest.prototype.open;
+    const origSend = win.XMLHttpRequest.prototype.send;
+    let löst = false;
+    const lös = val => { if (!löst) { löst = true; resolve(val); } };
 
-  // Vänta upp till 4 s på att autocomplete-listan dyker upp
-  for (let i = 0; i < 20; i++) {
+    const timer = setTimeout(() => lös([]), 8000);
+
+    win.XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+      this._url = url;
+      return origOpen.call(this, method, url, ...rest);
+    };
+    win.XMLHttpRequest.prototype.send = function(body) {
+      if (this._url?.includes('AjaxReaderService') || body?.includes('ClassificationCode')) {
+        this.addEventListener('load', () => {
+          try {
+            // Svaret är antingen JSON eller XML med items
+            const text = this.responseText;
+            let items = [];
+            // Försök JSON
+            try {
+              const json = JSON.parse(text);
+              const arr = Array.isArray(json) ? json : (json.d ?? json.items ?? json.Items ?? []);
+              items = arr.map(i => ({
+                display: i.display || i.Display || i.label || i.Label || i.text || i.Text || i.name || i.Name || '',
+                value:   String(i.recno || i.Recno || i.value || i.Value || i.id || i.Id || ''),
+              })).filter(k => k.display && k.value);
+            } catch {
+              // Försök extrahera recno + text ur XML/HTML-sträng
+              const matcher = /recno['":\s]+(\d+)[^<>"]*?['">\s]([^<"']+)/gi;
+              let m;
+              while ((m = matcher.exec(text)) !== null) {
+                items.push({ value: m[1], display: m[2].trim() });
+              }
+            }
+            if (items.length > 0) { clearTimeout(timer); lös(items); }
+          } catch { /* */ }
+        });
+      }
+      return origSend.call(this, body);
+    };
+
+    // Trigga sökning: sätt % i fältet och trigga PostBack
+    visFält.value = '%';
+    try {
+      win.__doPostBack(
+        'ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_OnClick_PostBack', ''
+      );
+    } catch {
+      // Fallback: trigga input-events
+      for (const t of ['focus', 'input', 'keydown', 'keyup']) {
+        visFält.dispatchEvent(new Event(t, { bubbles: true }));
+      }
+    }
+  });
+
+  // Återställ XHR (byt tillbaka prototyperna)
+  // (patcharna är lokala i win-kontexten och försvinner med iframe)
+
+  if (xhrResultat.length > 0) return xhrResultat;
+
+  // Strategi 3: Poll DOM för synliga autocomplete-listelement
+  for (let i = 0; i < 25; i++) {
     await sleep(200);
     for (const sel of [
+      '.ui-autocomplete .ui-menu-item a',
       '.ui-autocomplete .ui-menu-item',
       '.ui-autocomplete li',
       '.ac_results li',
-      '.autocomplete-results li',
+      '[class*="autocomplete"] li',
       '[id*="autocomplete"] li',
     ]) {
       const items = [...doc.querySelectorAll(sel)].filter(
-        el => el.textContent.trim().length > 1
+        el => el.textContent.trim().length > 2
       );
       if (items.length > 1) {
-        return items.map(el => ({
-          display: el.textContent.trim(),
-          value: el.dataset.value || el.dataset.recno || el.getAttribute('data-value') || '',
-        })).filter(k => k.display);
+        return items.map(el => {
+          const display = el.textContent.trim();
+          const value = el.dataset.recno || el.dataset.value ||
+                        el.getAttribute('data-recno') || el.getAttribute('data-value') || '';
+          return { display, value };
+        }).filter(k => k.display);
       }
     }
   }
+
   return [];
 }
 
