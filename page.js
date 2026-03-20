@@ -783,9 +783,32 @@ async function skapaFrånMall(mall) {
       const dolt = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
       if (vis)  vis.value  = mall.klassificering.display || '';
       if (dolt) dolt.value = mall.klassificering.value;
-      pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_OnClick_PostBack', '');
-      await sleep(1500);
-      // Logga vad servern satte i hidden-fältet (hämta färsk nod efter UpdatePanel)
+
+      // Fånga OnClick-PostBack-svaret för att förstå hur servern behandlar klassificering.
+      await new Promise(resolve => {
+        const origSend = iWin.XMLHttpRequest.prototype.send;
+        let fångad = false;
+        const done = () => {
+          if (!fångad) { fångad = true; iWin.XMLHttpRequest.prototype.send = origSend; resolve(); }
+        };
+        iWin.XMLHttpRequest.prototype.send = function(body) {
+          this.addEventListener('load', function() {
+            try {
+              const resp = this.responseText || '';
+              // Logga URL + de första 2000 och sista 1000 tecknen av svaret
+              console.log('[p360] OnClick XHR url:', this.responseURL, '| len:', resp.length);
+              console.log('[p360] OnClick XHR start:', resp.substring(0, 2000));
+              if (resp.length > 2000) console.log('[p360] OnClick XHR slut:', resp.substring(resp.length - 1000));
+            } catch {}
+            done();
+          });
+          this.addEventListener('error', done);
+          origSend.apply(this, arguments);
+        };
+        pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_OnClick_PostBack', '');
+        setTimeout(done, 5000); // fallback
+      });
+
       const doltEfter = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
       console.log('[p360] Klassificering efter OnClick-PostBack. serverVärde=', doltEfter?.value,
         '| display=', iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY')?.value);
