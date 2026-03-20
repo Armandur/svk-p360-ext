@@ -322,10 +322,19 @@ async function växlaStatus() {
   okBtn.click();
 }
 
+// URL till nytt-ärende-formuläret i dialogläge. Laddas som iframe inom befintlig 360°-sida
+// för att säkerställa rätt sessionskontekst – direktnavigering via GET fungerar ej.
+const NY_ÄRENDE_URL =
+  '/view.aspx?id=cf7c6540-7018-4c8c-9da8-783d6ce5d8cf' +
+  '&dialogmode=true&IsDlg=1&context-data=subtype,Primary,61000';
+
 /**
- * Väntar på att ett nytt iframe dyker upp vars src eller contentDocument.location.href
- * innehåller urlFragment och har readyState 'complete'.
+ * Väntar på att ett iframe dyker upp (i huvud-dokumentet) vars src eller
+ * contentDocument.location.href innehåller urlFragment och har readyState 'complete'.
  * Används för kontaktdialogernas iframes som kan ha genomgått en redirect.
+ *
+ * Kontaktdialogerna skapas av formJavaScript i formiframen via window.top.document,
+ * vilket innebär att de hamnar som syskon till formOverlayIframen i huvud-dokumentet.
  */
 function waitForNyIframe(urlFragment, timeout = 10000) {
   return new Promise(resolve => {
@@ -354,35 +363,9 @@ function waitForNyIframe(urlFragment, timeout = 10000) {
 }
 
 /**
- * Läser in alternativ för instansspecifika fält från nytt-ärende-formuläret.
- * Anropas när sidan /locator/DMS/Case/New/61000 laddats i en temporär flik.
- */
-async function läsInAlternativ() {
-  const titelFält = await waitForElement(document, '#PlaceHolderMain_MainView_TitleTextBoxControl', 10000);
-  if (!titelFält) {
-    throw new Error('Formuläret laddades inte. Kontrollera att du är inloggad i 360°.');
-  }
-
-  function läsOptions(id) {
-    const el = document.getElementById(id);
-    if (!el) return [];
-    return Array.from(el.options)
-      .filter(o => o.value !== '')
-      .map(o => ({ value: o.value, label: o.text.trim() }));
-  }
-
-  return {
-    diarieenheter:    läsOptions('PlaceHolderMain_MainView_JournalUnitComboControl'),
-    delarkiv:         läsOptions('PlaceHolderMain_MainView_CaseSubArchiveComboControl'),
-    atkomstgrupper:   läsOptions('PlaceHolderMain_MainView_AccessGroupComboControl'),
-    ansvarigaEnheter: läsOptions('PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl'),
-    ansvarigaPersoner:läsOptions('PlaceHolderMain_MainView_ResponsibleUserComboControl'),
-  };
-}
-
-/**
  * Hjälpfunktion: sätter ett Selectize-fält till önskat värde.
  * Väntar tills Selectize initierats (max 3 s).
+ * doc: valfritt – DocumentFragment eller contentDocument för en iframe.
  */
 async function sättSelectize(id, value, doc) {
   const d = doc || document;
@@ -406,176 +389,243 @@ async function sättSelectize(id, value, doc) {
 }
 
 /**
- * Fyller i nytt-ärende-formuläret med data från en mall och skickar det.
+ * Läser in alternativ för instansspecifika fält.
+ *
+ * Skapar en dold iframe med nytt-ärende-formuläret inuti den befintliga 360°-sidan.
+ * Det undviker problemet att /locator/DMS/Case/New/61000 avvisar direkta GET-anrop.
  */
-async function skapaFrånMall(mall) {
-  const titelFält = await waitForElement(document, '#PlaceHolderMain_MainView_TitleTextBoxControl', 15000);
-  if (!titelFält) {
-    alert('Formuläret laddades inte. Kontrollera att du är inloggad i 360°.');
-    return;
-  }
+async function läsInAlternativ() {
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText =
+    'position:fixed;width:1px;height:1px;top:-200px;left:-200px;opacity:0;border:none;pointer-events:none;';
+  iframe.src = NY_ÄRENDE_URL;
+  document.body.appendChild(iframe);
 
-  // Generella fält
-  if (mall.diarieenhet?.value) {
-    await sättSelectize('PlaceHolderMain_MainView_JournalUnitComboControl', mall.diarieenhet.value);
-  }
-  if (mall.delarkiv?.value) {
-    await sättSelectize('PlaceHolderMain_MainView_CaseSubArchiveComboControl', mall.delarkiv.value);
-  }
-  if (mall.atkomstgrupp?.value) {
-    await sättSelectize('PlaceHolderMain_MainView_AccessGroupComboControl', mall.atkomstgrupp.value);
-  }
-  if (mall.ansvarigEnhet?.value) {
-    await sättSelectize('PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl', mall.ansvarigEnhet.value);
-  }
-  if (mall.ansvarigPerson?.value) {
-    await sättSelectize('PlaceHolderMain_MainView_ResponsibleUserComboControl', mall.ansvarigPerson.value);
-  }
-  await sättSelectize('PlaceHolderMain_MainView_StatusCaseComboControl', mall.status || '5');
-  await sättSelectize('PlaceHolderMain_MainView_PaperDocAllowedComboControl', mall.sparatPaPapper || '0');
-
-  // Titel
-  titelFält.value = mall.titel || '';
-  titelFält.dispatchEvent(new Event('input', { bubbles: true }));
-
-  // Klassificering
-  if (mall.klassificering?.value) {
-    const visFält = document.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
-    const doltFält = document.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
-    if (visFält) visFält.value = mall.klassificering.display || '';
-    if (doltFält) doltFält.value = mall.klassificering.value;
-  }
-
-  // Skyddskod – om sekretess, trigga UpdatePanel och vänta på extra fält
-  await sättSelectize('PlaceHolderMain_MainView_AccessCodeComboControl', mall.skyddskod || '0');
-
-  if (mall.skyddskod && mall.skyddskod !== '0') {
-    await sleep(300);
-    __doPostBack('ctl00$PlaceHolderMain$MainView$AccessCodeComboControl', '');
-
-    // Vänta på att paragraf-fältet laddats in via UpdatePanel
-    const paragrafFält = await waitForElement(
-      document,
-      '#PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl',
-      8000
-    );
-    if (paragrafFält && mall.sekretessParag) {
-      await sättSelectize(
-        'PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl',
-        mall.sekretessParag
+  try {
+    // Vänta på laddningshändelsen
+    await new Promise((resolve, reject) => {
+      const tid = setTimeout(
+        () => reject(new Error('Timeout – formuläret laddades inte. Kontrollera att du är inloggad i 360°.')),
+        25000
       );
+      iframe.addEventListener('load', () => { clearTimeout(tid); resolve(); });
+    });
+
+    // Vänta lite extra för att Selectize ska hinna initieras
+    await sleep(800);
+
+    const doc = iframe.contentDocument;
+    const titelFält = doc?.getElementById('PlaceHolderMain_MainView_TitleTextBoxControl');
+    if (!titelFält) {
+      throw new Error('Formuläret öppnades men innehöll inte de förväntade fälten. Kontrollera behörigheter i 360°.');
     }
 
-    const checkbox = document.getElementById('PlaceHolderMain_MainView_UnofficialContactCheckBoxControl');
-    if (checkbox) checkbox.checked = !!mall.skyddaKontakter;
-
-    await sättSelectize(
-      'PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl',
-      mall.offentligTitelVal || '1'
-    );
-
-    if (mall.offentligTitelVal === '3') {
-      await sleep(500);
-      const offTitelFält = await waitForElement(
-        document,
-        '#PlaceHolderMain_MainView_PublicTitleTextBoxControl',
-        5000
-      );
-      if (offTitelFält) offTitelFält.value = mall.offentligTitel || '';
+    function läsOptions(id) {
+      const el = doc.getElementById(id);
+      if (!el) return [];
+      return Array.from(el.options)
+        .filter(o => o.value !== '')
+        .map(o => ({ value: o.value, label: o.text.trim() }));
     }
+
+    return {
+      diarieenheter:     läsOptions('PlaceHolderMain_MainView_JournalUnitComboControl'),
+      atkomstgrupper:    läsOptions('PlaceHolderMain_MainView_AccessGroupComboControl'),
+      ansvarigaEnheter:  läsOptions('PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl'),
+      ansvarigaPersoner: läsOptions('PlaceHolderMain_MainView_ResponsibleUserComboControl'),
+    };
+  } finally {
+    iframe.remove();
   }
-
-  // Externa kontakter
-  if (mall.externaKontakter?.length > 0) {
-    __doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'ContactsStep');
-    await sleep(1500);
-
-    for (const kontakt of mall.externaKontakter) {
-      await läggTillExternKontakt(kontakt);
-      await sleep(500);
-    }
-  }
-
-  // Kommentar
-  if (mall.kommentar) {
-    __doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'NotesStep');
-    await sleep(1000);
-    const kommentarFält = await waitForElement(
-      document,
-      '#PlaceHolderMain_MainView_NotesStep_Control',
-      3000
-    );
-    if (kommentarFält) kommentarFält.value = mall.kommentar;
-  }
-
-  // Slutför
-  await sleep(300);
-  __doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
 }
 
 /**
- * Lägger till en oregistrerad extern kontakt via den multi-stegsdialoger
- * som 360° visar (NewActivityContact → JournalCaseContactNew → ev. DuplicateContacts).
+ * Öppnar nytt-ärende-formuläret som ett synligt överläggsrutefönster och fyller det
+ * med malldata, sedan skickar formuläret. Navigerar till det nyskapade ärendet.
+ *
+ * Formuläret laddas som en iframe i den befintliga 360°-sidan så att sessionskontexten
+ * bevaras. Formulärets JavaScript kör i iframe-fönstrets kontext (formWin/__doPostBack),
+ * medan kontaktdialogerna hamnar i huvud-dokumentets body som syskoniframes.
  */
-async function läggTillExternKontakt(kontakt) {
-  // Trigga "Ny kontakt"-menyn med given roll (9 = Ärendepart som standard)
-  __doPostBack(
-    'ctl00$PlaceHolderMain$MainView$AddUnregCasePartMenuButtonControl_DropDownMenu',
-    kontakt.roll || '9'
-  );
+async function skapaFrånMall(mall) {
+  // Skapa overlay-containern
+  const overlay = document.createElement('div');
+  overlay.id = 'p360-mall-overlay';
+  overlay.style.cssText =
+    'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:99990;' +
+    'display:flex;flex-direction:column;align-items:center;justify-content:center;';
 
-  // Steg 1: Typ-dialog (NewActivityContact)
-  const typIframe = await waitForNyIframe('NewActivityContact', 8000);
-  if (!typIframe) {
-    alert('Typ-dialogen öppnades inte för kontakt: ' + (kontakt.namn || ''));
-    return;
+  const statusText = document.createElement('div');
+  statusText.style.cssText =
+    'color:#fff;font-family:sans-serif;font-size:13px;margin-bottom:10px;' +
+    'padding:6px 14px;background:rgba(0,0,0,0.6);border-radius:4px;';
+  statusText.textContent = 'Laddar formulär…';
+  overlay.appendChild(statusText);
+
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText =
+    'width:95%;max-width:980px;height:85vh;border:none;border-radius:6px;background:#fff;';
+  iframe.src = NY_ÄRENDE_URL;
+  overlay.appendChild(iframe);
+  document.body.appendChild(overlay);
+
+  const visaStatus = (t) => { statusText.textContent = t; };
+
+  try {
+    await new Promise((resolve, reject) => {
+      const tid = setTimeout(
+        () => reject(new Error('Formuläret laddades inte. Kontrollera att du är inloggad i 360°.')),
+        25000
+      );
+      iframe.addEventListener('load', () => { clearTimeout(tid); resolve(); });
+    });
+
+    const iDoc = iframe.contentDocument;
+    const iWin = iframe.contentWindow;
+    // pb: postback i formulärets eget fönster
+    const pb = (t, a) => iWin.__doPostBack(t, a);
+    const sättSel = (id, val) => sättSelectize(id, val, iDoc);
+
+    const titelFält = await waitForElement(iDoc, '#PlaceHolderMain_MainView_TitleTextBoxControl', 10000);
+    if (!titelFält) throw new Error('Formuläret laddades inte korrekt.');
+
+    visaStatus('Fyller i fält…');
+
+    if (mall.diarieenhet?.value) await sättSel('PlaceHolderMain_MainView_JournalUnitComboControl', mall.diarieenhet.value);
+    if (mall.delarkiv?.value)    await sättSel('PlaceHolderMain_MainView_CaseSubArchiveComboControl', mall.delarkiv.value);
+    if (mall.atkomstgrupp?.value) await sättSel('PlaceHolderMain_MainView_AccessGroupComboControl', mall.atkomstgrupp.value);
+    if (mall.ansvarigEnhet?.value) await sättSel('PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl', mall.ansvarigEnhet.value);
+    if (mall.ansvarigPerson?.value) await sättSel('PlaceHolderMain_MainView_ResponsibleUserComboControl', mall.ansvarigPerson.value);
+    await sättSel('PlaceHolderMain_MainView_StatusCaseComboControl', mall.status || '5');
+    await sättSel('PlaceHolderMain_MainView_PaperDocAllowedComboControl', mall.sparatPaPapper || '0');
+
+    titelFält.value = mall.titel || '';
+    titelFält.dispatchEvent(new Event('input', { bubbles: true }));
+
+    if (mall.klassificering?.value) {
+      const vis  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
+      const dolt = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
+      if (vis)  vis.value  = mall.klassificering.display || '';
+      if (dolt) dolt.value = mall.klassificering.value;
+    }
+
+    await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', mall.skyddskod || '0');
+
+    if (mall.skyddskod && mall.skyddskod !== '0') {
+      await sleep(300);
+      pb('ctl00$PlaceHolderMain$MainView$AccessCodeComboControl', '');
+
+      const paragrafFält = await waitForElement(
+        iDoc, '#PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', 8000
+      );
+      if (paragrafFält && mall.sekretessParag) {
+        await sättSel('PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', mall.sekretessParag);
+      }
+      const checkbox = iDoc.getElementById('PlaceHolderMain_MainView_UnofficialContactCheckBoxControl');
+      if (checkbox) checkbox.checked = !!mall.skyddaKontakter;
+      await sättSel('PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl', mall.offentligTitelVal || '1');
+      if (mall.offentligTitelVal === '3') {
+        await sleep(500);
+        const offFält = await waitForElement(iDoc, '#PlaceHolderMain_MainView_PublicTitleTextBoxControl', 5000);
+        if (offFält) offFält.value = mall.offentligTitel || '';
+      }
+    }
+
+    if (mall.externaKontakter?.length > 0) {
+      pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'ContactsStep');
+      visaStatus('Lägger till externa kontakter…');
+      await sleep(1500);
+      for (const kontakt of mall.externaKontakter) {
+        // pb skickas med för att postback-anrop ska ske i formulärets iframe-kontext.
+        // Kontaktdialogerna hamnar i huvud-dokumentets body (window.top) som syskoniframes.
+        await läggTillExternKontakt(kontakt, pb);
+        await sleep(500);
+      }
+    }
+
+    if (mall.kommentar) {
+      pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'NotesStep');
+      await sleep(1000);
+      const kFält = await waitForElement(iDoc, '#PlaceHolderMain_MainView_NotesStep_Control', 3000);
+      if (kFält) kFält.value = mall.kommentar;
+    }
+
+    visaStatus('Skapar ärende…');
+    await sleep(300);
+    pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
+
+    // Vänta på att iframen navigeras till det nyskapade ärendet
+    const nyUrl = await new Promise(resolve => {
+      const t = Date.now();
+      const check = setInterval(() => {
+        try {
+          const href = iWin.location.href;
+          if (href.includes('/DMS/Case/Details/') || href.includes('module=Case&subtype=')) {
+            clearInterval(check);
+            resolve(href);
+          }
+        } catch { /* Under redirect kan location vara tillfälligt otillgänglig */ }
+        if (Date.now() - t > 60000) { clearInterval(check); resolve(null); }
+      }, 400);
+    });
+
+    overlay.remove();
+    if (nyUrl) {
+      window.location.href = nyUrl;
+    } else {
+      alert('Ärendet kan ha skapats. Kontrollera i 360°.');
+    }
+
+  } catch (err) {
+    overlay.remove();
+    throw err;
   }
+}
+
+/**
+ * Lägger till en oregistrerad extern kontakt via 360°:s multi-stegsdialog.
+ * (NewActivityContact → JournalCaseContactNew → ev. DuplicateContacts)
+ *
+ * pb: postback-funktion i formulärets kontext (iWin.__doPostBack eller vanlig __doPostBack).
+ * Kontaktdialogerna hamnar alltid i huvud-dokumentets body som syskoniframes.
+ */
+async function läggTillExternKontakt(kontakt, pb = __doPostBack) {
+  pb('ctl00$PlaceHolderMain$MainView$AddUnregCasePartMenuButtonControl_DropDownMenu', kontakt.roll || '9');
+
+  // Steg 1: Typ-dialog
+  const typIframe = await waitForNyIframe('NewActivityContact', 8000);
+  if (!typIframe) { alert('Typ-dialogen öppnades inte för kontakt: ' + (kontakt.namn || '')); return; }
 
   const typDoc = typIframe.contentDocument;
   await waitForElement(typDoc, '#PlaceHolderMain_MainView_ContactTypeComboBoxControl', 3000);
 
-  // Välj Oregistrerad kontakt (value=0)
   const typSel = typDoc.getElementById('PlaceHolderMain_MainView_ContactTypeComboBoxControl');
-  if (typSel?.selectize) {
-    typSel.selectize.setValue('0');
-  } else if (typSel) {
-    typSel.value = '0';
-  }
+  if (typSel?.selectize) { typSel.selectize.setValue('0'); } else if (typSel) { typSel.value = '0'; }
   await sleep(200);
 
-  // Bekräfta typ-dialogen
-  typDoc.getElementById('__EVENTTARGET').value = 'ctl00$PlaceHolderMain$MainView$DialogButton';
+  typDoc.getElementById('__EVENTTARGET').value   = 'ctl00$PlaceHolderMain$MainView$DialogButton';
   typDoc.getElementById('__EVENTARGUMENT').value = 'finish';
   typDoc.getElementById('form1').submit();
 
-  // Steg 2: Kontaktformulär (JournalCaseContactNew)
+  // Steg 2: Kontaktformulär
   const kontaktIframe = await waitForNyIframe('JournalCaseContactNew', 10000);
-  if (!kontaktIframe) {
-    alert('Kontaktformuläret öppnades inte för kontakt: ' + (kontakt.namn || ''));
-    return;
-  }
+  if (!kontaktIframe) { alert('Kontaktformuläret öppnades inte för kontakt: ' + (kontakt.namn || '')); return; }
 
   const kDoc = kontaktIframe.contentDocument;
   await waitForElement(kDoc, '#PlaceHolderMain_MainView_ContactNameControl', 5000);
 
-  function sättFält(id, val) {
-    const el = kDoc.getElementById(id);
-    if (el && val) el.value = val;
-  }
-
-  sättFält('PlaceHolderMain_MainView_ContactNameControl', kontakt.namn);
-  sättFält('PlaceHolderMain_MainView_ContactName2Control', kontakt.kontaktperson);
-  sättFält('PlaceHolderMain_MainView_ContactAddressControl', kontakt.adress);
-  sättFält('PlaceHolderMain_MainView_ZipCode_zipCode_zip_code', kontakt.postnummer);
-  sättFält('PlaceHolderMain_MainView_ZipCode_zipPlace_zip_place', kontakt.ort);
-  sättFält('PlaceHolderMain_MainView_ContactEmailControl', kontakt.epost);
-  sättFält('PlaceHolderMain_MainView_Phone', kontakt.telefon);
-  sättFält('PlaceHolderMain_MainView_ContactNotesControl', kontakt.kommentar);
-
+  const sättFält = (id, val) => { const el = kDoc.getElementById(id); if (el && val) el.value = val; };
+  sättFält('PlaceHolderMain_MainView_ContactNameControl',         kontakt.namn);
+  sättFält('PlaceHolderMain_MainView_ContactName2Control',        kontakt.kontaktperson);
+  sättFält('PlaceHolderMain_MainView_ContactAddressControl',      kontakt.adress);
+  sättFält('PlaceHolderMain_MainView_ZipCode_zipCode_zip_code',  kontakt.postnummer);
+  sättFält('PlaceHolderMain_MainView_ZipCode_zipPlace_zip_place',kontakt.ort);
+  sättFält('PlaceHolderMain_MainView_ContactEmailControl',        kontakt.epost);
+  sättFält('PlaceHolderMain_MainView_Phone',                      kontakt.telefon);
+  sättFält('PlaceHolderMain_MainView_ContactNotesControl',        kontakt.kommentar);
   await sleep(200);
 
-  // Spara kontakten (triggar dubblettkontrollen automatiskt)
-  kDoc.getElementById('__EVENTTARGET').value = 'ctl00$PlaceHolderMain$MainView$DialogButton';
+  kDoc.getElementById('__EVENTTARGET').value   = 'ctl00$PlaceHolderMain$MainView$DialogButton';
   kDoc.getElementById('__EVENTARGUMENT').value = 'finish';
   kDoc.getElementById('form1').submit();
 
@@ -585,17 +635,15 @@ async function läggTillExternKontakt(kontakt) {
     try { return f.src?.includes('DuplicateContacts') || f.contentDocument?.location?.href?.includes('DuplicateContacts'); }
     catch { return false; }
   });
-
   if (dubblettIframe) {
-    // Välj "Spara/Skapa ny" för att skapa ny oregistrerad kontakt ändå
     const dDoc = dubblettIframe.contentDocument;
-    dDoc.getElementById('__EVENTTARGET').value = 'ctl00$PlaceHolderMain$MainView$DialogButton';
+    dDoc.getElementById('__EVENTTARGET').value   = 'ctl00$PlaceHolderMain$MainView$DialogButton';
     dDoc.getElementById('__EVENTARGUMENT').value = 'no';
     dDoc.getElementById('form1').submit();
     await sleep(1000);
   }
 
-  // Vänta tills kontaktiframen försvinner från DOM (sparningen slutförd)
+  // Vänta tills kontaktformuläret försvinner från DOM
   await new Promise(resolve => {
     const t = Date.now();
     const check = setInterval(() => {
@@ -603,10 +651,7 @@ async function läggTillExternKontakt(kontakt) {
         try { return f.src?.includes('JournalCaseContactNew') || f.contentDocument?.location?.href?.includes('JournalCaseContactNew'); }
         catch { return false; }
       });
-      if (!harKontakt || Date.now() - t > 12000) {
-        clearInterval(check);
-        resolve();
-      }
+      if (!harKontakt || Date.now() - t > 12000) { clearInterval(check); resolve(); }
     }, 200);
   });
 }

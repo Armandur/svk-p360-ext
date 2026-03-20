@@ -188,49 +188,26 @@ document.getElementById('btn-skapa-ärende').addEventListener('click', async () 
   const titel = document.getElementById('mall-titel-input').value.trim();
   const mallMedTitel = { ...valdMall, titel };
 
-  let tab;
-  try {
-    tab = await chrome.tabs.create({
-      url: 'https://p360.svenskakyrkan.se/locator/DMS/Case/New/61000',
-    });
-  } catch {
-    visaFel('Kunde inte öppna ny flik.');
+  // Hitta en befintlig 360°-flik – page.js öppnar formuläret som en overlay-iframe
+  // inuti den fliken, vilket kringgår att /locator/DMS/Case/New/61000 avvisar GET-anrop.
+  const [tab] = await chrome.tabs.query({ url: 'https://p360.svenskakyrkan.se/*' });
+  if (!tab) {
+    visaFel('Öppna 360° i en webbläsarflik innan du skapar ärende från mall.');
     return;
   }
 
-  // Vänta tills fliken laddats klart
-  await new Promise(resolve => {
-    const lyssnare = (tabId, info) => {
-      if (tabId === tab.id && info.status === 'complete') {
-        chrome.tabs.onUpdated.removeListener(lyssnare);
-        resolve();
-      }
-    };
-    chrome.tabs.onUpdated.addListener(lyssnare);
-  });
+  // Aktivera fliken så att användaren ser formuläret fyllas i
+  chrome.tabs.update(tab.id, { active: true });
 
-  // Ge content scripts tid att registrera sig
-  await new Promise(r => setTimeout(r, 600));
-
-  // Skicka malldatan och lös in svar (fire-and-forget – sidan visar egna felmeddelanden)
   try {
     await chrome.tabs.sendMessage(tab.id, { action: 'skapaFrånMall', mall: mallMedTitel });
   } catch {
-    // Scripts kanske inte hann – injicera och försök igen
     try {
-      await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ['page.js'],
-        world: 'MAIN',
-      });
-      await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ['content.js'],
-        world: 'ISOLATED',
-      });
+      await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['page.js'], world: 'MAIN' });
+      await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'], world: 'ISOLATED' });
       await new Promise(r => setTimeout(r, 400));
       chrome.tabs.sendMessage(tab.id, { action: 'skapaFrånMall', mall: mallMedTitel });
-    } catch { /* sidan visar eventuella fel */ }
+    } catch { /* page.js visar egna felmeddelanden */ }
   }
 
   window.close();

@@ -126,63 +126,36 @@ async function läsIn() {
   const status = document.getElementById('las-in-status');
 
   knapp.disabled = true;
-  status.textContent = 'Öppnar formuläret i 360°…';
+  status.textContent = 'Söker efter öppen 360°-flik…';
 
-  let tab;
-  try {
-    tab = await chrome.tabs.create({
-      url: 'https://p360.svenskakyrkan.se/locator/DMS/Case/New/61000',
-      active: false,
-    });
-  } catch {
-    status.textContent = 'Kunde inte öppna ny flik. Kontrollera behörigheter.';
+  // Hitta en befintlig 360°-flik att köra åtgärden i.
+  // page.js öppnar ett dolt iframe med formuläret inuti den fliken
+  // – det kringgår problemet att /locator/DMS/Case/New/61000 avvisar direkta GET-anrop.
+  const [tab] = await chrome.tabs.query({ url: 'https://p360.svenskakyrkan.se/*' });
+  if (!tab) {
+    status.textContent = 'Öppna 360° i en webbläsarflik och försök igen.';
     knapp.disabled = false;
     return;
   }
 
-  // Vänta tills fliken laddats klart
-  await new Promise(resolve => {
-    const lyssnare = (tabId, info) => {
-      if (tabId === tab.id && info.status === 'complete') {
-        chrome.tabs.onUpdated.removeListener(lyssnare);
-        resolve();
-      }
-    };
-    chrome.tabs.onUpdated.addListener(lyssnare);
-  });
-
-  // Ge content scripts tid att registrera sig
-  await new Promise(r => setTimeout(r, 600));
-
-  status.textContent = 'Läser in alternativ…';
+  status.textContent = 'Läser in alternativ från 360°…';
 
   let svar;
   try {
     svar = await chrome.tabs.sendMessage(tab.id, { action: 'läsInAlternativ' });
   } catch {
-    // Försök injicera scripts om de inte laddats automatiskt
+    // Scripts kanske inte registrerats – injicera och försök igen
     try {
-      await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ['page.js'],
-        world: 'MAIN',
-      });
-      await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ['content.js'],
-        world: 'ISOLATED',
-      });
+      await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['page.js'], world: 'MAIN' });
+      await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'], world: 'ISOLATED' });
       await new Promise(r => setTimeout(r, 400));
       svar = await chrome.tabs.sendMessage(tab.id, { action: 'läsInAlternativ' });
     } catch (err) {
-      chrome.tabs.remove(tab.id).catch(() => {});
       status.textContent = 'Misslyckades: ' + err.message;
       knapp.disabled = false;
       return;
     }
   }
-
-  chrome.tabs.remove(tab.id).catch(() => {});
 
   if (!svar?.success) {
     status.textContent = svar?.fel ?? 'Misslyckades att läsa in alternativ.';
