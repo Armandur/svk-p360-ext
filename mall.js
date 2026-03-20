@@ -164,10 +164,10 @@ async function läsIn() {
   }
 
   inlästaAlternativ = svar.data;
-  fyllSelectFrånAlternativ('mall-diarieenhet', inlästaAlternativ.diarieenheter);
-  fyllSelectFrånAlternativ('mall-delarkiv', inlästaAlternativ.delarkiv);
-  fyllSelectFrånAlternativ('mall-atkomstgrupp', inlästaAlternativ.atkomstgrupper);
-  fyllSelectFrånAlternativ('mall-ansvarig-enhet', inlästaAlternativ.ansvarigaEnheter);
+  fyllSelectFrånAlternativ('mall-diarieenhet', inlästaAlternativ.diarieenheter, true);
+  fyllSelectFrånAlternativ('mall-delarkiv', inlästaAlternativ.delarkiv, true);
+  fyllSelectFrånAlternativ('mall-atkomstgrupp', inlästaAlternativ.atkomstgrupper, true);
+  fyllSelectFrånAlternativ('mall-ansvarig-enhet', inlästaAlternativ.ansvarigaEnheter, true);
   fyllSelectFrånAlternativ('mall-ansvarig-person', inlästaAlternativ.ansvarigaPersoner, true);
 
   // Klassificeringar – visa dropdown om vi fick in data, annars behåll manuella fält
@@ -236,7 +236,7 @@ function fyllSelectFrånAlternativ(elId, alternativ, läggTillTom = false) {
   if (läggTillTom) {
     const opt = document.createElement('option');
     opt.value = '';
-    opt.textContent = '(Ingen)';
+    opt.textContent = '(Ej satt – välj manuellt)';
     sel.appendChild(opt);
   }
   (alternativ || []).forEach(a => {

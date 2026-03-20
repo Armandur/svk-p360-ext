@@ -169,7 +169,7 @@ function visaTitelPanel(mall) {
   const panel = document.getElementById('mall-titel-panel');
   const input = document.getElementById('mall-titel-input');
   input.value = mall.titel || '';
-  panel.style.display = '';
+  panel.style.display = 'block';
   input.focus();
   input.select();
 }
