@@ -132,12 +132,16 @@ element.selectize.setValue('200171')
 
 ### Dropdown-värden
 
-> **Instansspecifika värden:** Diarieenheter, åtkomstgrupper och ansvariga enheter är
-> specifika per organisation och installation av 360°. Värdena som anges nedan gäller
-> **Härnösands pastorat** och ska **inte hårdkodas** i tillägget – de måste antingen
-> läsas dynamiskt från formulärets `<select>`-element eller konfigureras per användare
-> i mallinställningarna. Skyddskod, status och delarkiv är däremot generella och
-> stabila över installationer.
+> **Instansspecifika värden:** Följande fält varierar **per enhet inom Svenska kyrkan**
+> (pastorat, stift, samfällighet) och ska **aldrig hårdkodas** i tillägget:
+> - `JournalUnitComboControl` – Diarieenhet
+> - `AccessGroupComboControl` – Åtkomstgrupp
+> - `ResponsibleOrgUnitComboControl` – Ansvarig enhet
+> - `ResponsibleUserComboControl` – Ansvarig person
+>
+> Dessa värden måste antingen läsas dynamiskt från formulärets `<select>`-element
+> eller konfigureras per användare i mallinställningarna.
+> Skyddskod, status, delarkiv och paragraflistor är generella och stabila.
 
 **Skyddskod (AccessCodeComboControl):**
 | Värde | Text |
@@ -335,7 +339,45 @@ const recno = new URLSearchParams(window.location.search).get('recno');
 | Klassificering | Kräver giltigt recno i hidden-fältet | Hårdkoda kända klassificeringskoder per mall |
 | Selectize.js | Native `<select>` är dolt | Anropa `element.selectize.setValue(val)` |
 | `Wizard_CheckSum` | Skickas som `%5Bobject%20HTMLTableElement%5D` | Skicka rakt av – verkar ej strikt validerat |
-| Sekretessfält | Extra fält visas vid KO/OSL – ej kartlagda ännu | Se OBS-rutan ovan |
+| Sekretessfält | Paragraf och offentlig titel laddas via UpdatePanel | Trigga postbacks i rätt ordning – se implementeringsflöde ovan |
+
+---
+
+## Flikar och externa kontakter i ärendeskapande-dialogen
+
+> **Ej kartlagt – behöver undersökas via Chrome DevTools.**
+
+### Flikar i guiden
+
+Ärendeskapande-dialogen är troligen uppbyggd som en wizard med flikar eller steg.
+Byte av flik sker sannolikt via postback – element-ID och mekanism behöver kartläggas.
+
+**Känt:** Paragraf (`AccessCodeAuthorizationComboControl`) och Val för offentlig titel
+(`SelectOfficialTitleComboBoxControl`) är sannolikt obligatoriska för att kunna gå
+vidare till nästa flik vid KO/OSL-sekretess – servern blockerar förmodligen
+flikbytet om dessa inte är ifyllda.
+
+**Att kartlägga:**
+- Element-ID och postback-nyckel för fliknavigering
+- Hur servern signalerar valideringsfel vid flikbyte (felmeddelande-element?)
+- Vilka flikar som finns och i vilken ordning
+
+### Externa kontakter (oregistrerade)
+
+Primär användning: lägga till **oregistrerade** externa kontakter (t.ex. privatpersoner
+eller externa aktörer som inte finns i systemet). Att söka bland befintliga interna
+kontakter bedöms som för omständigt för automatisering.
+
+**Känt beteende:** Om en oregistrerad kontakt läggs till med samma namn som en befintlig
+intern kontakt kan systemet varna och fråga om man avser den interna personen eller
+vill fortsätta med den oregistrerade.
+
+**Att kartlägga:**
+- Flik/steg där kontakter läggs till
+- Element-ID och postback-nyckel för att öppna "Lägg till oregistrerad kontakt"-dialog
+- Formulärfält i kontaktdialogen (namn, adress, e-post m.m.) och deras element-ID
+- Hur varningsdialogen (intern/oregistrerad) ser ut och hanteras
+- POST-struktur för att spara en oregistrerad kontakt
 
 ---
 
