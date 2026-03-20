@@ -954,7 +954,20 @@ async function skapaFrånMall(mall) {
             iframe.removeEventListener('load', onFinishLoad);
             restoreXhr();
             done(href);
+            return;
           }
+          // IsDlg=1-svar: inspektera svar-sidans JavaScript efter 2 s för att
+          // se vilken mekanism 360° använder för att signalera ärendeskapning.
+          setTimeout(() => {
+            try {
+              console.log('[p360] Response URL efter 2s:', iWin.location.href);
+              const scripts = Array.from(iWin.document.querySelectorAll('script:not([src])'))
+                .map(s => s.textContent.replace(/\s+/g, ' ').trim())
+                .filter(Boolean);
+              console.log('[p360] Response inline scripts:', scripts);
+              console.log('[p360] Response body text:', iWin.document.body?.textContent?.substring(0, 500));
+            } catch (e) { console.log('[p360] Response inspect fel:', e.message); }
+          }, 2000);
         } catch { /* location tillfälligt otillgänglig under redirect */ }
       };
       iframe.addEventListener('load', onFinishLoad);
