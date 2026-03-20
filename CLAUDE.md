@@ -1,5 +1,23 @@
 # 360° Hjälptillägg – Projektkontextfil för Claude Code
 
+## Utvecklingsmodell
+
+Projektet utvecklas primärt genom **dialog med Claude Code** (Anthropic). Claude läser
+hela kodbasen, föreslår och implementerar ändringar, committar och pushar till feature-brancher.
+
+**För att lägga till eller ändra något:**
+1. Beskriv önskad funktion eller ändring i klartext för Claude.
+2. Claude identifierar relevanta filer, skriver koden och committar.
+3. Granska diff/PR och be Claude justera vid behov.
+
+**ROADMAP.md** innehåller planerade och föreslagna funktioner – uppdatera den i dialog
+med Claude när nya idéer uppstår eller prioriteringar förändras.
+
+Eftersom Claude har tillgång till hela kontextfilen (CLAUDE.md) och ROADMAP.md behöver
+du inte förklara projektstrukturen eller tekniska detaljer – de finns dokumenterade här.
+
+---
+
 ## Vad är det här projektet?
 
 Ett Chrome-webbläsartillägg (Manifest V3) som automatiserar repetitiva arbetsmoment i
@@ -124,7 +142,15 @@ Dagboksbladet öppnas via PostBack-nyckeln `key_innehallsforteckning`. 360° anr
 - Popup-fönster måste vara tillåtna för `p360.svenskakyrkan.se` i Chrome.
 - Tillägget måste laddas om (`chrome://extensions`) efter kodändringar för att
   content scripts och service worker ska uppdateras.
-- Snabbkommando: **Alt+Shift+D** (konfigurerbart via `chrome://extensions/shortcuts`)
+
+## Snabbkommandon
+
+| Kommando | Standardtangenter | Funktion |
+|----------|------------------|----------|
+| `dagboksblad-skriv-ut` | **Alt+Shift+D** | Hämtar och öppnar dagboksblad som PDF |
+| `växla-status`         | **Alt+Shift+S** | Växlar status mellan Öppet och Avslutat |
+
+Alla snabbkommandon är konfigurerbara via `chrome://extensions/shortcuts`.
 
 ## Projektstruktur
 ```
@@ -136,11 +162,13 @@ Dagboksbladet öppnas via PostBack-nyckeln `key_innehallsforteckning`. 360° anr
 ├── page.js                # Injiceras i sidans eget scope (MAIN world) – har tillgång
 │                          # till sidans globala JS-funktioner (t.ex. __doPostBack)
 ├── background.js          # Service worker – hanterar tangentbordskommandon
+├── help.html              # Inbyggd hjälpsida (öppnas via "? Hjälp" i popup)
 ├── icons/
 │   ├── icon16.png
 │   ├── icon48.png
 │   └── icon128.png
-└── CLAUDE.md              # Den här filen
+├── CLAUDE.md              # Den här filen – projektkontextfil för Claude Code
+└── ROADMAP.md             # Planerade och föreslagna funktioner
 ```
 
 ## Kodstil och konventioner

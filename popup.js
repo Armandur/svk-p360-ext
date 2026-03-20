@@ -83,3 +83,9 @@ document.getElementById('btn-sätt-status').addEventListener('click', () => {
   const statusVärde = document.getElementById('status-val').value;
   skicka({ action: 'sättStatus', statusVärde });
 });
+
+// Hjälplänken öppnar help.html i en ny flik
+document.getElementById('hjalp-lank').addEventListener('click', (e) => {
+  e.preventDefault();
+  chrome.tabs.create({ url: chrome.runtime.getURL('help.html') });
+});

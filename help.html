@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <title>360° Hjälptillägg – Hjälp</title>
+  <style>
+    body {
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 24px 20px 40px;
+      font-family: sans-serif;
+      font-size: 14px;
+      color: #222;
+      line-height: 1.5;
+    }
+    h1 {
+      font-size: 18px;
+      margin: 0 0 4px;
+      color: #1a1a1a;
+    }
+    .version {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 24px;
+    }
+    h2 {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #555;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 4px;
+      margin: 24px 0 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th {
+      text-align: left;
+      padding: 5px 8px;
+      background: #f0f0f0;
+      font-weight: 600;
+      border: 1px solid #ddd;
+    }
+    td {
+      padding: 5px 8px;
+      border: 1px solid #ddd;
+      vertical-align: top;
+    }
+    tr:nth-child(even) td {
+      background: #fafafa;
+    }
+    kbd {
+      display: inline-block;
+      background: #eee;
+      border: 1px solid #bbb;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    .notera {
+      background: #fff8e1;
+      border-left: 3px solid #f9a825;
+      padding: 8px 12px;
+      margin: 12px 0;
+      font-size: 13px;
+    }
+    .footer {
+      margin-top: 32px;
+      font-size: 12px;
+      color: #aaa;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>360° Hjälptillägg</h1>
+  <div class="version">Svenska kyrkan &mdash; Hjälpmedel för P360/360°</div>
+
+  <h2>Om tillägget</h2>
+  <p>
+    Tillägget automatiserar vanliga arbetsmoment i 360° och är avsett för registratorer
+    och handläggare inom Svenska kyrkans pastorat och stift. Det fungerar enbart på
+    ärendesidor i 360° (<code>p360.svenskakyrkan.se</code>).
+  </p>
+
+  <h2>Snabbkommandon</h2>
+  <p>
+    Snabbkommandona fungerar direkt på en ärendesida utan att öppna tilläggets popup.
+    De kan anpassas via <strong>chrome://extensions/shortcuts</strong> i Chrome.
+  </p>
+  <table>
+    <thead>
+      <tr><th>Kommando</th><th>Standardtangenter</th><th>Funktion</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Dagboksblad</td>
+        <td><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd></td>
+        <td>Hämtar och öppnar dagboksbladet som PDF i en ny flik</td>
+      </tr>
+      <tr>
+        <td>Växla status</td>
+        <td><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd></td>
+        <td>Växlar ärendets status mellan <em>Öppet</em> och <em>Avslutat</em></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Funktioner i popup-menyn</h2>
+  <p>Klicka på tilläggsikonen i verktygsfältet för att öppna popup-menyn.</p>
+
+  <table>
+    <thead>
+      <tr><th>Knapp</th><th>Beskrivning</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Dagboksblad</strong></td>
+        <td>
+          Öppnar dagboksbladet för det aktuella ärendet som PDF i en ny flik.
+          Kräver att popup-fönster är tillåtna för p360.svenskakyrkan.se i webbläsaren.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Växla status</strong></td>
+        <td>
+          Växlar automatiskt ärendets status: Öppet → Avslutat, Avslutat → Öppet.
+          Dialogen öppnas och stängs utan manuell interaktion.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Sätt status</strong></td>
+        <td>
+          Välj ett specifikt statusvärde i listan (Öppet, Avslutat, Avslutat från
+          handläggare, Makulerat) och klicka "Sätt status".
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Redigera egenskaper</strong></td>
+        <td>Öppnar redigera-dialogen för ärendets egenskaper.</td>
+      </tr>
+      <tr>
+        <td><strong>Registrera utlåning</strong></td>
+        <td>Öppnar dialogen för att registrera utlåning av ärendet.</td>
+      </tr>
+      <tr>
+        <td><strong>Gallring</strong></td>
+        <td>Öppnar gallringsdialogen för ärendet.</td>
+      </tr>
+      <tr>
+        <td><strong>Spara som nytt ärende</strong></td>
+        <td>Skapar ett nytt ärende baserat på det aktuella.</td>
+      </tr>
+      <tr>
+        <td><strong>Kopiera hyperlänk</strong></td>
+        <td>Kopierar en direktlänk till ärendet till urklipp.</td>
+      </tr>
+      <tr>
+        <td><strong>Ärendesammanfattning</strong></td>
+        <td>Producerar en ärendesammanfattning.</td>
+      </tr>
+      <tr>
+        <td><strong>Tilldela processplan</strong></td>
+        <td>Öppnar dialogen för att tilldela en processplan till ärendet.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Krav och begränsningar</h2>
+  <div class="notera">
+    Tillägget fungerar <strong>endast</strong> när du är inloggad i 360° och befinner
+    dig på en ärendesida. Försök att använda det på andra sidor ger ett felmeddelande.
+  </div>
+  <ul>
+    <li>Dagboksbladsfunktionen kräver att popup-fönster är tillåtna för <code>p360.svenskakyrkan.se</code>.</li>
+    <li>
+      Efter en uppdatering av tillägget kan det behöva laddas om via
+      <code>chrome://extensions</code> (klicka på uppdateringsikonen).
+    </li>
+    <li>Tillägget lagrar eller skickar aldrig känslig information utanför webbläsaren.</li>
+  </ul>
+
+  <div class="footer">360° Hjälptillägg &mdash; Svenska kyrkan</div>
+</body>
+</html>
