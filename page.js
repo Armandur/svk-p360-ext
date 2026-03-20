@@ -379,6 +379,8 @@ async function sättSelectize(id, value, doc) {
         el.selectize.setValue(value);
         el.selectize.close();
         el.selectize.blur();
+        // Säkerställ att native change-event skickas (trigger för 360°:s onchange-attribut)
+        el.dispatchEvent(new Event('change', { bubbles: true }));
         resolve();
       } else if (Date.now() - t > 3000) {
         // Selectize ej initierad – sätt direkt på native select
@@ -619,11 +621,10 @@ async function skapaFrånMall(mall) {
     await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', mall.skyddskod || '0');
 
     if (mall.skyddskod && mall.skyddskod !== '0') {
-      await sleep(300);
-      pb('ctl00$PlaceHolderMain$MainView$AccessCodeComboControl', '');
-
+      // sättSel triggar onchange → setTimeout(__doPostBack) → UpdatePanel-refresh.
+      // Vänta tills paragraf-fältet dyker upp i DOM (bekräftar att servern svarat).
       const paragrafFält = await waitForElement(
-        iDoc, '#PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', 8000
+        iDoc, '#PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', 10000
       );
       if (paragrafFält && mall.sekretessParag) {
         await sättSel('PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', mall.sekretessParag);
