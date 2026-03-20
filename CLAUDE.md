@@ -132,6 +132,13 @@ element.selectize.setValue('200171')
 
 ### Dropdown-värden
 
+> **Instansspecifika värden:** Diarieenheter, åtkomstgrupper och ansvariga enheter är
+> specifika per organisation och installation av 360°. Värdena som anges nedan gäller
+> **Härnösands pastorat** och ska **inte hårdkodas** i tillägget – de måste antingen
+> läsas dynamiskt från formulärets `<select>`-element eller konfigureras per användare
+> i mallinställningarna. Skyddskod, status och delarkiv är däremot generella och
+> stabila över installationer.
+
 **Skyddskod (AccessCodeComboControl):**
 | Värde | Text |
 |-------|------|
@@ -153,7 +160,7 @@ element.selectize.setValue('200171')
 
 **Status (StatusCaseComboControl):** Se tabell i avsnittet "Sätt status" ovan.
 
-**Delarkiv (CaseSubArchiveComboControl):** `100009` = Församling/pastorat (default)
+**Delarkiv (CaseSubArchiveComboControl):** `100009` = Församling/pastorat (default, troligen generell)
 
 ### Klassificering (typeahead)
 
@@ -163,7 +170,13 @@ __doPostBack('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_OnC
 ```
 mot `/Services/AjaxReaderService.asmx`. Det synliga fältet (`_DISPLAY`) sätts till
 textrepresentationen (t.ex. `2.5 - Ge internt verksamhetsstöd`) och det dolda fältet
-sätts till recno-koden. För mall-funktionen: hårdkoda kända klassificeringskoder per mall.
+sätts till recno-koden.
+
+> **Klassificeringskoder är generella** – de följer KSA (Kommunala Sektorns
+> Arkivrekommendation) och bör vara desamma i alla Svenska kyrkans installationer av
+> 360°. Recno-koden per klassificering kan däremot variera. I mall-gränssnittet låter
+> man användaren söka och välja klassificering när mallen skapas, och sparar både
+> visningsvärde och recno i `chrome.storage.local`.
 
 ### Spara-knappen
 
