@@ -5,7 +5,7 @@
   <title>360° Hjälptillägg</title>
   <style>
     body {
-      min-width: 220px;
+      min-width: 280px;
       padding: 12px;
       font-family: sans-serif;
       font-size: 14px;
@@ -66,10 +66,122 @@
       font-size: 12px;
       color: #856404;
     }
+
+    /* Mallsektionen */
+    .mall-rad {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin: 2px 0;
+    }
+    .mall-rad .mall-namn {
+      flex: 1;
+      font-size: 13px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .mall-rad .mall-knappar {
+      display: flex;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+    .mall-rad .mall-knappar button {
+      width: auto;
+      padding: 4px 8px;
+      margin: 0;
+      font-size: 12px;
+    }
+    .btn-använd {
+      background: #0078d4;
+      color: #fff;
+      border-color: #0078d4 !important;
+    }
+    .btn-använd:hover {
+      background: #006cbf !important;
+    }
+
+    #tom-malllista {
+      font-size: 12px;
+      color: #aaa;
+      padding: 4px 0;
+    }
+
+    #btn-ny-mall {
+      border-style: dashed;
+      color: #0078d4;
+      background: #fff;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    #btn-ny-mall:hover {
+      background: #f0f6ff;
+    }
+
+    /* Titel-inmatningsruta som visas när "Använd" klickas */
+    #mall-titel-panel {
+      display: none;
+      margin-top: 6px;
+      padding: 8px;
+      background: #f0f6ff;
+      border: 1px solid #c2d8f5;
+      border-radius: 4px;
+    }
+    #mall-titel-panel label {
+      font-size: 11px;
+      color: #555;
+      display: block;
+      margin-bottom: 3px;
+    }
+    #mall-titel-panel input {
+      width: 100%;
+      padding: 5px 7px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-size: 13px;
+      margin-bottom: 6px;
+      box-sizing: border-box;
+    }
+    #mall-titel-panel .panel-knappar {
+      display: flex;
+      gap: 4px;
+    }
+    #mall-titel-panel .panel-knappar button {
+      flex: 1;
+      margin: 0;
+      padding: 6px;
+      font-size: 12px;
+    }
+    #btn-skapa-ärende {
+      background: #0078d4;
+      color: #fff;
+      border-color: #0078d4;
+    }
+    #btn-skapa-ärende:hover {
+      background: #006cbf;
+    }
   </style>
 </head>
 <body>
   <h3>360° Verktyg</h3>
+
+  <!-- Mallärenden -->
+  <div class="grupp">
+    <div class="grupp-rubrik">Mallärenden</div>
+    <div id="malllista">
+      <div id="tom-malllista">Inga mallar ännu.</div>
+    </div>
+    <!-- Panel för titeljustering innan skapande -->
+    <div id="mall-titel-panel">
+      <label for="mall-titel-input">Ärendetitel</label>
+      <input type="text" id="mall-titel-input" placeholder="Ärendetitel">
+      <div class="panel-knappar">
+        <button id="btn-skapa-ärende">Skapa ärende</button>
+        <button id="btn-avbryt-panel" style="width:auto;">Avbryt</button>
+      </div>
+    </div>
+    <button id="btn-ny-mall">＋ Ny mall</button>
+  </div>
 
   <div class="grupp">
     <div class="grupp-rubrik">Dagbok</div>
@@ -78,6 +190,7 @@
 
   <div class="grupp">
     <div class="grupp-rubrik">Status</div>
+    <button data-action="växlaStatus">Växla status (Öppet ↔ Avslutat)</button>
     <div class="status-rad">
       <select id="status-val">
         <option value="5">B - Öppet</option>
@@ -101,6 +214,10 @@
   </div>
 
   <div id="felmeddelande"></div>
+
+  <div style="margin-top: 10px; text-align: right;">
+    <a id="hjalp-lank" href="#" style="font-size: 11px; color: #888; text-decoration: none;">? Hjälp</a>
+  </div>
 
   <script src="popup.js"></script>
 </body>

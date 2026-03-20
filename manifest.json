@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "360° Svenska kyrkan – Hjälptillägg",
-  "version": "1.0",
+  "version": "1.1",
   "description": "Automatiserar repetitiva åtgärder i 360° för Svenska kyrkan. Fungerar i Chrome och Edge.",
-  "permissions": ["activeTab", "scripting", "tabs"],
+  "permissions": ["activeTab", "scripting", "tabs", "storage"],
   "background": {
     "service_worker": "background.js"
   },
@@ -11,6 +11,10 @@
     "dagboksblad-skriv-ut": {
       "suggested_key": { "default": "Alt+Shift+D" },
       "description": "Skriv ut dagboksblad för aktuellt ärende"
+    },
+    "växla-status": {
+      "suggested_key": { "default": "Alt+Shift+S" },
+      "description": "Växla ärendets status mellan Öppet och Avslutat"
     }
   },
   "action": {
