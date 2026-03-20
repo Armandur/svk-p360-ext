@@ -377,6 +377,8 @@ async function sättSelectize(id, value, doc) {
       if (el.selectize) {
         clearInterval(poll);
         el.selectize.setValue(value);
+        el.selectize.close();
+        el.selectize.blur();
         resolve();
       } else if (Date.now() - t > 3000) {
         // Selectize ej initierad – sätt direkt på native select
