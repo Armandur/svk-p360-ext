@@ -251,15 +251,21 @@ OSL-paragrafer (9 alternativ):
 
 #### Implementeringsflöde för sekretess i Chrome-tillägget
 
-Eftersom Paragraf och Offentlig titel laddas via UpdatePanel måste postbacks triggas
-i rätt ordning – värden kan inte sättas direkt utan att vänta på serversvaret:
+Paragraf och Offentlig titel laddas via UpdatePanel och kräver att man väntar på
+serversvaret innan man sätter deras värden. **Verifierat beteende (2026-03-20):**
 
-1. Öppna formuläret → hämta iframe och initialt ViewState
-2. `AccessCodeComboControl.selectize.setValue('100031')` → triggar `onchange` → `__doPostBack` → vänta på UpdatePanel-svar (nya fält laddas)
-3. `AccessCodeAuthorizationComboControl.selectize.setValue('Kyrkoordningen 54 kap. 4 §')`
-4. `UnofficialContactCheckBoxControl.checked = true/false`
-5. `SelectOfficialTitleComboBoxControl.selectize.setValue('1'/'2'/'3')` → om `3`: vänta på UpdatePanel → fyll `PublicTitleTextBoxControl.value`
-6. Anropa `__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish')`
+- **AccessCode-UpdatePanel återställer INGA befintliga fält** – titel, sparatPaPapper
+  m.m. förblir intakta och kan sättas i valfri ordning relativt skyddskod-blocket.
+- **Selectize på paragraf-fältet är initialiserat synkront** med UpdatePanel-svaret –
+  ingen `setTimeout`/extra `sleep` behövs innan `setValue` anropas.
+- **SelectOfficialTitleComboBoxControl** triggar ett eget nätverksanrop men återställer
+  inte heller några befintliga fält.
+
+1. `AccessCodeComboControl.selectize.setValue('100031')` → triggar `onchange` → `__doPostBack` → vänta på UpdatePanel-svar (paragraf-fältet dyker upp i DOM)
+2. `AccessCodeAuthorizationComboControl.selectize.setValue('Kyrkoordningen 54 kap. 4 §')` ← Selectize är redo direkt, ingen sleep
+3. `UnofficialContactCheckBoxControl.checked = true/false`
+4. `SelectOfficialTitleComboBoxControl.selectize.setValue('1'/'2'/'3')` → om `3`: vänta på UpdatePanel → fyll `PublicTitleTextBoxControl.value`
+5. Anropa `__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish')`
 
 **Sparat på papper (PaperDocAllowedComboControl):**
 | Värde | Text |

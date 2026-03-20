@@ -614,6 +614,12 @@ async function skapaFrånMall(mall) {
     if (mall.ansvarigPerson?.value) await sättSel('PlaceHolderMain_MainView_ResponsibleUserComboControl', mall.ansvarigPerson.value);
     await sättSel('PlaceHolderMain_MainView_StatusCaseComboControl', mall.status || '5');
 
+    // Titel och sparat på papper kan sättas när som helst –
+    // AccessCode-UpdatePanelens svar återställer INTE dessa fält (verifierat).
+    titelFält.value = mall.titel || '';
+    titelFält.dispatchEvent(new Event('input', { bubbles: true }));
+    await sättSel('PlaceHolderMain_MainView_PaperDocAllowedComboControl', mall.sparatPaPapper || '0');
+
     if (mall.skyddskod && mall.skyddskod !== '0') {
       // Sätt skyddskod och vänta på UpdatePanel-refresh (laddar paragraf-fälten).
       await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', mall.skyddskod);
@@ -623,12 +629,8 @@ async function skapaFrånMall(mall) {
         iDoc, '#PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', 10000
       );
 
-      // UpdatePanel-svaret kan ha återställt AccessCode – sätt om tyst (ingen ny PostBack).
-      const accessEl = iDoc.getElementById('PlaceHolderMain_MainView_AccessCodeComboControl');
-      if (accessEl?.selectize) accessEl.selectize.setValue(mall.skyddskod, true);
-
-      // Ge Selectize tid att initieras på paragraf-fältet (laddas via UpdatePanel).
-      await sleep(600);
+      // Selectize på paragraf-fältet är initialiserat direkt när UpdatePanel-svaret laddats –
+      // ingen extra sleep behövs. Övriga fält (titel, accessCode m.m.) påverkas inte av svaret.
       if (paragrafFält && mall.sekretessParag) {
         await sättSel('PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', mall.sekretessParag);
       }
@@ -646,12 +648,6 @@ async function skapaFrånMall(mall) {
     } else {
       await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', '0');
     }
-
-    // Titel och sparat på papper sätts efter skyddskod-blocket –
-    // AccessCode-UpdatePanelens svar återställer annars dessa fält.
-    titelFält.value = mall.titel || '';
-    titelFält.dispatchEvent(new Event('input', { bubbles: true }));
-    await sättSel('PlaceHolderMain_MainView_PaperDocAllowedComboControl', mall.sparatPaPapper || '0');
 
     if (mall.externaKontakter?.length > 0) {
       pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'ContactsStep');
