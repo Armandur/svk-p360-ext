@@ -482,8 +482,17 @@ async function läsInAlternativ() {
         .map(o => ({ value: o.value, label: o.text.trim() }));
     }
 
-    // Försök hämta klassificeringar via typeahead-sökning med jokertecken.
-    const klassificeringar = await försökLäsKlassificeringar(doc, iWin);
+    // Klassificeringar finns i ett dolt <select>-fält (_dropDownList) som innehåller
+    // alla tillgängliga klassificeringskoder. Returformat: { display, value } för att
+    // matcha hur mallen sparar klassificeringar (display = synlig text, value = recno).
+    const klassDropdown = doc.getElementById(
+      'PlaceHolderMain_MainView_ClassificationCode1ComboControl_dropDownList'
+    );
+    const klassificeringar = klassDropdown
+      ? Array.from(klassDropdown.options)
+          .filter(o => o.value !== '' && o.value !== '0')
+          .map(o => ({ display: o.text.trim(), value: o.value }))
+      : await försökLäsKlassificeringar(doc, iWin); // fallback om select saknas
 
     return {
       diarieenheter:     läsOptions('PlaceHolderMain_MainView_JournalUnitComboControl'),
