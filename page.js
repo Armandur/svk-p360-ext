@@ -440,25 +440,7 @@ async function läsInAlternativ() {
       }, 300);
     });
 
-    // Trigga laddning av ansvariga personer genom att tillfälligt välja första enheten.
-    // ResponsibleUserComboControl är ett beroende fält som laddas via UpdatePanel
-    // när ansvarig enhet ändras.
-    const enhetSel = doc.getElementById('PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl');
-    const personSel = doc.getElementById('PlaceHolderMain_MainView_ResponsibleUserComboControl');
-    if (enhetSel?.selectize && Object.keys(enhetSel.selectize.options || {}).length > 0) {
-      const förstaEnhet = Object.keys(enhetSel.selectize.options)[0];
-      enhetSel.selectize.setValue(förstaEnhet);
-      // Vänta tills personlistan laddats
-      await new Promise(resolve => {
-        const start = Date.now();
-        const check = setInterval(() => {
-          const harPersoner = selectizeAntal('PlaceHolderMain_MainView_ResponsibleUserComboControl') > 0;
-          if (harPersoner || Date.now() - start > 8000) { clearInterval(check); resolve(); }
-        }, 300);
-      });
-    }
-
-    await sleep(300);
+    await sleep(200);
 
     /**
      * Läser alternativ från ett Selectize-fält (primärt) eller native select (fallback).
@@ -469,16 +451,19 @@ async function läsInAlternativ() {
       const el = doc.getElementById(id);
       if (!el) return [];
 
+      // Filtrera tomma och ogiltiga platshållarvärden (-2 = "tom" i 360°-dropdowns)
+      const ogiltiga = new Set(['', '-2', null, undefined]);
+
       // Primär strategi: läs från Selectize-cachade alternativ
       if (el.selectize && el.selectize.options) {
         return Object.values(el.selectize.options)
-          .filter(o => o.value !== '' && o.value != null)
+          .filter(o => !ogiltiga.has(o.value) && !ogiltiga.has(String(o.value)))
           .map(o => ({ value: String(o.value), label: (o.text || o.label || String(o.value)).trim() }));
       }
 
       // Fallback: läs från native select
       return Array.from(el.options)
-        .filter(o => o.value !== '')
+        .filter(o => !ogiltiga.has(o.value))
         .map(o => ({ value: o.value, label: o.text.trim() }));
     }
 
