@@ -589,7 +589,16 @@ async function skapaFrånMall(mall) {
 
     const iDoc = iframe.contentDocument;
     const iWin = iframe.contentWindow;
-    // pb: postback i formulärets eget fönster
+
+    // Patcha __doPostBack i iframe för att logga alla anrop under körningen.
+    // Avslöjar hur många PostBacks som skickas och från vilka fält.
+    const _origPB = iWin.__doPostBack;
+    iWin.__doPostBack = function(target, arg) {
+      console.log('[p360] __doPostBack:', target, '| arg:', arg, '| tid:', Date.now());
+      return _origPB.call(iWin, target, arg);
+    };
+
+    // pb: postback i formulärets eget fönster (via patchad version)
     const pb = (t, a) => iWin.__doPostBack(t, a);
     const sättSel = (id, val) => sättSelectize(id, val, iDoc);
 
