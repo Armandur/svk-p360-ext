@@ -614,10 +614,6 @@ async function skapaFrånMall(mall) {
     if (mall.ansvarigPerson?.value) await sättSel('PlaceHolderMain_MainView_ResponsibleUserComboControl', mall.ansvarigPerson.value);
     await sättSel('PlaceHolderMain_MainView_StatusCaseComboControl', mall.status || '5');
 
-    // Titel och sparat på papper kan sättas när som helst –
-    // AccessCode-UpdatePanelens svar återställer INTE dessa fält (verifierat).
-    titelFält.value = mall.titel || '';
-    titelFält.dispatchEvent(new Event('input', { bubbles: true }));
     await sättSel('PlaceHolderMain_MainView_PaperDocAllowedComboControl', mall.sparatPaPapper || '0');
 
     if (mall.skyddskod && mall.skyddskod !== '0') {
@@ -666,6 +662,17 @@ async function skapaFrånMall(mall) {
       await sleep(1000);
       const kFält = await waitForElement(iDoc, '#PlaceHolderMain_MainView_NotesStep_Control', 3000);
       if (kFält) kFält.value = mall.kommentar;
+    }
+
+    // Titel sätts sist, direkt innan submit – undviker att UpdatePanel-svar från
+    // övriga fält (diarieenhet, ansvarig enhet m.m.) hinner ersätta DOM-noder och
+    // nollställa värdet. Hämtar elementet färskt ur aktuell DOM (inte gammal referens).
+    const titelElNu = iDoc.getElementById('PlaceHolderMain_MainView_TitleTextBoxControl');
+    if (titelElNu) {
+      titelElNu.value = mall.titel || '';
+      titelElNu.dispatchEvent(new Event('input',  { bubbles: true }));
+      titelElNu.dispatchEvent(new Event('change', { bubbles: true }));
+      titelElNu.dispatchEvent(new Event('blur',   { bubbles: true }));
     }
 
     visaStatus('Skapar ärende…');
