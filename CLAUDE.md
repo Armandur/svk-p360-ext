@@ -412,8 +412,26 @@ const actualErrors = Array.from(allErrors)
 
 ### Externa kontakter (oregistrerade)
 
-Flödet för att lägga till en oregistrerad extern kontakt sker i **tre steg** med
-separata iframes/dialoger.
+Flödet för att lägga till en oregistrerad extern kontakt sker i **upp till fyra steg**
+med syskoniframes direkt under `document.body` i huvud-dokumentet.
+
+#### DOM-struktur för dialoger – verifierat
+
+**Kritisk insikt:** Alla dialoger är **syskoniframes på top-level** – inte nästlade i
+varandra och inte separata popup-fönster. `document.querySelectorAll('iframe')` ger
+alla aktiva iframes. Antalet växer steg för steg:
+
+```
+document.body
+  iframe[0]  /locator/DMS/Case/New/61000                              (ärendeformulär)
+  iframe[1]  /locator/DMS/Dialog/NewActivityContact                   (välj-typ-dialog)
+  iframe[2]  /locator.aspx → /locator/DMS/Dialog/JournalCaseContactNew (kontaktformulär)
+  iframe[3]  /locator/CRM/Contact/Dialog/DuplicateContactsAllFieldsDialog (dubblettvarning, om kollision)
+```
+
+Ärendeformulärets iframe (iframe[0]) innehåller alltid två inre iframes:
+- `PlaceHolderMain_MainView_ContactContainer_ContactListControl_printframe` (tom src)
+- `keepviewaliveframe` → `/keepViewAlive.aspx`
 
 #### Knappar på Externa kontakter-fliken
 
@@ -445,13 +463,15 @@ __doPostBack(
 
 #### Steg 1 – Typ-dialog: `NewActivityContact`
 
-PostBack öppnar en ny iframe via GET:
+PostBack lägger till iframe[1] i DOM:en via GET:
 ```
 GET /locator/DMS/Dialog/NewActivityContact
   ?entity=Case&role=9&rolecode=%C3%84rendepart
-  &acccode=100032&subtype=61000&dialogTitle=360°
+  &acccode=0&subtype=61000&dialogTitle=360°
   &dialog=modal&dialogOpenMode=spdialog&dialogCloseMode=spdialog&IsDlg=1
 ```
+
+Dialogen innehåller enbart ett val (verifierat – enda option):
 
 | Element-ID | POST-nyckel | Typ | Alternativ |
 |---|---|---|---|
@@ -461,17 +481,22 @@ OK-knapp: `__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish')
 
 #### Steg 2 – Kontaktformulär: `JournalCaseContactNew`
 
-OK-klick öppnar en tredje iframe:
+OK-klick lägger till iframe[2] i DOM:en. Laddas via `/locator.aspx` som redirectar till:
 ```
 GET /locator/DMS/Dialog/JournalCaseContactNew
   ?role=9&rolecode=%C3%84rendepart
-  &acccode=100032&totdomain=0&subtype=61000
+  &acccode=0&totdomain=0&subtype=61000
   &dialogCaption=Ny%20oregistrerad%20kontakt
   &dialog=modal&IsDlg=1
-POST /locator/DMS/Dialog/JournalCaseContactNew
 ```
 
-Formulärfält i `JournalCaseContactNew`:
+Formuläret innehåller **dolda kontrollknappar** (display:none) – dessa triggas av
+systemet i rätt ordning, anropa dem inte direkt:
+- `PlaceHolderMain_MainView_CheckDuplicateContactsAllFieldsControl` → `__doPostBack(...CheckDuplicate...,'')` – körs automatiskt vid OK
+- `PlaceHolderMain_MainView_SaveNewContactControl` → `__doPostBack(...SaveNewContact...,'')` – körs om ingen dubblett
+- `PlaceHolderMain_MainView_ContactConnection_DialogFinishControl` → `__doPostBack(...DialogFinishControl,'')` – avslutningssteg
+
+Synliga formulärfält i `JournalCaseContactNew`:
 
 | Element-ID | POST-nyckel | Typ | Obl. | Etikett |
 |---|---|---|---|---|
@@ -490,15 +515,62 @@ Formulärfält i `JournalCaseContactNew`:
 | `PlaceHolderMain_MainView_ContactNotesControl` | `ctl00$...ContactNotesControl` | TEXTAREA | Nej | Kommentar |
 | `PlaceHolderMain_MainView_UnofficialContactCheckBoxControl` | `ctl00$...UnofficialContactCheckBoxControl` | INPUT checkbox | Nej | Skyddad |
 
-Spara kontakten:
+Spara kontakten (triggar dupblettkontrollen automatiskt):
 ```
-POST /locator/DMS/Dialog/JournalCaseContactNew
 __EVENTTARGET  = ctl00$PlaceHolderMain$MainView$DialogButton
 __EVENTARGUMENT = finish
 ```
 
 > **OBS:** Kontaktdialogen har ett **eget BIFViewState** (nytt GUID, separat från
 > ärendeformulärets ViewState). Hämta det från kontaktdialog-iframe:ns DOM.
+
+#### Steg 3 (villkorligt) – Dubblettvarning: `DuplicateContactsAllFieldsDialog`
+
+Om det inmatade namnet matchar en befintlig kontakt i systemet läggs iframe[3] till:
+```
+GET /locator/CRM/Contact/Dialog/DuplicateContactsAllFieldsDialog
+  ?dialogbuttons=YesNoCancel&SelectContact=-1
+  &finishcaption=Spara/Skapa+ny&dialogHeight=450px
+  &dialog=modal&dialogOpenMode=spdialog&dialogCloseMode=spdialog&IsDlg=1
+```
+
+Knappar i dubblettdialogen:
+
+| Element-ID | Text | `__EVENTARGUMENT` |
+|---|---|---|
+| `PlaceHolderMain_MainView_Yes-Button` | Använd kontakt (välj befintlig) | `yes` |
+| `PlaceHolderMain_MainView_No-Button` | Spara/Skapa ny (fortsätt som oregistrerad) | `no` |
+| `PlaceHolderMain_MainView_Cancel-Button` | Avbryt | `cancel` |
+
+Alla via: `__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', '<yes|no|cancel>')`
+
+#### Hur ärendeformuläret vet att kontakten är sparad
+
+Kommunikation tillbaka till ärendeformuläret sker via **dolt hidden field + postback-länk**
+i ärendeformulärets iframe (iframe[0]):
+
+```js
+// Dolt hidden field som fylls med returvärdet:
+// id: PlaceHolderMain_MainView_returnvalueOpenNewUnregisteredCasePartDialogOperation
+// name: ctl00$...$returnvalueOpenNewUnregisteredCasePartDialogOperation
+// value: "0" → fylls med kontaktens recno när sparad
+
+// Dold postback-länk (display:none) som triggas av dialogen:
+// id: PlaceHolderMain_MainView_OpenNewUnregisteredCasePartDialogOperation_POSTBACK
+// onclick: __doPostBack('ctl00$...$OpenNewUnregisteredCasePartDialogOperation_POSTBACK', '')
+```
+
+Flödet efter att kontakten sparas:
+1. Dialogen anropar `SI.UI.ModalDialog.CloseCallback()` (intern 360°-funktion)
+2. `window._returnValueElementID` pekar på hidden field-id:t
+3. Värdet sätts i hidden field + den dolda postback-länken klickas
+4. Ärendeformuläret postar till `view.aspx` och uppdaterar kontaktlistan via UpdatePanel
+5. iframe[1] och iframe[2] (och iframe[3] om den fanns) tas bort ur DOM:en
+
+**Nätverksanrop som genereras vid sparning (alla POST, HTTP 200, ingen 302):**
+- `POST view.aspx?id=5A2974B2-...` (sparar kontakten, `name=DMS.Dialog.JournalCaseContactNew`)
+- `POST view.aspx?id=1ce52598-...` (stänger typ-dialogen, `name=DMS.Dialog.NewActivityContact`)
+- `POST view.aspx?id=cf7c6540-...` (uppdaterar ärendeformuläret, `name=DMS.Case.New.61000`)
 
 #### Summering – kritiska POST-nycklar
 
@@ -513,6 +585,9 @@ __EVENTARGUMENT = finish
 | Lägg till oregistrerad Ärendepart | `ctl00$...$AddUnregCasePartMenuButtonControl_DropDownMenu` | `9` |
 | Välj kontakttyp (OK) | `ctl00$...$DialogButton` | `finish` |
 | Spara oregistrerad kontakt | `ctl00$...$DialogButton` | `finish` |
+| Dubblettvarning – välj befintlig | `ctl00$...$DialogButton` | `yes` |
+| Dubblettvarning – spara ny ändå | `ctl00$...$DialogButton` | `no` |
+| Dubblettvarning – avbryt | `ctl00$...$DialogButton` | `cancel` |
 
 ---
 
