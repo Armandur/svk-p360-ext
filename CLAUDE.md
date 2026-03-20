@@ -146,10 +146,116 @@ element.selectize.setValue('200171')
 | `100031` | Sekretess KO |
 | `100032` | Sekretess OSL |
 
-> **OBS – sekretessfält ej helt kartlagda:** När KO eller OSL väljs dyker ytterligare
-> fält upp: (1) specifik paragraf/skyddskod att ange, (2) val om ärendetiteln ska
-> skyddas, anges manuellt eller vara densamma. Dessa fälts element-ID och värden
-> behöver kartläggas via Chrome DevTools (inspektera DOM efter att sekretess valts).
+#### Sekretessfält – KO och OSL
+
+Att byta `AccessCodeComboControl` till KO (`100031`) eller OSL (`100032`) triggar en
+server-side UpdatePanel-uppdatering via:
+```js
+// onchange-attributet på AccessCodeComboControl:
+javascript:setTimeout('__doPostBack(\'ctl00$PlaceHolderMain$MainView$AccessCodeComboControl\',\'\')', 0)
+```
+Servern returnerar ett partiellt HTML-svar (ASP.NET ScriptManager UpdatePanel) som
+injicerar tre–fyra nya fält i formuläret. Det är **inte** klientside-JS som visar/döljer
+element – det är ett fullt tur-retur-POST till samma `/view.aspx`-URL.
+
+**Fält 1 – Paragraf** *(obligatorisk)*
+
+| Egenskap | Värde |
+|---|---|
+| Element-ID | `PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl` |
+| POST-nyckel | `ctl00$PlaceHolderMain$MainView$AccessCodeAuthorizationComboControl` |
+| Typ | SELECT + Selectize.js |
+| onchange | `__doPostBack('ctl00$PlaceHolderMain$MainView$AccessCodeAuthorizationComboControl', '')` |
+
+KO-paragrafer (urval av 25 alternativ):
+
+| value | text |
+|---|---|
+| `Kyrkoordningen 54 kap. 2 §` | K - 54 kap. 2 § - Enskilds personliga förhållanden i kyrkans församlingsvårdande verksamhet |
+| `Kyrkoordningen 54 kap. 3 §` | K - 54 kap. 3 § - Enskild givare i kyrkans insamlingsverksamhet |
+| `Kyrkoordningen 54 kap. 4 §` | K - 54 kap. 4 § - Anställds eller förtroendevalds personliga förhållanden inom kyrkans personaladministration |
+| `Kyrkoordningen 54 kap. 4 a §` | K - 54 kap. 4 a § - Enskilds personliga förhållanden i kyrkans tillsyns- och överprövningsverksamhet |
+| `Kyrkoordningen 54 kap. 4 b §` | K - 54 kap. 4 b § - Enskilds personliga förhållanden... |
+| `Kyrkoordningen 54 kap. 4 c §` | K - 54 kap. 4 c § - Enskilds bostadsadress eller annan jämförbar uppgift |
+| `Kyrkoordningen 54 kap. 4 d §` | K - 54 kap. 4 d § - Enskilds personliga eller ekonomiska förhållanden i statistikverksamhet |
+| `Kyrkoordningen 54 kap. 4 e §` | K - 54 kap. 4 e § - Förbud i familjerådgivning mot att röja uppgifter |
+| `Kyrkoordningen 54 kap. 5 §` | K - 54 kap. 5 § - Förbud i affärsverksamhet mot att röja driftsförhållanden |
+| `Kyrkoordningen 54 kap. 6 §` | K - 54 kap. 6 § - Uppgifter som hänför sig till ärende om förvärv m.m. |
+| `Kyrkoordningen 54 kap. 7 §` | K - 54 kap. 7 § - Uppgifter om affärs- och driftsförhållanden |
+| `Kyrkoordningen 54 kap. 8 §` | K - 54 kap. 8 § - Uppgifter om samarbetspartners förhållanden i kyrkans internationella verksamhet |
+| `Kyrkoordningen 54 kap. 8 a §` | K - 54 kap. 8 a § - Uppgifter om enskilds personliga förhållanden i klagomålshantering |
+| `Kyrkoordningen 54 kap. 8 b §` | K - 54 kap. 8 b § - Uppgifter om ekumeniska och interreligiösa förbindelser |
+| `Kyrkoordningen 54 kap. 9 §` | K - 54 kap. 9 § - Uppgifter om enskilda personer i kyrkobokföringen |
+| `Kyrkoordningen 54 kap. 10 §` | K - 54 kap. 10 § - Uppgifter om säkerhets- och bevakningsåtgärder |
+| `Kyrkoordningen 54 kap. 10 a §` | K - 54 kap. 10 a § - Förbud mot att röja uppgifter som avser Svenska kyrkans beredskap |
+| `Kyrkoordningen 54 kap. 11 a §` | K - 54 kap. 11 a § - Uppgifter som har tillkommit för facklig förhandling |
+| `Kyrkoordningen 54 kap. 11b §` | K - 54 kap. 11 b § - Personuppgifter i strid med dataskyddsförordningen |
+| `Kyrkoordningen 54 kap. 11 c §` | K - 54 kap. 11 c § - Uppgifter i forskningsverksamhet direkt hänförliga till enskilde |
+| `Kyrkoordningen 54 kap. 11 d §` | K - 54 kap. 11 d § - Uppgift om hur en väljare har röstat vid val |
+| `Kyrkoordningen 54 kap. 12 §` | K - 54 kap. 12 § - Uppgifter som en myndighet har anförtrott kyrkan |
+| `Kyrkoordningen 54 kap. 13 §` | K - 54 kap. 13 § - Uppgift gäller hos den som tar emot uppgiften i revision/tillsyn |
+| `Se kommentar` | Se kommentar |
+
+OSL-paragrafer (9 alternativ):
+
+| value | text |
+|---|---|
+| `OSL 18 kap. 8 §` | OSL 18 kap. 8 § - Säkerhets- eller bevakningsåtgärd |
+| `OSL 19 kap. 1 §` | OSL 19 kap. 1 § - Affärs- och driftförhållanden |
+| `OSL 19 kap. 3 §` | OSL 19 kap. 3 § - Upphandling m.m. |
+| `OSL 21 kap. 7 §` | OSL 21 kap. 7 § - Behandling i strid med dataskyddsregleringen |
+| `OSL 23 kap. 1 §` | OSL 23 kap. 1 § - Förskola och viss annan pedagogisk verksamhet |
+| `OSL 40 kap. 7 a §` | OSL 40 kap. 7 a § - Begravningsverksamhet |
+| `Lag 2018:218 1 kap. 8 §` | Lag 2018:218 1 kap. 8 § - Tystnadsplikt för dataskyddsombud |
+| `Se kommentar` | Se kommentar |
+
+**Fält 2 – Skydda kontakter** *(checkbox, ej obligatorisk)*
+
+| Egenskap | Värde |
+|---|---|
+| Element-ID | `PlaceHolderMain_MainView_UnofficialContactCheckBoxControl` |
+| POST-nyckel | `ctl00$PlaceHolderMain$MainView$UnofficialContactCheckBoxControl` |
+| Typ | INPUT[type=checkbox] |
+| Default | **Förbockad** (checked=true vid KO/OSL-val) |
+| POST-värde checked | `on` |
+| POST-värde unchecked | *skickas inte alls* (standard HTML-beteende) |
+
+**Fält 3 – Val för offentlig titel** *(obligatorisk)*
+
+| Egenskap | Värde |
+|---|---|
+| Element-ID | `PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl` |
+| POST-nyckel | `ctl00$PlaceHolderMain$MainView$SelectOfficialTitleComboBoxControl` |
+| Typ | SELECT + Selectize.js |
+| onchange | `__doPostBack('ctl00$PlaceHolderMain$MainView$SelectOfficialTitleComboBoxControl', '')` |
+
+| value | text |
+|---|---|
+| `1` | Sätt offentlig titel lika med titel |
+| `2` | Skydda hela offentliga titeln |
+| `3` | Skriv in offentlig titel manuellt |
+
+**Fält 4 – Offentlig titel** *(visas bara om val = 3)*
+
+| Egenskap | Värde |
+|---|---|
+| Element-ID | `PlaceHolderMain_MainView_PublicTitleTextBoxControl` |
+| POST-nyckel | `ctl00$PlaceHolderMain$MainView$PublicTitleTextBoxControl` |
+| Typ | TEXTAREA |
+| Villkor | Visas **endast** när `SelectOfficialTitleComboBoxControl = 3` |
+| Visas via | Server-side postback + UpdatePanel |
+
+#### Implementeringsflöde för sekretess i Chrome-tillägget
+
+Eftersom Paragraf och Offentlig titel laddas via UpdatePanel måste postbacks triggas
+i rätt ordning – värden kan inte sättas direkt utan att vänta på serversvaret:
+
+1. Öppna formuläret → hämta iframe och initialt ViewState
+2. `AccessCodeComboControl.selectize.setValue('100031')` → triggar `onchange` → `__doPostBack` → vänta på UpdatePanel-svar (nya fält laddas)
+3. `AccessCodeAuthorizationComboControl.selectize.setValue('Kyrkoordningen 54 kap. 4 §')`
+4. `UnofficialContactCheckBoxControl.checked = true/false`
+5. `SelectOfficialTitleComboBoxControl.selectize.setValue('1'/'2'/'3')` → om `3`: vänta på UpdatePanel → fyll `PublicTitleTextBoxControl.value`
+6. Anropa `__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish')`
 
 **Sparat på papper (PaperDocAllowedComboControl):**
 | Värde | Text |
