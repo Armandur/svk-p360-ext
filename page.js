@@ -975,8 +975,16 @@ async function skapaFrånMall(mall) {
       console.log('[p360] Klassificering final (synkront precis innan finish):', doltFinal?.value);
     }
 
-    console.log('[p360] Anropar finish-postback.');
-    pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
+    // Använd direkt form1.submit() istället för __doPostBack.
+    // pb('finish') via ScriptManager skickar async XHR i IsDlg=1-läge vilket
+    // gör navigering omöjlig att detektera tillförlitligt. Synkron submit ger
+    // iframe-navigation (302 → ärendesidan) som fångas av load-eventet nedan.
+    console.log('[p360] Submittar form1 direkt (synkron submit).');
+    const evtTarget = iDoc.getElementById('__EVENTTARGET');
+    const evtArg    = iDoc.getElementById('__EVENTARGUMENT');
+    if (evtTarget) evtTarget.value = 'ctl00$PlaceHolderMain$MainView$WizardNavigationButton';
+    if (evtArg)    evtArg.value    = 'finish';
+    iDoc.getElementById('form1').submit();
     const nyUrl = await ärendeUrlPromise;
 
     // Avkoda unicode-escapes som ScriptManager JSON-kodar i svar (\u0026 → &, \u003f → ?)
