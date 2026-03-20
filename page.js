@@ -613,7 +613,6 @@ async function skapaFrånMall(mall) {
     if (mall.ansvarigEnhet?.value) await sättSel('PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl', mall.ansvarigEnhet.value);
     if (mall.ansvarigPerson?.value) await sättSel('PlaceHolderMain_MainView_ResponsibleUserComboControl', mall.ansvarigPerson.value);
     await sättSel('PlaceHolderMain_MainView_StatusCaseComboControl', mall.status || '5');
-    await sättSel('PlaceHolderMain_MainView_PaperDocAllowedComboControl', mall.sparatPaPapper || '0');
 
     titelFält.value = mall.titel || '';
     titelFält.dispatchEvent(new Event('input', { bubbles: true }));
@@ -646,6 +645,10 @@ async function skapaFrånMall(mall) {
     } else {
       await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', '0');
     }
+
+    // Sparat på papper sätts sist bland fälten – UpdatePanel-svaret för skyddskod
+    // kan annars återställa det till sitt defaultvärde.
+    await sättSel('PlaceHolderMain_MainView_PaperDocAllowedComboControl', mall.sparatPaPapper || '0');
 
     if (mall.externaKontakter?.length > 0) {
       pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'ContactsStep');
