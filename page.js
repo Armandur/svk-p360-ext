@@ -590,6 +590,16 @@ async function skapaFrånMall(mall) {
 
     visaStatus('Fyller i fält…');
 
+    // Klassificering sätts först – fältet kan trigga en UpdatePanel-refresh
+    // som annars skulle nolla övriga fält om det sattes senare.
+    if (mall.klassificering?.value) {
+      const vis  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
+      const dolt = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
+      if (vis)  vis.value  = mall.klassificering.display || '';
+      if (dolt) dolt.value = mall.klassificering.value;
+      await sleep(600);
+    }
+
     if (mall.diarieenhet?.value) await sättSel('PlaceHolderMain_MainView_JournalUnitComboControl', mall.diarieenhet.value);
     if (mall.delarkiv?.value)    await sättSel('PlaceHolderMain_MainView_CaseSubArchiveComboControl', mall.delarkiv.value);
     if (mall.atkomstgrupp?.value) await sättSel('PlaceHolderMain_MainView_AccessGroupComboControl', mall.atkomstgrupp.value);
@@ -600,13 +610,6 @@ async function skapaFrånMall(mall) {
 
     titelFält.value = mall.titel || '';
     titelFält.dispatchEvent(new Event('input', { bubbles: true }));
-
-    if (mall.klassificering?.value) {
-      const vis  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
-      const dolt = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
-      if (vis)  vis.value  = mall.klassificering.display || '';
-      if (dolt) dolt.value = mall.klassificering.value;
-    }
 
     await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', mall.skyddskod || '0');
 
