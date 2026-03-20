@@ -801,14 +801,11 @@ async function skapaFrånMall(mall) {
     visaStatus('Skapar ärende…');
     await sleep(300);
 
-    // Fånga ärendets URL via XHR-interceptor på ScriptManagers async-svar.
-    // Fångst av ärendets URL efter finish. Svaret kan komma via flera kanaler:
-    //   1. ScriptManager XHR-svar med "pageRedirect||<url>|" (asynkront UpdatePanel)
-    //   2. ScriptManager XHR-svar med scriptBlock som sätter window.location
-    //   3. Fullständig formulärnavigering (synkront form.submit → iframe load-event)
-    //   4. window.SI.UI.ModalDialog.CloseCallback i huvudfönstret (360°:s dialog-ramverk
-    //      anropas via window.parent.SI.UI.ModalDialog.CloseCallback(1, recno) från
-    //      scriptBlock-sektionen i UpdatePanel-svaret efter lyckad ärendeskapning)
+    // Fånga ärendets URL efter finish-PostBack. Svaret kan komma via flera kanaler:
+    //   1. iframe.commitPopup(recno) – SharePoint IsDlg=1-mönster; 360° anropar
+    //      window.frameElement.commitPopup(recno) direkt på iframe-elementet.
+    //   2. ScriptManager XHR-svar: pageRedirect-sektion eller scriptBlock med URL/recno.
+    //   3. Fullständig formulärnavigering (iframe load-event).
     // Debug: JSON.parse(localStorage.getItem('p360_nav_debug'))
     const debugInfo = { xhrResponses: [], iframeLoads: [], finishUrl: null };
 
@@ -823,62 +820,88 @@ async function skapaFrånMall(mall) {
         }
       };
 
-      // Primär: patcha window.SI.UI.ModalDialog.CloseCallback i HUVUDFÖNSTRET.
-      // Efter lyckad ärendeskapning anropar 360°:s scriptBlock:
-      //   window.parent.SI.UI.ModalDialog.CloseCallback(1, recno)
-      // från iframe-kontexten. Fångst här ger oss recno direkt.
-      let origCloseCallback = null;
-      if (window.SI?.UI?.ModalDialog?.CloseCallback) {
-        origCloseCallback = window.SI.UI.ModalDialog.CloseCallback.bind(window.SI.UI.ModalDialog);
-        window.SI.UI.ModalDialog.CloseCallback = function(result, returnValue) {
-          console.log('[p360] SI.UI.ModalDialog.CloseCallback:', result, JSON.stringify(returnValue));
+      // Primär: iframe-element callbacks (SharePoint IsDlg=1-mönster).
+      // 360° anropar window.frameElement.commitPopup(recno) eller liknande
+      // direkt på iframe-elementet (= window.frameElement i iframe-kontexten)
+      // när ärendet skapats. Alla kända varianter täcks in.
+      ['commitPopup', 'closeCallback', 'commonModalDialogClose'].forEach(fn => {
+        iframe[fn] = function(result, returnValue) {
+          console.log(`[p360] iframe.${fn} anropat:`, result, returnValue);
           try {
+            const val = returnValue ?? result;
             let url = null;
-            if (typeof returnValue === 'string' && returnValue.includes('/DMS/Case/Details/')) {
-              url = returnValue;
-            } else if (typeof returnValue === 'number' || /^\d+$/.test(returnValue)) {
-              url = `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${returnValue}`;
+            if (typeof val === 'string' && val.includes('/DMS/')) {
+              url = val;
+            } else if (val != null && /^\d+$/.test(String(val))) {
+              url = `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${val}`;
+            } else if (result != null && /^\d+$/.test(String(result))) {
+              url = `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${result}`;
             }
-            if (url) { done(url); return; } // navigera utan att köra originalet
-          } catch {}
-          try { origCloseCallback(result, returnValue); } catch {}
+            if (url) { done(url); return; }
+          } catch (e) { console.warn('[p360] iframe-callback fel:', e); }
+          done(null);
         };
-      }
-      const restoreClose = () => {
-        if (origCloseCallback) window.SI.UI.ModalDialog.CloseCallback = origCloseCallback;
-      };
+      });
 
-      // Sekundär: XHR-svar från iframe – leta efter ärendeURL i scriptBlock-sektioner
+      // Sekundär: XHR-svar från iframe – analysera ScriptManager-format (len|type|id|content|)
+      // och extrahera alla icke-HTML sektioner. Söker ärendeURL och recno i dem.
       const origSend = iWin.XMLHttpRequest.prototype.send;
       const restoreXhr = () => { iWin.XMLHttpRequest.prototype.send = origSend; };
       iWin.XMLHttpRequest.prototype.send = function(body) {
         this.addEventListener('load', function() {
           try {
             const resp = this.responseText || '';
-            // Spara börjar + slut av svaret (scriptBlocks finns sist, HTML-blocket är störst)
-            debugInfo.xhrResponses.push({
-              start: resp.substring(0, 400),
-              end:   resp.substring(Math.max(0, resp.length - 1500)),
-              len:   resp.length,
-            });
-            // Sök i hela svaret efter ärendeURL
-            let url = null;
-            const m1 = resp.match(/pageRedirect\|\|([^|]+)\|/);
-            if (m1) url = m1[1];
-            if (!url) {
-              const m2 = resp.match(/window\.location[^'"]*['"]([^'"]*\/DMS\/Case\/Details\/[^'"]*)['"]/);
-              if (m2) url = m2[1];
+            // Parsa ScriptManager-sektioner: hoppa över updatePanel-HTML-blocket, samla resten.
+            const sections = [];
+            let pos = 0;
+            let iter = 0;
+            while (pos < resp.length && iter++ < 200) {
+              const p1 = resp.indexOf('|', pos);
+              if (p1 === -1 || p1 - pos > 10) break;
+              const len = parseInt(resp.substring(pos, p1), 10);
+              if (isNaN(len) || len < 0) break;
+              const p2 = resp.indexOf('|', p1 + 1);
+              if (p2 === -1) break;
+              const type = resp.substring(p1 + 1, p2);
+              const p3 = resp.indexOf('|', p2 + 1);
+              if (p3 === -1) break;
+              const id = resp.substring(p2 + 1, p3);
+              const content = resp.substring(p3 + 1, p3 + 1 + len);
+              if (type !== 'updatePanel') {
+                sections.push({ type, id, content: content.substring(0, 400) });
+              }
+              pos = p3 + 1 + len + 1; // hoppa förbi content + avslutande |
             }
-            if (!url) {
-              const m3 = resp.match(/(\/locator\/DMS\/Case\/Details\/[^|"'<\s&]+)/);
-              if (m3) url = m3[1];
+            debugInfo.xhrResponses.push({ len: resp.length, sections });
+
+            // Sök ärendeURL eller recno i de extraherade sektionerna
+            let url = null;
+            for (const s of sections) {
+              if (url) break;
+              if (s.type === 'pageRedirect') { url = s.content; break; }
+              const patterns = [
+                /\/locator\/DMS\/Case\/Details\/[^\s"'|<&]+/,
+                /window\.location[^=]*=\s*['"]([^'"]+)['"]/,
+                /commitPopup\s*\(\s*['"]?(\d{4,})['"]?\s*\)/,
+                /CloseCallback\s*\([^,]*,\s*['"]?(\d{4,})['"]?\s*\)/,
+                /recno[=\s:]+(\d{4,})/i,
+              ];
+              for (const re of patterns) {
+                const m = s.content.match(re);
+                if (m) {
+                  const hit = m[1] || m[0];
+                  url = hit.startsWith('/') ? hit
+                    : `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${hit}`;
+                  break;
+                }
+              }
             }
             if (url) {
               console.log('[p360] Ärendenavigering fångad i XHR-svar:', url);
-              restoreXhr(); restoreClose();
+              restoreXhr();
               done(url);
             }
-          } catch {}
+          } catch (e) { console.warn('[p360] XHR-interceptor fel:', e); }
         });
         origSend.apply(this, arguments);
       };
@@ -891,7 +914,7 @@ async function skapaFrånMall(mall) {
           console.log('[p360] Iframe load efter finish. URL:', href);
           if (href.includes('/DMS/Case/Details/')) {
             iframe.removeEventListener('load', onFinishLoad);
-            restoreXhr(); restoreClose();
+            restoreXhr();
             done(href);
           }
         } catch { /* location tillfälligt otillgänglig under redirect */ }
@@ -900,7 +923,7 @@ async function skapaFrånMall(mall) {
 
       setTimeout(() => {
         iframe.removeEventListener('load', onFinishLoad);
-        restoreXhr(); restoreClose();
+        restoreXhr();
         done(null);
       }, 30000);
     });
