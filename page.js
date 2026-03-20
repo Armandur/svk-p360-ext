@@ -618,14 +618,20 @@ async function skapaFrånMall(mall) {
     titelFält.value = mall.titel || '';
     titelFält.dispatchEvent(new Event('input', { bubbles: true }));
 
-    await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', mall.skyddskod || '0');
-
     if (mall.skyddskod && mall.skyddskod !== '0') {
-      // sättSel triggar onchange → setTimeout(__doPostBack) → UpdatePanel-refresh.
-      // Vänta tills paragraf-fältet dyker upp i DOM (bekräftar att servern svarat).
+      // Sätt skyddskod och vänta på UpdatePanel-refresh (laddar paragraf-fälten).
+      await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', mall.skyddskod);
+
+      // Vänta tills paragraf-fältet dyker upp (bekräftar att servern svarat).
       const paragrafFält = await waitForElement(
         iDoc, '#PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', 10000
       );
+
+      // UpdatePanel-svaret kan ha återställt AccessCode till default i sin HTML-patch –
+      // sätt värdet igen tyst (silent=true = inget nytt PostBack triggas).
+      const accessEl = iDoc.getElementById('PlaceHolderMain_MainView_AccessCodeComboControl');
+      if (accessEl?.selectize) accessEl.selectize.setValue(mall.skyddskod, true);
+
       if (paragrafFält && mall.sekretessParag) {
         await sättSel('PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', mall.sekretessParag);
       }
@@ -637,6 +643,8 @@ async function skapaFrånMall(mall) {
         const offFält = await waitForElement(iDoc, '#PlaceHolderMain_MainView_PublicTitleTextBoxControl', 5000);
         if (offFält) offFält.value = mall.offentligTitel || '';
       }
+    } else {
+      await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', '0');
     }
 
     if (mall.externaKontakter?.length > 0) {
