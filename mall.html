@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <title>Mallärende – 360° Hjälptillägg</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: sans-serif;
+      font-size: 14px;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+    }
+    h2 {
+      margin: 0 0 20px;
+      font-size: 18px;
+      color: #222;
+    }
+    h3 {
+      margin: 0 0 12px;
+      font-size: 14px;
+      text-transform: uppercase;
+      color: #666;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 6px;
+    }
+    .sektion {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .faltrad {
+      margin-bottom: 12px;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      color: #555;
+      margin-bottom: 3px;
+      font-weight: 600;
+    }
+    input[type=text], input[type=email], input[type=tel],
+    select, textarea {
+      width: 100%;
+      padding: 7px 9px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: inherit;
+      background: #fafafa;
+    }
+    textarea { resize: vertical; }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #0078d4;
+      background: #fff;
+    }
+    .tvakol {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .las-in-rad {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      padding: 10px 12px;
+      background: #f0f6ff;
+      border: 1px solid #c2d8f5;
+      border-radius: 5px;
+    }
+    .las-in-rad button {
+      padding: 6px 12px;
+      background: #0078d4;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .las-in-rad button:hover { background: #006cbf; }
+    .las-in-rad button:disabled { background: #90bce8; cursor: default; }
+    #las-in-status {
+      font-size: 12px;
+      color: #555;
+      flex: 1;
+    }
+    .klassificering-rad {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 6px;
+    }
+    .klassificering-rad input:last-child { width: 120px; }
+
+    /* Knapprad längst ner */
+    .knappar-fast {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border-top: 1px solid #ddd;
+      padding: 10px 20px;
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    .knappar-fast button {
+      padding: 8px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      border: 1px solid #ccc;
+      background: #f5f5f5;
+    }
+    .knappar-fast button.primär {
+      background: #0078d4;
+      color: #fff;
+      border-color: #0078d4;
+    }
+    .knappar-fast button.primär:hover { background: #006cbf; }
+
+    /* Sekretessblock */
+    #sekretess-falt {
+      margin-top: 10px;
+      padding: 12px;
+      background: #fff8e8;
+      border: 1px solid #f0d070;
+      border-radius: 5px;
+    }
+    #sekretess-falt label { color: #6b4e10; }
+    #sekretess-falt input, #sekretess-falt select, #sekretess-falt textarea {
+      background: #fffdf5;
+    }
+
+    /* Kontaktlista */
+    .kontakt-kort {
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      background: #fafafa;
+      position: relative;
+    }
+    .kontakt-kort .kontakt-rubrik {
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 6px;
+      padding-right: 70px;
+    }
+    .kontakt-kort .kontakt-knappar {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      display: flex;
+      gap: 4px;
+    }
+    .kontakt-kort .kontakt-knappar button {
+      padding: 2px 8px;
+      font-size: 11px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      cursor: pointer;
+      background: #fff;
+    }
+    .kontakt-kort .kontakt-detaljer {
+      font-size: 12px;
+      color: #666;
+    }
+
+    /* Kontaktformulär (inline) */
+    .kontakt-formulär {
+      border: 1px solid #0078d4;
+      border-radius: 5px;
+      padding: 14px;
+      margin-bottom: 8px;
+      background: #f0f6ff;
+    }
+    .kontakt-formulär h4 {
+      margin: 0 0 12px;
+      font-size: 13px;
+      color: #0078d4;
+    }
+    .kontakt-formulär .knappar {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .kontakt-formulär .knappar button {
+      padding: 6px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      border: 1px solid #ccc;
+      background: #fff;
+    }
+    .kontakt-formulär .knappar button.ok {
+      background: #0078d4;
+      color: #fff;
+      border-color: #0078d4;
+    }
+
+    #btn-lagg-till-kontakt {
+      padding: 7px 14px;
+      border: 1px dashed #0078d4;
+      border-radius: 4px;
+      background: #fff;
+      color: #0078d4;
+      cursor: pointer;
+      font-size: 13px;
+      width: 100%;
+    }
+    #btn-lagg-till-kontakt:hover { background: #f0f6ff; }
+
+    .obligatorisk::after { content: ' *'; color: #c0392b; }
+
+    #felruta {
+      display: none;
+      margin-bottom: 16px;
+      padding: 10px 12px;
+      background: #fdecea;
+      border: 1px solid #e74c3c;
+      border-radius: 5px;
+      font-size: 13px;
+      color: #922b21;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 id="sidrubrik">Ny mall</h2>
+    <div id="felruta"></div>
+
+    <!-- Mallnamn -->
+    <div class="sektion">
+      <div class="faltrad">
+        <label class="obligatorisk" for="mall-namn">Mallnamn</label>
+        <input type="text" id="mall-namn" placeholder="Ge mallen ett beskrivande namn">
+      </div>
+    </div>
+
+    <!-- Generellt -->
+    <div class="sektion">
+      <h3>Generellt</h3>
+
+      <!-- Läs in-knapp -->
+      <div class="las-in-rad">
+        <button id="btn-las-in">Läs in fältalternativ från 360°</button>
+        <span id="las-in-status">Klicka för att hämta tillgängliga val för instansspecifika fält.</span>
+      </div>
+
+      <div class="faltrad">
+        <label for="mall-titel">Ärendetitel (förfyllning)</label>
+        <textarea id="mall-titel" rows="2" placeholder="Titeln som förfylls när mallen används. Kan ändras vid skapandet."></textarea>
+      </div>
+
+      <div class="tvakol">
+        <div class="faltrad">
+          <label class="obligatorisk" for="mall-diarieenhet">Diarieenhet</label>
+          <select id="mall-diarieenhet">
+            <option value="">– läs in från 360° –</option>
+          </select>
+        </div>
+        <div class="faltrad">
+          <label for="mall-delarkiv">Delarkiv</label>
+          <select id="mall-delarkiv">
+            <option value="100009">Församling/pastorat</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="tvakol">
+        <div class="faltrad">
+          <label class="obligatorisk" for="mall-atkomstgrupp">Åtkomstgrupp</label>
+          <select id="mall-atkomstgrupp">
+            <option value="">– läs in från 360° –</option>
+          </select>
+        </div>
+        <div class="faltrad">
+          <label for="mall-sparat-papper">Sparat på papper</label>
+          <select id="mall-sparat-papper">
+            <option value="0">Nej</option>
+            <option value="1">Delvis</option>
+            <option value="-1">Ja</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="tvakol">
+        <div class="faltrad">
+          <label class="obligatorisk" for="mall-ansvarig-enhet">Ansvarig enhet</label>
+          <select id="mall-ansvarig-enhet">
+            <option value="">– läs in från 360° –</option>
+          </select>
+        </div>
+        <div class="faltrad">
+          <label for="mall-ansvarig-person">Ansvarig person</label>
+          <select id="mall-ansvarig-person">
+            <option value="">(Ingen)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="faltrad">
+        <label for="mall-klass-display">Klassificering</label>
+        <div class="klassificering-rad">
+          <input type="text" id="mall-klass-display" placeholder="Visningstext (t.ex. 2.5 - Ge internt verksamhetsstöd)">
+          <input type="text" id="mall-klass-recno" placeholder="Recno-kod" style="width:120px">
+        </div>
+        <span style="font-size:11px;color:#888">Slå upp klassificeringskod i 360° och ange recno-kod (siffra i URL).</span>
+      </div>
+
+      <div class="tvakol">
+        <div class="faltrad">
+          <label for="mall-skyddskod">Skyddskod</label>
+          <select id="mall-skyddskod">
+            <option value="0">Offentlig</option>
+            <option value="100031">Sekretess KO</option>
+            <option value="100032">Sekretess OSL</option>
+          </select>
+        </div>
+        <div class="faltrad">
+          <label for="mall-status">Status</label>
+          <select id="mall-status">
+            <option value="5">B - Öppet</option>
+            <option value="6">A - Avslutat</option>
+            <option value="17">AH - Avslutat från handläggare</option>
+            <option value="8">M - Makulerat</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Sekretessfält – visas om skyddskod != 0 -->
+      <div id="sekretess-falt" style="display:none;">
+        <div class="faltrad">
+          <label class="obligatorisk" for="mall-paragraf">Paragraf</label>
+          <select id="mall-paragraf">
+            <option value="">– välj paragraf –</option>
+          </select>
+        </div>
+        <div class="faltrad" style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" id="mall-skydda-kontakter" style="width:auto;margin:0">
+          <label for="mall-skydda-kontakter" style="margin:0;font-weight:normal;">Skydda kontakter</label>
+        </div>
+        <div class="faltrad">
+          <label for="mall-off-titel-val">Val för offentlig titel</label>
+          <select id="mall-off-titel-val">
+            <option value="1">Sätt offentlig titel lika med titel</option>
+            <option value="2">Skydda hela offentliga titeln</option>
+            <option value="3">Skriv in offentlig titel manuellt</option>
+          </select>
+        </div>
+        <div id="off-titel-falt" class="faltrad" style="display:none;">
+          <label for="mall-off-titel">Offentlig titel</label>
+          <textarea id="mall-off-titel" rows="2"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Externa kontakter -->
+    <div class="sektion">
+      <h3>Externa kontakter</h3>
+      <div id="kontaktlista"></div>
+      <button id="btn-lagg-till-kontakt">＋ Lägg till extern kontakt</button>
+    </div>
+
+    <!-- Kommentar -->
+    <div class="sektion">
+      <h3>Kommentar</h3>
+      <textarea id="mall-kommentar" rows="3" placeholder="Kommentar som förfylls i ärendet (valfritt)"></textarea>
+    </div>
+  </div>
+
+  <!-- Fasta knappar längst ner -->
+  <div class="knappar-fast">
+    <button id="btn-avbryt">Avbryt</button>
+    <button id="btn-spara" class="primär">Spara mall</button>
+  </div>
+
+  <script src="mall.js"></script>
+</body>
+</html>

@@ -14,18 +14,22 @@ if (!window.__p360ContentInitierat) {
     );
   }
 
+  // Åtgärder som inte kräver att vi är på en ärendesida (fungerar på hela p360-domänen)
+  const ÅTGÄRDER_UTAN_SIDKRAV = new Set(['skapaFrånMall', 'läsInAlternativ']);
+
   /**
    * Skickar ett anrop till page.js (MAIN world) och väntar på svar via CustomEvent.
-   * Timeout efter 12 s för att undvika att meddelandekanalen hänger sig.
+   * Timeout efter 120 s för mallskapande (kan ta lång tid pga. formulärfyllning).
    */
   function anropaSidan(action, data = {}) {
+    const timeout = action === 'skapaFrånMall' ? 120000 : 12000;
     return new Promise((resolve, reject) => {
       const id = Math.random().toString(36).slice(2);
 
       const timer = setTimeout(() => {
         window.removeEventListener('p360-svar', hanterare);
         reject(new Error('Inget svar från sidan. Prova att ladda om fliken.'));
-      }, 12000);
+      }, timeout);
 
       const hanterare = (event) => {
         if (event.detail.id === id) {
@@ -42,12 +46,14 @@ if (!window.__p360ContentInitierat) {
 
   // Tar emot meddelanden från popup.js
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (!ärPåÄrendesida()) {
+    if (!ÅTGÄRDER_UTAN_SIDKRAV.has(request.action) && !ärPåÄrendesida()) {
       sendResponse({ success: false, fel: 'Navigera till ett ärende i 360° först.' });
       return;
     }
 
-    const data = request.action === 'sättStatus' ? { statusVärde: request.statusVärde } : {};
+    const data = {};
+    if (request.action === 'sättStatus') data.statusVärde = request.statusVärde;
+    if (request.action === 'skapaFrånMall') data.mall = request.mall;
 
     anropaSidan(request.action, data)
       .then(svar => sendResponse(svar))
