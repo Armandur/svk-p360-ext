@@ -838,177 +838,71 @@ async function skapaFrånMall(mall) {
 
     visaStatus('Skapar ärende…');
 
-    // Fånga ärendets URL efter finish-PostBack. Svaret kan komma via flera kanaler:
-    //   1. iframe.commitPopup(recno) – SharePoint IsDlg=1-mönster; 360° anropar
-    //      window.frameElement.commitPopup(recno) direkt på iframe-elementet.
-    //   2. ScriptManager XHR-svar: pageRedirect-sektion eller scriptBlock med URL/recno.
-    //   3. Fullständig formulärnavigering (iframe load-event).
-    // Debug: JSON.parse(localStorage.getItem('p360_nav_debug'))
-    const debugInfo = { xhrResponses: [], iframeLoads: [], finishUrl: null };
+    // Skicka formuläret via fetch() – ger oss response.url (slutlig URL efter alla redirects)
+    // och response-texten direkt, utan att behöva övervaka iframe-navigering eller XHR.
+    // fetch() följer 302-redirects automatiskt; response.url är den SISTA URL:en i kedjan.
+    // Om servern skapar ärendet och sedan redirectar till ärendesidan hittar vi recno i response.url.
+    // Om servern redirectar till formuläret igen letar vi i svarstexten.
 
-    const ärendeUrlPromise = new Promise(resolve => {
-      let resolved = false;
-      const done = url => {
-        if (!resolved) {
-          resolved = true;
-          debugInfo.finishUrl = url;
-          localStorage.setItem('p360_nav_debug', JSON.stringify(debugInfo));
-          resolve(url);
-        }
-      };
-
-      // Primär: iframe-element callbacks (SharePoint IsDlg=1-mönster).
-      // 360° anropar window.frameElement.commitPopup(recno) eller liknande
-      // direkt på iframe-elementet (= window.frameElement i iframe-kontexten)
-      // när ärendet skapats. Alla kända varianter täcks in.
-      ['commitPopup', 'closeCallback', 'commonModalDialogClose'].forEach(fn => {
-        iframe[fn] = function(result, returnValue) {
-          console.log(`[p360] iframe.${fn} anropat:`, result, returnValue);
-          try {
-            const val = returnValue ?? result;
-            let url = null;
-            if (typeof val === 'string' && val.includes('/DMS/')) {
-              url = val;
-            } else if (val != null && /^\d+$/.test(String(val))) {
-              url = `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${val}`;
-            } else if (result != null && /^\d+$/.test(String(result))) {
-              url = `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${result}`;
-            }
-            if (url) { done(url); return; }
-            // Anropa INTE done(null) – okänt värde kan vara ett mellananrop.
-            // Låt 30-sekunders-timeout vara den enda vägen till null-resultat.
-          } catch (e) { console.warn('[p360] iframe-callback fel:', e); }
-        };
-      });
-
-      // Sekundär: XHR-svar från iframe – analysera ScriptManager-format (len|type|id|content|)
-      // och extrahera alla icke-HTML sektioner. Söker ärendeURL och recno i dem.
-      const origSend = iWin.XMLHttpRequest.prototype.send;
-      const restoreXhr = () => { iWin.XMLHttpRequest.prototype.send = origSend; };
-      iWin.XMLHttpRequest.prototype.send = function(body) {
-        this.addEventListener('load', function() {
-          try {
-            const resp = this.responseText || '';
-            // Parsa ScriptManager-sektioner: hoppa över updatePanel-HTML-blocket, samla resten.
-            const sections = [];
-            let pos = 0;
-            let iter = 0;
-            while (pos < resp.length && iter++ < 200) {
-              const p1 = resp.indexOf('|', pos);
-              if (p1 === -1 || p1 - pos > 10) break;
-              const len = parseInt(resp.substring(pos, p1), 10);
-              if (isNaN(len) || len < 0) break;
-              const p2 = resp.indexOf('|', p1 + 1);
-              if (p2 === -1) break;
-              const type = resp.substring(p1 + 1, p2);
-              const p3 = resp.indexOf('|', p2 + 1);
-              if (p3 === -1) break;
-              const id = resp.substring(p2 + 1, p3);
-              const content = resp.substring(p3 + 1, p3 + 1 + len);
-              if (type !== 'updatePanel') {
-                sections.push({ type, id, content: content.substring(0, 400) });
-              }
-              pos = p3 + 1 + len + 1; // hoppa förbi content + avslutande |
-            }
-            debugInfo.xhrResponses.push({ len: resp.length, sections });
-
-            // Sök ärendeURL eller recno i de extraherade sektionerna
-            let url = null;
-            for (const s of sections) {
-              if (url) break;
-              if (s.type === 'pageRedirect') { url = s.content; break; }
-              const patterns = [
-                /\/locator\/DMS\/Case\/Details\/[^\s"'|<&]+/,
-                /window\.location[^=]*=\s*['"]([^'"]+)['"]/,
-                /commitPopup\s*\(\s*['"]?(\d{4,})['"]?\s*\)/,
-                /CloseCallback\s*\([^,]*,\s*['"]?(\d{4,})['"]?\s*\)/,
-                /recno[=\s:]+(\d{4,})/i,
-              ];
-              for (const re of patterns) {
-                const m = s.content.match(re);
-                if (m) {
-                  const hit = m[1] || m[0];
-                  url = hit.startsWith('/') ? hit
-                    : `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${hit}`;
-                  break;
-                }
-              }
-            }
-            if (url) {
-              console.log('[p360] Ärendenavigering fångad i XHR-svar:', url);
-              restoreXhr();
-              done(url);
-            }
-          } catch (e) { console.warn('[p360] XHR-interceptor fel:', e); }
-        });
-        origSend.apply(this, arguments);
-      };
-
-      // Tertiär: load-event om iframe faktiskt navigeras
-      const onFinishLoad = () => {
-        try {
-          const href = iWin.location.href;
-          debugInfo.iframeLoads.push(href);
-          console.log('[p360] Iframe load efter finish. URL:', href);
-          if (href.includes('/DMS/Case/Details/')) {
-            iframe.removeEventListener('load', onFinishLoad);
-            restoreXhr();
-            done(href);
-            return;
-          }
-          // IsDlg=1-svar: inspektera svar-sidans JavaScript efter 2 s för att
-          // se vilken mekanism 360° använder för att signalera ärendeskapning.
-          setTimeout(() => {
-            try {
-              console.log('[p360] Response URL efter 2s:', iWin.location.href);
-              const scripts = Array.from(iWin.document.querySelectorAll('script:not([src])'))
-                .map(s => s.textContent.replace(/\s+/g, ' ').trim())
-                .filter(Boolean);
-              console.log('[p360] Response inline scripts:', scripts);
-              console.log('[p360] Response body text:', iWin.document.body?.textContent?.substring(0, 500));
-            } catch (e) { console.log('[p360] Response inspect fel:', e.message); }
-          }, 2000);
-        } catch { /* location tillfälligt otillgänglig under redirect */ }
-      };
-      iframe.addEventListener('load', onFinishLoad);
-
-      setTimeout(() => {
-        iframe.removeEventListener('load', onFinishLoad);
-        restoreXhr();
-        done(null);
-      }, 30000);
-    });
-
-    // Sätt klassificering SYNKRONT precis innan finish – inga awaits emellan.
-    // Förhindrar race condition där _OnClick_PostBack-svaret kan nolla fältet
-    // under en sleep som annars hade stått mellan set och finish.
+    // Sätt klassificering SYNKRONT precis innan FormData skapas – inga awaits emellan.
     if (mall.klassificering?.value) {
       const doltFinal = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
       if (doltFinal) doltFinal.value = mall.klassificering.value;
-      console.log('[p360] Klassificering final (synkront precis innan finish):', doltFinal?.value);
+      console.log('[p360] Klassificering final (precis innan FormData):', doltFinal?.value);
     }
 
-    // Använd direkt form1.submit() istället för __doPostBack.
-    // pb('finish') via ScriptManager skickar async XHR i IsDlg=1-läge vilket
-    // gör navigering omöjlig att detektera tillförlitligt. Synkron submit ger
-    // iframe-navigation (302 → ärendesidan) som fångas av load-eventet nedan.
-    console.log('[p360] Submittar form1 direkt (synkron submit).');
-    const evtTarget = iDoc.getElementById('__EVENTTARGET');
-    const evtArg    = iDoc.getElementById('__EVENTARGUMENT');
-    if (evtTarget) evtTarget.value = 'ctl00$PlaceHolderMain$MainView$WizardNavigationButton';
-    if (evtArg)    evtArg.value    = 'finish';
-    iDoc.getElementById('form1').submit();
-    const nyUrl = await ärendeUrlPromise;
+    const formEl  = iDoc.getElementById('form1');
+    const formUrl = formEl.action || iWin.location.href;
+    const formData = new FormData(formEl);
+    formData.set('__EVENTTARGET',  'ctl00$PlaceHolderMain$MainView$WizardNavigationButton');
+    formData.set('__EVENTARGUMENT', 'finish');
 
-    // Avkoda unicode-escapes som ScriptManager JSON-kodar i svar (\u0026 → &, \u003f → ?)
+    console.log('[p360] Skickar formulär via fetch. klassificering i FormData:',
+      formData.get('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl'));
+
+    const fetchSvar = await iWin.fetch(formUrl, {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
+      redirect: 'follow',
+    });
+
+    const slutUrl   = fetchSvar.url;
+    const svarText  = await fetchSvar.text();
+    console.log('[p360] fetch response.url:', slutUrl, '| status:', fetchSvar.status);
+
+    // Extrahera ärendeURL: antingen i redirect-URL:en eller i svarstextens HTML
+    let nyUrl = null;
+    if (slutUrl.includes('/DMS/Case/Details/')) {
+      nyUrl = slutUrl;
+    } else {
+      // Sök recno i svartexten (HTML eller ScriptManager-format)
+      const patterns = [
+        /\/locator\/DMS\/Case\/Details\/[^\s"'<&]+/,
+        /recno[=\s:]+(\d{4,})/i,
+        /commitPopup\s*\(\s*['"]?(\d{4,})['"]?\s*\)/,
+      ];
+      for (const re of patterns) {
+        const m = svarText.match(re);
+        if (m) {
+          const hit = m[1] || m[0];
+          nyUrl = hit.startsWith('/') ? hit
+            : `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${hit}`;
+          break;
+        }
+      }
+    }
+
+    // Avkoda unicode-escapes (\u0026 → &) som kan finnas i URL:er från ScriptManager
     const renUrl = nyUrl?.replace(/\\u([\da-fA-F]{4})/g, (_, h) => String.fromCharCode(parseInt(h, 16)));
     console.log('[p360] Ärendenavigering. URL:', renUrl);
     overlay.remove();
     if (renUrl?.includes('/DMS/Case/Details/')) {
       window.location.href = renUrl;
     } else {
-      console.log('[p360] Navigering misslyckades. nyUrl:', nyUrl, 'Debug:', JSON.stringify(debugInfo));
-      alert('Ärendet skapades men navigering misslyckades.\nDebuginfo i konsolen: JSON.parse(localStorage.getItem(\'p360_nav_debug\'))');
+      console.log('[p360] Navigering misslyckades. slutUrl:', slutUrl,
+        '| svarText (500 tecken):', svarText.substring(0, 500));
+      alert('Ärendet skapades men navigering misslyckades.\nSe konsolen för detaljer.');
     }
 
   } catch (err) {
