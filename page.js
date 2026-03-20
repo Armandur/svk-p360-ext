@@ -2,6 +2,12 @@
 // Har direkt tillgång till sidans globala funktioner som __doPostBack och Selectize.
 // Kommunicerar med content.js (ISOLATED world) via CustomEvents.
 
+// Skydda mot dubbel-injektion (executeScript körs ibland flera gånger).
+// Eftersom const-deklarationer lever i sidans JS-kontext ger ominjicering
+// "Identifier already declared"-fel utan denna guard.
+if (window._p360PageJsLoaded) return;
+window._p360PageJsLoaded = true;
+
 /**
  * Triggar en åtgärd via huvudmenyn i 360°.
  */
@@ -767,16 +773,19 @@ async function skapaFrånMall(mall) {
     }
 
     // Klassificering sätts SIST – direkt innan submit, efter samtliga PostBacks.
-    // OnClick-PostBack triggas INTE: anropet kan rensa hidden-fältet om display-texten
-    // inte matchar exakt och triggar dessutom onödiga UpdatePanel-anrop.
-    // Servern accepterar hidden-fältets recno-värde om det är satt vid submit.
+    // OnClick-PostBack (bockknappen) krävs av servern för att validera fältet –
+    // utan den avvisas formuläret och inget ärende skapas. Sätt hidden-fältet igen
+    // efter PostBack-svaret ifall servern nollade det (ingen träff för display-texten).
     if (mall.klassificering?.value) {
       console.log('[p360] Sätter klassificering (sist):', mall.klassificering.value, mall.klassificering.display);
       const vis  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
       const dolt = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
       if (vis)  vis.value  = mall.klassificering.display || '';
       if (dolt) dolt.value = mall.klassificering.value;
-      console.log('[p360] Klassificering satt. vis.value=', vis?.value, 'dolt.value=', dolt?.value);
+      pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_OnClick_PostBack', '');
+      await sleep(800);
+      if (dolt) dolt.value = mall.klassificering.value; // återställ om PostBack nollade
+      console.log('[p360] Klassificering bekräftad. dolt.value=', dolt?.value);
     }
 
     // Snapshot av kritiska fält direkt innan submit
@@ -797,8 +806,10 @@ async function skapaFrånMall(mall) {
     //   1. ScriptManager XHR-svar med "pageRedirect||<url>|" (asynkront UpdatePanel)
     //   2. ScriptManager XHR-svar med scriptBlock som sätter window.location
     //   3. Fullständig formulärnavigering (synkront form.submit → iframe load-event)
-    // Debug: XHR-svar och iframe-URL sparas i localStorage och kan läsas i konsolen
-    // EFTER navigering: JSON.parse(localStorage.getItem('p360_nav_debug'))
+    //   4. window.SI.UI.ModalDialog.CloseCallback i huvudfönstret (360°:s dialog-ramverk
+    //      anropas via window.parent.SI.UI.ModalDialog.CloseCallback(1, recno) från
+    //      scriptBlock-sektionen i UpdatePanel-svaret efter lyckad ärendeskapning)
+    // Debug: JSON.parse(localStorage.getItem('p360_nav_debug'))
     const debugInfo = { xhrResponses: [], iframeLoads: [], finishUrl: null };
 
     const ärendeUrlPromise = new Promise(resolve => {
@@ -812,17 +823,45 @@ async function skapaFrånMall(mall) {
         }
       };
 
-      // Primär: intercepta alla XHR-svar i iframe-fönstret och leta efter ärendeURL
+      // Primär: patcha window.SI.UI.ModalDialog.CloseCallback i HUVUDFÖNSTRET.
+      // Efter lyckad ärendeskapning anropar 360°:s scriptBlock:
+      //   window.parent.SI.UI.ModalDialog.CloseCallback(1, recno)
+      // från iframe-kontexten. Fångst här ger oss recno direkt.
+      let origCloseCallback = null;
+      if (window.SI?.UI?.ModalDialog?.CloseCallback) {
+        origCloseCallback = window.SI.UI.ModalDialog.CloseCallback.bind(window.SI.UI.ModalDialog);
+        window.SI.UI.ModalDialog.CloseCallback = function(result, returnValue) {
+          console.log('[p360] SI.UI.ModalDialog.CloseCallback:', result, JSON.stringify(returnValue));
+          try {
+            let url = null;
+            if (typeof returnValue === 'string' && returnValue.includes('/DMS/Case/Details/')) {
+              url = returnValue;
+            } else if (typeof returnValue === 'number' || /^\d+$/.test(returnValue)) {
+              url = `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${returnValue}`;
+            }
+            if (url) { done(url); return; } // navigera utan att köra originalet
+          } catch {}
+          try { origCloseCallback(result, returnValue); } catch {}
+        };
+      }
+      const restoreClose = () => {
+        if (origCloseCallback) window.SI.UI.ModalDialog.CloseCallback = origCloseCallback;
+      };
+
+      // Sekundär: XHR-svar från iframe – leta efter ärendeURL i scriptBlock-sektioner
       const origSend = iWin.XMLHttpRequest.prototype.send;
       const restoreXhr = () => { iWin.XMLHttpRequest.prototype.send = origSend; };
       iWin.XMLHttpRequest.prototype.send = function(body) {
         this.addEventListener('load', function() {
           try {
             const resp = this.responseText || '';
-            // Spara de första 800 tecknen för debug (localStorage-loggen)
-            debugInfo.xhrResponses.push(resp.substring(0, 800));
-
-            // Försök alla kända URL-mönster i svaret
+            // Spara börjar + slut av svaret (scriptBlocks finns sist, HTML-blocket är störst)
+            debugInfo.xhrResponses.push({
+              start: resp.substring(0, 400),
+              end:   resp.substring(Math.max(0, resp.length - 1500)),
+              len:   resp.length,
+            });
+            // Sök i hela svaret efter ärendeURL
             let url = null;
             const m1 = resp.match(/pageRedirect\|\|([^|]+)\|/);
             if (m1) url = m1[1];
@@ -831,12 +870,12 @@ async function skapaFrånMall(mall) {
               if (m2) url = m2[1];
             }
             if (!url) {
-              const m3 = resp.match(/(\/locator\/DMS\/Case\/Details\/[^|"'<\s]+)/);
+              const m3 = resp.match(/(\/locator\/DMS\/Case\/Details\/[^|"'<\s&]+)/);
               if (m3) url = m3[1];
             }
             if (url) {
               console.log('[p360] Ärendenavigering fångad i XHR-svar:', url);
-              restoreXhr();
+              restoreXhr(); restoreClose();
               done(url);
             }
           } catch {}
@@ -844,8 +883,7 @@ async function skapaFrånMall(mall) {
         origSend.apply(this, arguments);
       };
 
-      // Sekundär: load-event fångar synkron formulärnavigering (behåll listener aktiv
-      // tills rätt URL hittas – ignorera mellanliggande redirects)
+      // Tertiär: load-event om iframe faktiskt navigeras
       const onFinishLoad = () => {
         try {
           const href = iWin.location.href;
@@ -853,7 +891,7 @@ async function skapaFrånMall(mall) {
           console.log('[p360] Iframe load efter finish. URL:', href);
           if (href.includes('/DMS/Case/Details/')) {
             iframe.removeEventListener('load', onFinishLoad);
-            restoreXhr();
+            restoreXhr(); restoreClose();
             done(href);
           }
         } catch { /* location tillfälligt otillgänglig under redirect */ }
@@ -862,7 +900,7 @@ async function skapaFrånMall(mall) {
 
       setTimeout(() => {
         iframe.removeEventListener('load', onFinishLoad);
-        restoreXhr();
+        restoreXhr(); restoreClose();
         done(null);
       }, 30000);
     });
