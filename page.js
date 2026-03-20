@@ -519,44 +519,34 @@ async function försökLäsKlassificeringar(doc, win) {
   );
   if (!dropDown) return [];
 
-  // Trigga sökning via Selectize om tillgängligt
-  if (dropDown.selectize) {
-    dropDown.selectize.setTextboxValue('%');
-    dropDown.selectize.open();
-    dropDown.selectize.onSearchChange('%');
-  } else {
-    // Fallback: trigga visFältet direkt
-    const visFält = doc.getElementById(
-      'PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY'
-    );
-    if (visFält) {
-      visFält.value = '%';
-      for (const t of ['focus', 'input', 'keydown', 'keyup']) {
-        try { visFält.dispatchEvent(new Event(t, { bubbles: true })); } catch { /* */ }
-      }
+  // Sätt % i visFältet och trigga events + PostBack – detta öppnar Selectize-dropdownen
+  // och hämtar alternativ via AJAX. Resultaten hamnar i .selectize-dropdown-content
+  // som div.option[data-value], INTE i dropDown.options (native select förblir tom).
+  const visFält = doc.getElementById(
+    'PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY'
+  );
+  if (visFält) {
+    visFält.value = '%';
+    for (const t of ['focus', 'input', 'keydown', 'keyup']) {
+      try { visFält.dispatchEvent(new Event(t, { bubbles: true })); } catch { /* */ }
     }
   }
+  try {
+    win.__doPostBack(
+      'ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_OnClick_PostBack', ''
+    );
+  } catch { /* PostBack ej tillgänglig */ }
 
-  // Vänta tills .selectize-dropdown-content har fyllts med alternativ (max 12 s)
+  // Vänta tills .selectize-dropdown-content har fyllts (max 12 s)
   await new Promise(resolve => {
     const start = Date.now();
     const check = setInterval(() => {
-      const antal = dropDown.selectize
-        ? Object.keys(dropDown.selectize.currentResults?.items || {}).length ||
-          doc.querySelectorAll('.selectize-dropdown-content .option[data-value]').length
-        : doc.querySelectorAll('.selectize-dropdown-content .option[data-value]').length;
+      const antal = doc.querySelectorAll('.selectize-dropdown-content .option[data-value]').length;
       if (antal > 0 || Date.now() - start > 12000) { clearInterval(check); resolve(); }
     }, 300);
   });
 
-  // Primär: läs från Selectize-options (cachade, inkl. ej synliga)
-  if (dropDown.selectize && Object.keys(dropDown.selectize.options || {}).length > 0) {
-    return Object.values(dropDown.selectize.options)
-      .filter(o => o.value !== '' && o.value !== '0')
-      .map(o => ({ display: (o.text || o.label || o.title || String(o.value)).trim(), value: String(o.value) }));
-  }
-
-  // Fallback: läs från synliga dropdown-element i DOM
+  // Läs från synliga dropdown-element – title-attributet innehåller displaytexten
   const items = doc.querySelectorAll('.selectize-dropdown-content .option[data-value]');
   return Array.from(items)
     .filter(el => el.dataset.value && el.dataset.value !== '0')
