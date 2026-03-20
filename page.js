@@ -411,29 +411,62 @@ async function läsInAlternativ() {
       iframe.addEventListener('load', () => { clearTimeout(tid); resolve(); });
     });
 
-    // Vänta lite extra för att Selectize ska hinna initieras
-    await sleep(800);
-
+    // Vänta på att Selectize har initierats (de laddar alternativ via AJAX).
+    // Polla tills minst ett Selectize-fält har alternativ, max 15 s.
     const doc = iframe.contentDocument;
+    const iWin = iframe.contentWindow;
+
     const titelFält = doc?.getElementById('PlaceHolderMain_MainView_TitleTextBoxControl');
     if (!titelFält) {
       throw new Error('Formuläret öppnades men innehöll inte de förväntade fälten. Kontrollera behörigheter i 360°.');
     }
 
+    // Vänta tills Selectize på diarieenhetsfältet har laddat alternativ
+    const diarieSel = doc.getElementById('PlaceHolderMain_MainView_JournalUnitComboControl');
+    await new Promise(resolve => {
+      const start = Date.now();
+      const check = setInterval(() => {
+        const harAlternativ =
+          (diarieSel?.selectize && Object.keys(diarieSel.selectize.options || {}).length > 0) ||
+          (diarieSel?.options?.length > 1);
+        if (harAlternativ || Date.now() - start > 12000) {
+          clearInterval(check);
+          resolve();
+        }
+      }, 300);
+    });
+
+    // Lite extra tid för övriga fält att laddas klart
+    await sleep(500);
+
+    /**
+     * Läser alternativ från ett Selectize-fält (primärt) eller native select (fallback).
+     * Selectize lagrar alla AJAX-laddade alternativ i el.selectize.options som ett objekt
+     * där nycklarna är värdena och värdena är { value, text/label }.
+     */
     function läsOptions(id) {
       const el = doc.getElementById(id);
       if (!el) return [];
+
+      // Primär strategi: läs från Selectize-cachade alternativ
+      if (el.selectize && el.selectize.options) {
+        return Object.values(el.selectize.options)
+          .filter(o => o.value !== '' && o.value != null)
+          .map(o => ({ value: String(o.value), label: (o.text || o.label || String(o.value)).trim() }));
+      }
+
+      // Fallback: läs från native select
       return Array.from(el.options)
         .filter(o => o.value !== '')
         .map(o => ({ value: o.value, label: o.text.trim() }));
     }
 
     // Försök hämta klassificeringar via typeahead-sökning med jokertecken.
-    // 360° använder sannolikt jQuery UI Autocomplete på detta fält.
-    const klassificeringar = await försökLäsKlassificeringar(doc, iframe.contentWindow);
+    const klassificeringar = await försökLäsKlassificeringar(doc, iWin);
 
     return {
       diarieenheter:     läsOptions('PlaceHolderMain_MainView_JournalUnitComboControl'),
+      delarkiv:          läsOptions('PlaceHolderMain_MainView_CaseSubArchiveComboControl'),
       atkomstgrupper:    läsOptions('PlaceHolderMain_MainView_AccessGroupComboControl'),
       ansvarigaEnheter:  läsOptions('PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl'),
       ansvarigaPersoner: läsOptions('PlaceHolderMain_MainView_ResponsibleUserComboControl'),

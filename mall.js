@@ -165,6 +165,7 @@ async function läsIn() {
 
   inlästaAlternativ = svar.data;
   fyllSelectFrånAlternativ('mall-diarieenhet', inlästaAlternativ.diarieenheter);
+  fyllSelectFrånAlternativ('mall-delarkiv', inlästaAlternativ.delarkiv);
   fyllSelectFrånAlternativ('mall-atkomstgrupp', inlästaAlternativ.atkomstgrupper);
   fyllSelectFrånAlternativ('mall-ansvarig-enhet', inlästaAlternativ.ansvarigaEnheter);
   fyllSelectFrånAlternativ('mall-ansvarig-person', inlästaAlternativ.ansvarigaPersoner, true);
@@ -180,13 +181,15 @@ async function läsIn() {
     const mall = (mallar || []).find(m => m.id === mallId);
     if (mall) {
       sättSelectvärde('mall-diarieenhet', mall.diarieenhet?.value);
+      sättSelectvärde('mall-delarkiv', mall.delarkiv?.value);
       sättSelectvärde('mall-atkomstgrupp', mall.atkomstgrupp?.value);
       sättSelectvärde('mall-ansvarig-enhet', mall.ansvarigEnhet?.value);
       sättSelectvärde('mall-ansvarig-person', mall.ansvarigPerson?.value || '');
     }
   }
 
-  status.textContent = `✓ Inläst: ${inlästaAlternativ.diarieenheter.length} diarieenheter, ${inlästaAlternativ.ansvarigaEnheter.length} enheter.`;
+  const delarkivAntal = inlästaAlternativ.delarkiv?.length ?? 0;
+  status.textContent = `✓ Inläst: ${inlästaAlternativ.diarieenheter.length} diarieenheter, ${delarkivAntal} delarkiv, ${inlästaAlternativ.ansvarigaEnheter.length} enheter.`;
   knapp.disabled = false;
   knapp.textContent = 'Läs in igen';
 }
@@ -420,7 +423,7 @@ async function sparaMall() {
     ändrad: Date.now(),
     titel: document.getElementById('mall-titel').value.trim(),
     diarieenhet: diarieenhetVärde ? { value: diarieenhetVärde, label: diarieenhetLabel } : null,
-    delarkiv: { value: document.getElementById('mall-delarkiv').value, label: '' },
+    delarkiv: (() => { const s = document.getElementById('mall-delarkiv'); return { value: s.value, label: s.options[s.selectedIndex]?.text || '' }; })(),
     atkomstgrupp: atkomstgruppVärde ? { value: atkomstgruppVärde, label: atkomstgruppLabel } : null,
     ansvarigEnhet: ansvarigEnhetVärde ? { value: ansvarigEnhetVärde, label: ansvarigEnhetLabel } : null,
     ansvarigPerson: ansvarigPersonVärde ? { value: ansvarigPersonVärde, label: ansvarigPersonLabel } : null,
