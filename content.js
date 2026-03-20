@@ -22,7 +22,9 @@ if (!window.__p360ContentInitierat) {
    * Timeout efter 120 s för mallskapande (kan ta lång tid pga. formulärfyllning).
    */
   function anropaSidan(action, data = {}) {
-    const timeout = action === 'skapaFrånMall' ? 120000 : 12000;
+    const timeout = action === 'skapaFrånMall' ? 120000
+                  : action === 'läsInAlternativ' ? 45000
+                  : 12000;
     return new Promise((resolve, reject) => {
       const id = Math.random().toString(36).slice(2);
 

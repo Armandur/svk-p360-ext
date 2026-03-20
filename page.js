@@ -406,7 +406,7 @@ async function läsInAlternativ() {
     await new Promise((resolve, reject) => {
       const tid = setTimeout(
         () => reject(new Error('Timeout – formuläret laddades inte. Kontrollera att du är inloggad i 360°.')),
-        25000
+        18000
       );
       iframe.addEventListener('load', () => { clearTimeout(tid); resolve(); });
     });
@@ -429,7 +429,7 @@ async function läsInAlternativ() {
         const harAlternativ =
           (diarieSel?.selectize && Object.keys(diarieSel.selectize.options || {}).length > 0) ||
           (diarieSel?.options?.length > 1);
-        if (harAlternativ || Date.now() - start > 12000) {
+        if (harAlternativ || Date.now() - start > 10000) {
           clearInterval(check);
           resolve();
         }
