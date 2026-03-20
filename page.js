@@ -785,8 +785,10 @@ async function skapaFrånMall(mall) {
       if (dolt) dolt.value = mall.klassificering.value;
       pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_OnClick_PostBack', '');
       await sleep(800);
-      if (dolt) dolt.value = mall.klassificering.value; // återställ om PostBack nollade
-      console.log('[p360] Klassificering bekräftad. dolt.value=', dolt?.value);
+      // Hämta färsk referens – UpdatePanel-svaret kan ha ersatt DOM-noden.
+      const doltNu = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
+      if (doltNu) doltNu.value = mall.klassificering.value;
+      console.log('[p360] Klassificering bekräftad. doltNu.value=', doltNu?.value, 'isConnected:', doltNu?.isConnected);
     }
 
     // Snapshot av kritiska fält direkt innan submit
@@ -933,12 +935,14 @@ async function skapaFrånMall(mall) {
     pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
     const nyUrl = await ärendeUrlPromise;
 
-    console.log('[p360] Ärendenavigering. URL:', nyUrl);
+    // Avkoda unicode-escapes som ScriptManager JSON-kodar i svar (\u0026 → &, \u003f → ?)
+    const renUrl = nyUrl?.replace(/\\u([\da-fA-F]{4})/g, (_, h) => String.fromCharCode(parseInt(h, 16)));
+    console.log('[p360] Ärendenavigering. URL:', renUrl);
     overlay.remove();
-    if (nyUrl?.includes('/DMS/Case/Details/')) {
-      window.location.href = nyUrl;
+    if (renUrl?.includes('/DMS/Case/Details/')) {
+      window.location.href = renUrl;
     } else {
-      console.log('[p360] Navigering misslyckades. Debug:', JSON.stringify(debugInfo));
+      console.log('[p360] Navigering misslyckades. nyUrl:', nyUrl, 'Debug:', JSON.stringify(debugInfo));
       alert('Ärendet skapades men navigering misslyckades.\nDebuginfo i konsolen: JSON.parse(localStorage.getItem(\'p360_nav_debug\'))');
     }
 
