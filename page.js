@@ -397,6 +397,27 @@ async function sättSelectize(id, value, doc) {
 }
 
 /**
+ * Sätter ett Selectize-fält tyst – utan att trigga onchange/PostBack.
+ *
+ * De flesta fält i nytt-ärende-formuläret har onchange-attribut som anropar
+ * __doPostBack. ASP.NET ScriptManager kan bara hantera ett UpdatePanel-svar
+ * åt gången; om flera PostBacks skickas tätt inpå varandra skriver svaren
+ * över varandra och återställer fältvärden till default. Enbart
+ * JournalUnitComboControl och AccessCodeComboControl behöver faktiskt trigga
+ * en server-side UpdatePanel. Alla övriga fält sätts via den här funktionen
+ * som tillfälligt tar bort onchange-attributet under setValue.
+ */
+async function sättSelectizeTyst(id, value, doc) {
+  const d = doc || document;
+  const el = d.getElementById(id);
+  if (!el || !value) return;
+  const onchange = el.getAttribute('onchange');
+  el.removeAttribute('onchange');
+  await sättSelectize(id, value, d);
+  if (onchange !== null) el.setAttribute('onchange', onchange);
+}
+
+/**
  * Läser in alternativ för instansspecifika fält.
  *
  * Skapar en dold iframe med nytt-ärende-formuläret inuti den befintliga 360°-sidan.
@@ -600,7 +621,10 @@ async function skapaFrånMall(mall) {
 
     // pb: postback i formulärets eget fönster (via patchad version)
     const pb = (t, a) => iWin.__doPostBack(t, a);
+    // sättSel: sätter Selectize-fält MED PostBack (JournalUnit och AccessCode behöver det)
     const sättSel = (id, val) => sättSelectize(id, val, iDoc);
+    // sättSelTyst: sätter Selectize-fält UTAN PostBack (alla övriga fält)
+    const sättSelTyst = (id, val) => sättSelectizeTyst(id, val, iDoc);
 
     const titelFält = await waitForElement(iDoc, '#PlaceHolderMain_MainView_TitleTextBoxControl', 10000);
     if (!titelFält) throw new Error('Formuläret laddades inte korrekt.');
@@ -632,31 +656,31 @@ async function skapaFrånMall(mall) {
 
     if (mall.delarkiv?.value) {
       console.log('[p360] Sätter delarkiv:', mall.delarkiv.value);
-      await sättSel('PlaceHolderMain_MainView_CaseSubArchiveComboControl', mall.delarkiv.value);
+      await sättSelTyst('PlaceHolderMain_MainView_CaseSubArchiveComboControl', mall.delarkiv.value);
       console.log('[p360] Delarkiv satt.');
     }
     if (mall.atkomstgrupp?.value) {
       console.log('[p360] Sätter åtkomstgrupp:', mall.atkomstgrupp.value);
-      await sättSel('PlaceHolderMain_MainView_AccessGroupComboControl', mall.atkomstgrupp.value);
+      await sättSelTyst('PlaceHolderMain_MainView_AccessGroupComboControl', mall.atkomstgrupp.value);
       console.log('[p360] Åtkomstgrupp satt.');
     }
     if (mall.ansvarigEnhet?.value) {
       console.log('[p360] Sätter ansvarig enhet:', mall.ansvarigEnhet.value);
-      await sättSel('PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl', mall.ansvarigEnhet.value);
+      await sättSelTyst('PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl', mall.ansvarigEnhet.value);
       console.log('[p360] Ansvarig enhet satt.');
     }
     if (mall.ansvarigPerson?.value) {
       console.log('[p360] Sätter ansvarig person:', mall.ansvarigPerson.value);
-      await sättSel('PlaceHolderMain_MainView_ResponsibleUserComboControl', mall.ansvarigPerson.value);
+      await sättSelTyst('PlaceHolderMain_MainView_ResponsibleUserComboControl', mall.ansvarigPerson.value);
       console.log('[p360] Ansvarig person satt.');
     }
 
     console.log('[p360] Sätter status:', mall.status || '5');
-    await sättSel('PlaceHolderMain_MainView_StatusCaseComboControl', mall.status || '5');
+    await sättSelTyst('PlaceHolderMain_MainView_StatusCaseComboControl', mall.status || '5');
     console.log('[p360] Status satt.');
 
     console.log('[p360] Sätter sparat på papper:', mall.sparatPaPapper || '0');
-    await sättSel('PlaceHolderMain_MainView_PaperDocAllowedComboControl', mall.sparatPaPapper || '0');
+    await sättSelTyst('PlaceHolderMain_MainView_PaperDocAllowedComboControl', mall.sparatPaPapper || '0');
     console.log('[p360] Sparat på papper satt.');
 
     if (mall.skyddskod && mall.skyddskod !== '0') {
@@ -675,7 +699,7 @@ async function skapaFrånMall(mall) {
       // ingen extra sleep behövs. Övriga fält (titel, accessCode m.m.) påverkas inte av svaret.
       if (paragrafFält && mall.sekretessParag) {
         console.log('[p360] Sätter paragraf:', mall.sekretessParag);
-        await sättSel('PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', mall.sekretessParag);
+        await sättSelTyst('PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', mall.sekretessParag);
         console.log('[p360] Paragraf satt.');
       }
 
@@ -686,9 +710,14 @@ async function skapaFrånMall(mall) {
       }
 
       // SelectOfficialTitleComboBox har ett PostBack-onchange som laddar offentligTitel-fältet.
-      // Sätt värdet och vänta på eventuell UpdatePanel om val=3.
+      // Sätt värdet tyst om val=1 eller 2 (inget UpdatePanel-svar behövs).
+      // Sätt med PostBack om val=3 (offentlig titel-fältet laddas via UpdatePanel).
       console.log('[p360] Sätter offentligTitelVal:', mall.offentligTitelVal || '1');
-      await sättSel('PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl', mall.offentligTitelVal || '1');
+      if ((mall.offentligTitelVal || '1') === '3') {
+        await sättSel('PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl', '3');
+      } else {
+        await sättSelTyst('PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl', mall.offentligTitelVal || '1');
+      }
       if (mall.offentligTitelVal === '3') {
         console.log('[p360] Väntar på offentlig titel-fält…');
         const offFält = await waitForElement(iDoc, '#PlaceHolderMain_MainView_PublicTitleTextBoxControl', 8000);
