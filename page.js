@@ -635,8 +635,16 @@ async function skapaFrånMall(mall) {
     }));
     visaStatus('Fyller i fält…');
 
-    // Klassificering sätts först – fältet kan trigga en UpdatePanel-refresh
-    // som annars skulle nolla övriga fält om det sattes senare.
+    if (mall.diarieenhet?.value) {
+      console.log('[p360] Sätter diarieenhet:', mall.diarieenhet.value);
+      await sättSel('PlaceHolderMain_MainView_JournalUnitComboControl', mall.diarieenhet.value);
+      console.log('[p360] Diarieenhet satt. Väntar 800 ms på eventuell UpdatePanel…');
+      await sleep(800);
+    }
+
+    // Klassificering sätts EFTER diarieenhets-UpdatePanel – annars återställs
+    // hidden-fältets värde av UpdatePanel-svaret (sätter hidden-fältet direkt,
+    // inget PostBack triggas för detta fält).
     if (mall.klassificering?.value) {
       console.log('[p360] Sätter klassificering:', mall.klassificering.value, mall.klassificering.display);
       const vis  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
@@ -644,14 +652,6 @@ async function skapaFrånMall(mall) {
       if (vis)  vis.value  = mall.klassificering.display || '';
       if (dolt) dolt.value = mall.klassificering.value;
       console.log('[p360] Klassificering satt. vis.value=', vis?.value, 'dolt.value=', dolt?.value);
-      await sleep(600);
-    }
-
-    if (mall.diarieenhet?.value) {
-      console.log('[p360] Sätter diarieenhet:', mall.diarieenhet.value);
-      await sättSel('PlaceHolderMain_MainView_JournalUnitComboControl', mall.diarieenhet.value);
-      console.log('[p360] Diarieenhet satt. Väntar 800 ms på eventuell UpdatePanel…');
-      await sleep(800);
     }
 
     if (mall.delarkiv?.value) {
@@ -789,29 +789,72 @@ async function skapaFrånMall(mall) {
 
     visaStatus('Skapar ärende…');
     await sleep(300);
-    console.log('[p360] Anropar finish-postback.');
-    pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
 
-    // Vänta på att iframen navigeras till det nyskapade ärendet
-    const nyUrl = await new Promise(resolve => {
+    // Sätt upp navigeringsfångst innan finish-PostBacken anropas.
+    // finish hanteras ofta som asynkront ScriptManager-anrop (UpdatePanel XHR),
+    // vilket innebär att iframe:ns location.href INTE ändras direkt – istället
+    // uppdaterar ScriptManager DOM:en och/eller anropar window.location-redirect
+    // inne i iframe-fönstret. Vi fångar detta på två sätt:
+    //   1. load-event på iframe:n (fångar fullständig navigering)
+    //   2. Polling som också letar efter recno-länkar i iframe:ns DOM
+    //      (fångar UpdatePanel-svar som bäddar in en ärendelänk)
+    const ärendeUrlPromise = new Promise(resolve => {
+      let resolved = false;
+      const done = url => { if (!resolved) { resolved = true; resolve(url); } };
+
+      // load-event: iframen laddade en ny sida
+      iframe.addEventListener('load', function onFinishLoad() {
+        iframe.removeEventListener('load', onFinishLoad);
+        try {
+          const href = iWin.location.href;
+          console.log('[p360] Iframe load efter finish. URL:', href);
+          if (href.includes('/DMS/Case/Details/') || href.includes('recno=')) {
+            done(href);
+          }
+        } catch { /* location tillfälligt otillgänglig */ }
+      });
+
+      // Polling: kolla URL och DOM efter ärende-recno/länk
       const t = Date.now();
       const check = setInterval(() => {
         try {
           const href = iWin.location.href;
-          if (href.includes('/DMS/Case/Details/') || href.includes('module=Case&subtype=')) {
+          if (href.includes('/DMS/Case/Details/') || href.includes('recno=')) {
             clearInterval(check);
-            resolve(href);
+            done(href);
+            return;
           }
-        } catch { /* Under redirect kan location vara tillfälligt otillgänglig */ }
-        if (Date.now() - t > 60000) { clearInterval(check); resolve(null); }
-      }, 400);
+          // Kolla om ScriptManager-svaret lagt in en länk till det nya ärendet
+          const ärendeLänk = iDoc.querySelector(
+            'a[href*="/DMS/Case/Details/"], a[href*="recno="]'
+          );
+          if (ärendeLänk) {
+            clearInterval(check);
+            done(ärendeLänk.href);
+            return;
+          }
+        } catch { /* location otillgänglig under redirect */ }
+        if (Date.now() - t > 30000) { clearInterval(check); done(null); }
+      }, 150);
     });
 
+    console.log('[p360] Anropar finish-postback.');
+    pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
+    const nyUrl = await ärendeUrlPromise;
+
+    console.log('[p360] Ärendenavigering. URL:', nyUrl);
     overlay.remove();
-    if (nyUrl) {
-      window.location.href = nyUrl;
+    if (nyUrl && (nyUrl.includes('/DMS/Case/Details/') || nyUrl.includes('recno='))) {
+      // Säkerställ att URL:en leder till ärendesidan (inte bara dialogsidan med recno-param)
+      const recnoMatch = nyUrl.match(/[?&]recno=(\d+)/);
+      if (recnoMatch && !nyUrl.includes('/DMS/Case/Details/')) {
+        window.location.href =
+          `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${recnoMatch[1]}`;
+      } else {
+        window.location.href = nyUrl;
+      }
     } else {
-      alert('Ärendet kan ha skapats. Kontrollera i 360°.');
+      alert('Ärendet skapades men navigering misslyckades. Sök upp ärendet i 360°.');
     }
 
   } catch (err) {
