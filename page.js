@@ -784,29 +784,41 @@ async function skapaFrånMall(mall) {
       if (vis)  vis.value  = mall.klassificering.display || '';
       if (dolt) dolt.value = mall.klassificering.value;
 
-      // Fånga OnClick-PostBack-svaret för att förstå hur servern behandlar klassificering.
+      // Vänta på att ScriptManager är helt klar med OnClick-PostBack (endRequest-event).
+      // Vi får INTE anropa pb('finish') medan ScriptManager fortfarande processar OnClick –
+      // ScriptManager tillåter bara en aktiv async PostBack åt gången och ignorerar annars finish.
+      // Att lösa Promise:n från rå XHR load-event (före ScriptManagers egna load-hantering)
+      // orsakade exakt detta problem: finish skickades för tidigt → inget ärende skapades.
       await new Promise(resolve => {
+        let resolved = false;
+        const done = () => { if (!resolved) { resolved = true; resolve(); } };
+
+        // Fånga XHR för att logga svaret (för felsökning av klassificering)
         const origSend = iWin.XMLHttpRequest.prototype.send;
-        let fångad = false;
-        const done = () => {
-          if (!fångad) { fångad = true; iWin.XMLHttpRequest.prototype.send = origSend; resolve(); }
-        };
         iWin.XMLHttpRequest.prototype.send = function(body) {
           this.addEventListener('load', function() {
+            iWin.XMLHttpRequest.prototype.send = origSend;
             try {
               const resp = this.responseText || '';
-              // Logga URL + de första 2000 och sista 1000 tecknen av svaret
               console.log('[p360] OnClick XHR url:', this.responseURL, '| len:', resp.length);
               console.log('[p360] OnClick XHR start:', resp.substring(0, 2000));
               if (resp.length > 2000) console.log('[p360] OnClick XHR slut:', resp.substring(resp.length - 1000));
             } catch {}
-            done();
+            // Lös INTE Promise:n här – vänta på ScriptManagers endRequest istället.
+            // Annars fortsätter vi medan ScriptManager fortfarande processar svaret.
           });
-          this.addEventListener('error', done);
           origSend.apply(this, arguments);
         };
+
+        // Primär: ScriptManagers endRequest = PostBack fullt processad, ViewState uppdaterat
+        const prm = iWin.Sys?.WebForms?.PageRequestManager?.getInstance();
+        if (prm) {
+          const handler = () => { prm.remove_endRequest(handler); done(); };
+          prm.add_endRequest(handler);
+        }
+
         pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_OnClick_PostBack', '');
-        setTimeout(done, 5000); // fallback
+        setTimeout(done, 5000); // fallback om endRequest aldrig triggas
       });
 
       const doltEfter = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
@@ -863,8 +875,9 @@ async function skapaFrånMall(mall) {
               url = `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${result}`;
             }
             if (url) { done(url); return; }
+            // Anropa INTE done(null) – okänt värde kan vara ett mellananrop.
+            // Låt 30-sekunders-timeout vara den enda vägen till null-resultat.
           } catch (e) { console.warn('[p360] iframe-callback fel:', e); }
-          done(null);
         };
       });
 
