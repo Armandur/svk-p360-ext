@@ -773,22 +773,22 @@ async function skapaFrånMall(mall) {
       console.error('[p360] FEL: titelElNu är null – formuläret kan ha laddats om.');
     }
 
-    // Klassificering sätts SIST – direkt innan submit, efter samtliga PostBacks.
-    // OnClick-PostBack (bockknappen) krävs av servern för att validera fältet –
-    // utan den avvisas formuläret och inget ärende skapas. Sätt hidden-fältet igen
-    // efter PostBack-svaret ifall servern nollade det (ingen träff för display-texten).
+    // Klassificering – OnClick-PostBack (bockknappen) krävs av servern för validering.
+    // Skicka PostBack och vänta tillräckligt länge (1 500 ms) på serverns svar.
+    // Logga vad servern returnerade – om fältet är tomt efter PostBack behöver vi
+    // kanske trigga en sökning (% som sökterm) innan bockknappen klickas.
     if (mall.klassificering?.value) {
-      console.log('[p360] Sätter klassificering (sist):', mall.klassificering.value, mall.klassificering.display);
+      console.log('[p360] Sätter klassificering:', mall.klassificering.value, mall.klassificering.display);
       const vis  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
       const dolt = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
       if (vis)  vis.value  = mall.klassificering.display || '';
       if (dolt) dolt.value = mall.klassificering.value;
       pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_OnClick_PostBack', '');
-      await sleep(800);
-      // Hämta färsk referens – UpdatePanel-svaret kan ha ersatt DOM-noden.
-      const doltNu = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
-      if (doltNu) doltNu.value = mall.klassificering.value;
-      console.log('[p360] Klassificering bekräftad. doltNu.value=', doltNu?.value, 'isConnected:', doltNu?.isConnected);
+      await sleep(1500);
+      // Logga vad servern satte i hidden-fältet (hämta färsk nod efter UpdatePanel)
+      const doltEfter = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
+      console.log('[p360] Klassificering efter OnClick-PostBack. serverVärde=', doltEfter?.value,
+        '| display=', iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY')?.value);
     }
 
     // Snapshot av kritiska fält direkt innan submit
@@ -802,7 +802,6 @@ async function skapaFrånMall(mall) {
     });
 
     visaStatus('Skapar ärende…');
-    await sleep(300);
 
     // Fånga ärendets URL efter finish-PostBack. Svaret kan komma via flera kanaler:
     //   1. iframe.commitPopup(recno) – SharePoint IsDlg=1-mönster; 360° anropar
@@ -930,6 +929,15 @@ async function skapaFrånMall(mall) {
         done(null);
       }, 30000);
     });
+
+    // Sätt klassificering SYNKRONT precis innan finish – inga awaits emellan.
+    // Förhindrar race condition där _OnClick_PostBack-svaret kan nolla fältet
+    // under en sleep som annars hade stått mellan set och finish.
+    if (mall.klassificering?.value) {
+      const doltFinal = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
+      if (doltFinal) doltFinal.value = mall.klassificering.value;
+      console.log('[p360] Klassificering final (synkront precis innan finish):', doltFinal?.value);
+    }
 
     console.log('[p360] Anropar finish-postback.');
     pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
