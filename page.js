@@ -503,48 +503,64 @@ async function läsInAlternativ() {
  * Försöker läsa alla klassificeringsalternativ från formulärets typeahead
  * genom att söka med jokertecknet %.
  *
- * Klassificeringsfältet är en typeahead kopplad till AjaxReaderService.asmx.
- * En sökning med jokertecknet % populerar det dolda select-elementet
- * ClassificationCode1ComboControl_dropDownList med alla tillgängliga koder.
- * Sökningen triggas via input-events och/eller _OnClick_PostBack, sedan pollar
- * vi tills dropDownList har fyllts (max 12 s).
+ * Klassificeringsfältet använder Selectize.js kopplat till _dropDownList.
+ * Selectize laddar alternativ dynamiskt via AJAX när man söker – de visas i
+ * .selectize-dropdown-content som div.option[data-value].
+ *
+ * Strategi: sätt % i visFältet via Selectize, vänta tills dropdown-innehållet
+ * har fyllts, läs sedan alla alternativ därifrån (eller från selectize.options
+ * om de finns cachade).
  *
  * Returnerar alltid en array (tom om inget hittas – manuell inmatning som fallback).
  */
 async function försökLäsKlassificeringar(doc, win) {
-  const visFält = doc.getElementById(
-    'PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY'
-  );
   const dropDown = doc.getElementById(
     'PlaceHolderMain_MainView_ClassificationCode1ComboControl_dropDownList'
   );
-  if (!visFält || !dropDown) return [];
+  if (!dropDown) return [];
 
-  // Sätt % i sökfältet och trigga sökning
-  visFält.value = '%';
-  for (const t of ['focus', 'input', 'keydown', 'keyup', 'change']) {
-    try { visFält.dispatchEvent(new Event(t, { bubbles: true })); } catch { /* */ }
-  }
-  try {
-    win.__doPostBack(
-      'ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_OnClick_PostBack', ''
+  // Trigga sökning via Selectize om tillgängligt
+  if (dropDown.selectize) {
+    dropDown.selectize.setTextboxValue('%');
+    dropDown.selectize.open();
+    dropDown.selectize.onSearchChange('%');
+  } else {
+    // Fallback: trigga visFältet direkt
+    const visFält = doc.getElementById(
+      'PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY'
     );
-  } catch { /* PostBack ej tillgänglig */ }
+    if (visFält) {
+      visFält.value = '%';
+      for (const t of ['focus', 'input', 'keydown', 'keyup']) {
+        try { visFält.dispatchEvent(new Event(t, { bubbles: true })); } catch { /* */ }
+      }
+    }
+  }
 
-  // Poll tills _dropDownList har fyllts av AJAX-svaret
+  // Vänta tills .selectize-dropdown-content har fyllts med alternativ (max 12 s)
   await new Promise(resolve => {
     const start = Date.now();
     const check = setInterval(() => {
-      if (dropDown.options.length > 0 || Date.now() - start > 12000) {
-        clearInterval(check);
-        resolve();
-      }
+      const antal = dropDown.selectize
+        ? Object.keys(dropDown.selectize.currentResults?.items || {}).length ||
+          doc.querySelectorAll('.selectize-dropdown-content .option[data-value]').length
+        : doc.querySelectorAll('.selectize-dropdown-content .option[data-value]').length;
+      if (antal > 0 || Date.now() - start > 12000) { clearInterval(check); resolve(); }
     }, 300);
   });
 
-  return Array.from(dropDown.options)
-    .filter(o => o.value !== '' && o.value !== '0')
-    .map(o => ({ display: o.text.trim(), value: o.value }));
+  // Primär: läs från Selectize-options (cachade, inkl. ej synliga)
+  if (dropDown.selectize && Object.keys(dropDown.selectize.options || {}).length > 0) {
+    return Object.values(dropDown.selectize.options)
+      .filter(o => o.value !== '' && o.value !== '0')
+      .map(o => ({ display: (o.text || o.label || o.title || String(o.value)).trim(), value: String(o.value) }));
+  }
+
+  // Fallback: läs från synliga dropdown-element i DOM
+  const items = doc.querySelectorAll('.selectize-dropdown-content .option[data-value]');
+  return Array.from(items)
+    .filter(el => el.dataset.value && el.dataset.value !== '0')
+    .map(el => ({ display: (el.title || el.textContent).trim(), value: el.dataset.value }));
 }
 
 /**
