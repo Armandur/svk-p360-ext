@@ -345,39 +345,174 @@ const recno = new URLSearchParams(window.location.search).get('recno');
 
 ## Flikar och externa kontakter i ärendeskapande-dialogen
 
-> **Ej kartlagt – behöver undersökas via Chrome DevTools.**
-
 ### Flikar i guiden
 
-Ärendeskapande-dialogen är troligen uppbyggd som en wizard med flikar eller steg.
-Byte av flik sker sannolikt via postback – element-ID och mekanism behöver kartläggas.
+Ärendeskapande-dialogen är en wizard med 5 flikar. Alla flikar använder samma
+`__EVENTTARGET` (`WizardNavigationButton`) och styr med `__EVENTARGUMENT`.
 
-**Känt:** Paragraf (`AccessCodeAuthorizationComboControl`) och Val för offentlig titel
-(`SelectOfficialTitleComboBoxControl`) är sannolikt obligatoriska för att kunna gå
-vidare till nästa flik vid KO/OSL-sekretess – servern blockerar förmodligen
-flikbytet om dessa inte är ifyllda.
+**Validering sker INTE vid flikbyte** – man kan fritt navigera mellan alla flikar med
+tomma obligatoriska fält. Validering sker **enbart vid "Slutför"** (`finish`).
 
-**Att kartlägga:**
-- Element-ID och postback-nyckel för fliknavigering
-- Hur servern signalerar valideringsfel vid flikbyte (felmeddelande-element?)
-- Vilka flikar som finns och i vilken ordning
+| Flik-LI-ID | Span-ID (rubrik) | Fliktext | `__EVENTARGUMENT` |
+|---|---|---|---|
+| `PlaceHolderMain_MainView_WizardView_TopMenu_tab_1` | `PlaceHolderMain_MainView_BIFWizard_step_0` | Generellt * | `GeneralStep` |
+| `PlaceHolderMain_MainView_WizardView_TopMenu_tab_2` | `PlaceHolderMain_MainView_BIFWizard_step_1` | Externa kontakter | `ContactsStep` |
+| `PlaceHolderMain_MainView_WizardView_TopMenu_tab_3` | `PlaceHolderMain_MainView_BIFWizard_step_2` | Interna kontakter | `OurTeamStep` |
+| `PlaceHolderMain_MainView_WizardView_TopMenu_tab_4` | `PlaceHolderMain_MainView_BIFWizard_step_3` | Fastighet | `EstateStep` |
+| `PlaceHolderMain_MainView_WizardView_TopMenu_tab_5` | `PlaceHolderMain_MainView_BIFWizard_step_4` | Kommentar | `NotesStep` |
+
+Navigationsknapparna "Nästa" / "Slutför" använder samma mekanism:
+
+| Knapp | `__EVENTARGUMENT` |
+|---|---|
+| Nästa | `next` |
+| Slutför | `finish` |
+
+**Kommentar-fältet (flik 5):**
+
+| Element-ID | POST-nyckel | Typ |
+|---|---|---|
+| `PlaceHolderMain_MainView_NotesStep_Control` | `ctl00$PlaceHolderMain$MainView$NotesStep_Control` | TEXTAREA |
+
+`onclick`-mönster på flik-`<li>`:
+```js
+SetCheckSumDetails(
+  'PlaceHolderMain_MainView_Wizard_CheckSum',
+  'PlaceHolderMain_MainView_WizardView_MainTable'
+);
+ChecksumEventHandler();
+__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'ContactsStep');
+```
+
+POST-URL vid flikbyte är samma som formulärets:
+```
+POST https://p360.svenskakyrkan.se/view.aspx?id=cf7c6540-7018-4c8c-9da8-783d6ce5d8cf
+  &dialogmode=true&IsDlg=1&context-data=subtype,Primary,61000;...
+```
+
+### Felmeddelanden vid validering
+
+Valideringsfel renderas som `<span class="ms-formvalidation">` (utan eget `id`) i en
+extra `<tr>` inuti `[FältID]_MainTable`. Hitta dem programmatiskt:
+
+```js
+// Felmeddelande för ett specifikt fält:
+const table = doc.getElementById(
+  'PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl_MainTable'
+);
+const errorSpan = table.querySelector('span.ms-formvalidation:not([id*="mandatory"])');
+// errorSpan.textContent => "Du måste ange paragraf"
+
+// Generell detektering av alla felmeddelanden:
+const allErrors = doc.querySelectorAll('span.ms-formvalidation');
+const actualErrors = Array.from(allErrors)
+  .filter(el => !el.id.includes('mandatory') && el.textContent.trim().length > 2)
+  .map(el => el.textContent.trim());
+```
 
 ### Externa kontakter (oregistrerade)
 
-Primär användning: lägga till **oregistrerade** externa kontakter (t.ex. privatpersoner
-eller externa aktörer som inte finns i systemet). Att söka bland befintliga interna
-kontakter bedöms som för omständigt för automatisering.
+Flödet för att lägga till en oregistrerad extern kontakt sker i **tre steg** med
+separata iframes/dialoger.
 
-**Känt beteende:** Om en oregistrerad kontakt läggs till med samma namn som en befintlig
-intern kontakt kan systemet varna och fråga om man avser den interna personen eller
-vill fortsätta med den oregistrerade.
+#### Knappar på Externa kontakter-fliken
 
-**Att kartlägga:**
-- Flik/steg där kontakter läggs till
-- Element-ID och postback-nyckel för att öppna "Lägg till oregistrerad kontakt"-dialog
-- Formulärfält i kontaktdialogen (namn, adress, e-post m.m.) och deras element-ID
-- Hur varningsdialogen (intern/oregistrerad) ser ut och hanteras
-- POST-struktur för att spara en oregistrerad kontakt
+| Knapp-ID | Text | Mekanism |
+|---|---|---|
+| `PlaceHolderMain_MainView_ContactContainer_AddRoleButtonDropDownButton_anchor` | Lägg till existerande kontakt | Dropdown |
+| `PlaceHolderMain_MainView_ContactContainer_DeleteRowButton` | Ta bort | `__doPostBack('...DeleteRowButton', '')` |
+| `PlaceHolderMain_MainView_ContactContainer_EditRowButton` | Redigera egenskaper | `__doPostBack('...EditRowButton', '')` |
+| `PlaceHolderMain_MainView_AddUnregCasePartMenuButtonControl_DropDownButton_anchor` | Ny kontakt | Dropdown-meny |
+
+#### "Ny kontakt"-dropdownmenyn
+
+Dropdown-listan `PlaceHolderMain_MainView_AddUnregCasePartMenuButtonControl_DropDownMenu`
+innehåller roller. Varje val triggar:
+
+```js
+__doPostBack(
+  'ctl00$PlaceHolderMain$MainView$AddUnregCasePartMenuButtonControl_DropDownMenu',
+  '9'  // 9 = Ärendepart; se rollkoder nedan
+);
+```
+
+| Länk-ID (suffix) | Text | `__EVENTARGUMENT` |
+|---|---|---|
+| `...MenuItemAnchor_9` | Ärendepart | `9` |
+| `...MenuItemAnchor_100001` | Tonsättare | `100001` |
+| `...MenuItemAnchor_100002` | Textförfattare | `100002` |
+| `...MenuItemAnchor_100003` | Tonsättare och textförfattare | `100003` |
+
+#### Steg 1 – Typ-dialog: `NewActivityContact`
+
+PostBack öppnar en ny iframe via GET:
+```
+GET /locator/DMS/Dialog/NewActivityContact
+  ?entity=Case&role=9&rolecode=%C3%84rendepart
+  &acccode=100032&subtype=61000&dialogTitle=360°
+  &dialog=modal&dialogOpenMode=spdialog&dialogCloseMode=spdialog&IsDlg=1
+```
+
+| Element-ID | POST-nyckel | Typ | Alternativ |
+|---|---|---|---|
+| `PlaceHolderMain_MainView_ContactTypeComboBoxControl` | `ctl00$PlaceHolderMain$MainView$ContactTypeComboBoxControl` | SELECT + Selectize | `0`=Oregistrerad kontakt, `1`=Organisation, `2`=Kontaktperson |
+
+OK-knapp: `__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish')`
+
+#### Steg 2 – Kontaktformulär: `JournalCaseContactNew`
+
+OK-klick öppnar en tredje iframe:
+```
+GET /locator/DMS/Dialog/JournalCaseContactNew
+  ?role=9&rolecode=%C3%84rendepart
+  &acccode=100032&totdomain=0&subtype=61000
+  &dialogCaption=Ny%20oregistrerad%20kontakt
+  &dialog=modal&IsDlg=1
+POST /locator/DMS/Dialog/JournalCaseContactNew
+```
+
+Formulärfält i `JournalCaseContactNew`:
+
+| Element-ID | POST-nyckel | Typ | Obl. | Etikett |
+|---|---|---|---|---|
+| `PlaceHolderMain_MainView_PersonNumberTextBoxControl` | `ctl00$...PersonNumberTextBoxControl` | INPUT text | Nej | Pers/Org-nummer |
+| `PlaceHolderMain_MainView_ContactNameControl` | `ctl00$...ContactNameControl` | INPUT text | **Ja** | Namn |
+| `PlaceHolderMain_MainView_ContactName2Control` | `ctl00$...ContactName2Control` | INPUT text | Nej | Kontaktperson |
+| `PlaceHolderMain_MainView_ContactAddressControl` | `ctl00$...ContactAddressControl` | TEXTAREA | Nej | Adress |
+| `PlaceHolderMain_MainView_Country` | `ctl00$PlaceHolderMain$MainView$Country` | SELECT + Selectize | Nej | Land (default: `50078`=Sverige) |
+| `PlaceHolderMain_MainView_ZipCode_zipCode_zip_code` | `ctl00$...ZipCode_zipCode_zip_code` | INPUT text | Nej | Postnummer |
+| `PlaceHolderMain_MainView_ZipCode_zipPlace_zip_place` | `ctl00$...ZipCode_zipPlace_zip_place` | INPUT text | Nej | Ort |
+| `PlaceHolderMain_MainView_ContactEmailControl` | `ctl00$...ContactEmailControl` | INPUT email | Nej | E-post |
+| `PlaceHolderMain_MainView_Phone_AreaCodeTextBox` | `ctl00$...Phone_AreaCodeTextBox` | INPUT text | Nej | Telefon riktnummer (default: `+46`) |
+| `PlaceHolderMain_MainView_Phone` | `ctl00$PlaceHolderMain$MainView$Phone` | INPUT tel | Nej | Telefon nummer |
+| `PlaceHolderMain_MainView_Fax_AreaCodeTextBox` | `ctl00$...Fax_AreaCodeTextBox` | INPUT text | Nej | Fax riktnummer (default: `+46`) |
+| `PlaceHolderMain_MainView_Fax` | `ctl00$PlaceHolderMain$MainView$Fax` | INPUT tel | Nej | Fax nummer |
+| `PlaceHolderMain_MainView_ContactNotesControl` | `ctl00$...ContactNotesControl` | TEXTAREA | Nej | Kommentar |
+| `PlaceHolderMain_MainView_UnofficialContactCheckBoxControl` | `ctl00$...UnofficialContactCheckBoxControl` | INPUT checkbox | Nej | Skyddad |
+
+Spara kontakten:
+```
+POST /locator/DMS/Dialog/JournalCaseContactNew
+__EVENTTARGET  = ctl00$PlaceHolderMain$MainView$DialogButton
+__EVENTARGUMENT = finish
+```
+
+> **OBS:** Kontaktdialogen har ett **eget BIFViewState** (nytt GUID, separat från
+> ärendeformulärets ViewState). Hämta det från kontaktdialog-iframe:ns DOM.
+
+#### Summering – kritiska POST-nycklar
+
+| Syfte | `__EVENTTARGET` | `__EVENTARGUMENT` |
+|---|---|---|
+| Byt till Generellt | `ctl00$...$WizardNavigationButton` | `GeneralStep` |
+| Byt till Externa kontakter | `ctl00$...$WizardNavigationButton` | `ContactsStep` |
+| Byt till Interna kontakter | `ctl00$...$WizardNavigationButton` | `OurTeamStep` |
+| Byt till Fastighet | `ctl00$...$WizardNavigationButton` | `EstateStep` |
+| Byt till Kommentar | `ctl00$...$WizardNavigationButton` | `NotesStep` |
+| Spara ärende | `ctl00$...$WizardNavigationButton` | `finish` |
+| Lägg till oregistrerad Ärendepart | `ctl00$...$AddUnregCasePartMenuButtonControl_DropDownMenu` | `9` |
+| Välj kontakttyp (OK) | `ctl00$...$DialogButton` | `finish` |
+| Spara oregistrerad kontakt | `ctl00$...$DialogButton` | `finish` |
 
 ---
 
