@@ -779,27 +779,23 @@ async function skapaFrånMall(mall) {
         console.log('[p360] sättKlassificering: vis=', vis?.value, 'dolt=', dolt?.value);
       };
 
-      // Flöde baserat på spionlogg av manuellt test:
-      //   invalidatebutton → HiddenButton (med _DISPLAY som söktext) → välj → finish
-      // dropDownList_PostBack behövs INTE (manuella flödet använde det inte).
+      // Flöde bekräftat via spionlogg (manuellt test 2026-03-22):
+      //   HiddenButton (med _DISPLAY som söktext) → välj i Selectize (klientside) → finish
+      // Varken invalidatebutton eller dropDownList_PostBack används i det manuella flödet.
 
-      // Steg 1: invalidatebutton – återställer klassificeringskontrollens servertillstånd
-      await väntalPåUpdatePanel(() =>
-        pb('ctl00$PlaceHolderMain$MainView$invalidatebutton_ClassificationCode1ComboControl', ''));
-      console.log('[p360] invalidatebutton klar.');
-
-      // Steg 2: Sätt söktext i DISPLAY-fältet – servern söker med detta värde.
-      // Servern söker med prefix/kod (t.ex. "2.7"), inte hela displaytexten ("2.7 - Ge service").
-      // Extrahera koddelen (före " - ") som söktext; om inget " - " finns används hela strängen.
+      // Steg 1: Sätt söktext i DISPLAY-fältet – servern söker med detta värde.
+      // Servern söker med prefix/kod (t.ex. "2.7"), inte hela displaytexten ("2.7 Ge service").
+      // Extrahera koddelen (före " - " eller " ") som söktext.
       const visInit = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
       if (visInit) {
         const displayText = mall.klassificering.display || '';
-        const sökText = displayText.includes(' - ') ? displayText.split(' - ')[0].trim() : displayText;
+        // Koden är allt fram till första mellanslag (t.ex. "2.7" ur "2.7 Ge service")
+        const sökText = displayText.split(' ')[0].trim() || displayText;
         visInit.value = sökText;
         console.log('[p360] _DISPLAY satt till söktext:', sökText, '(från display:', displayText, ')');
       }
 
-      // Steg 3: HiddenButton – triggar sökning i klassificeringsdatabasen med _DISPLAY-texten
+      // Steg 2: HiddenButton – triggar sökning i klassificeringsdatabasen med _DISPLAY-texten
       await väntalPåUpdatePanel(() =>
         pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControlHiddenButton', ''));
       console.log('[p360] HiddenButton klar.');
@@ -880,17 +876,42 @@ async function skapaFrånMall(mall) {
       status:         iDoc.getElementById('PlaceHolderMain_MainView_StatusCaseComboControl')?.value,
     });
 
-    // Vänta på att iframen laddar om efter submit (max 90 s i pausläge, annars 30 s)
-    const submitTimeout = mall.debugPauseKlassificering ? 90000 : 30000;
+    // Vänta på att iframen laddar om efter submit (max 30 s)
     const loadPromise = new Promise((resolve) => {
-      const timer = setTimeout(() => resolve('timeout'), submitTimeout);
+      const timer = setTimeout(() => resolve('timeout'), 30000);
       iframe.addEventListener('load', () => { clearTimeout(timer); resolve('loaded'); }, { once: true });
     });
 
     if (mall.debugPauseKlassificering) {
-      // Pausläge: spy är aktiv, vänta på att användaren manuellt sätter klassificering och klickar Slutför
-      console.log('[p360] DEBUG PAUSE: Väntar på manuellt Slutför (spy fångar nätverkstrafik).');
-      visaStatus('Spy aktiv – sätt klassificering manuellt i formuläret och klicka Slutför.');
+      // Pausläge: spy är aktiv. Användaren sätter klassificering manuellt.
+      // Vi lägger till en "Slutför"-knapp i overlayens övre del som sedan triggar
+      // form.submit() precis som det automatiserade flödet – detta säkerställer att
+      // iframe.load-eventet triggas och navigeringen fungerar korrekt.
+      console.log('[p360] DEBUG PAUSE: Väntar på manuell klassificering. Spy aktiv.');
+      visaStatus('Spy aktiv – sätt klassificering manuellt i formuläret, klicka sedan Slutför nedan.');
+
+      const slutförKnapp = document.createElement('button');
+      slutförKnapp.textContent = 'Slutför (efter manuell klassificering)';
+      slutförKnapp.style.cssText =
+        'margin:8px 0 4px;padding:7px 18px;background:#1a5276;color:#fff;' +
+        'border:none;border-radius:4px;cursor:pointer;font-size:13px;font-family:sans-serif;';
+      // Infoga knappen mellan statusText och iframe
+      overlay.insertBefore(slutförKnapp, iframe);
+
+      await new Promise(resolve => {
+        slutförKnapp.onclick = () => {
+          slutförKnapp.remove();
+          visaStatus('Skapar ärende…');
+          console.log('[p360] DEBUG PAUSE: Slutför-knapp klickad. Snapshot klassificering:',
+            iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl')?.value,
+            '|', iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY')?.value);
+          iDoc.getElementById('__EVENTTARGET').value =
+            'ctl00$PlaceHolderMain$MainView$WizardNavigationButton';
+          iDoc.getElementById('__EVENTARGUMENT').value = 'finish';
+          iDoc.getElementById('form1').submit();
+          resolve();
+        };
+      });
     } else {
       visaStatus('Skapar ärende…');
 
@@ -904,7 +925,6 @@ async function skapaFrånMall(mall) {
         '| klassificering (hidden):', iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl')?.value,
         '| klassificering (display):', iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY')?.value);
 
-      // Sätt __EVENTTARGET och __EVENTARGUMENT i DOM (istället för __doPostBack)
       iDoc.getElementById('__EVENTTARGET').value =
         'ctl00$PlaceHolderMain$MainView$WizardNavigationButton';
       iDoc.getElementById('__EVENTARGUMENT').value = 'finish';
