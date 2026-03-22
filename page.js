@@ -779,30 +779,28 @@ async function skapaFrånMall(mall) {
         console.log('[p360] sättKlassificering: vis=', vis?.value, 'dolt=', dolt?.value);
       };
 
-      // Steg 0: Sätt söktext i DISPLAY-fältet INNAN HiddenButton.
-      // I det manuella flödet visade spionen att _DISPLAY hade söktexten (t.ex. "%")
-      // när HiddenButton PostBack avfyrades. Servern söker då i klassificeringsdatabasen
-      // och sparar giltiga resultat internt – utan denna sökning accepteras inte värdet.
+      // Flöde baserat på spionlogg av manuellt test:
+      //   invalidatebutton → HiddenButton (med _DISPLAY som söktext) → välj → finish
+      // dropDownList_PostBack behövs INTE (manuella flödet använde det inte).
+
+      // Steg 1: invalidatebutton – återställer klassificeringskontrollens servertillstånd
+      await väntalPåUpdatePanel(() =>
+        pb('ctl00$PlaceHolderMain$MainView$invalidatebutton_ClassificationCode1ComboControl', ''));
+      console.log('[p360] invalidatebutton klar.');
+
+      // Steg 2: Sätt söktext i DISPLAY-fältet – servern söker med detta värde
       const visInit = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
       if (visInit) {
         visInit.value = mall.klassificering.display || '';
-        console.log('[p360] Steg 0: _DISPLAY satt till söktext:', visInit.value);
+        console.log('[p360] _DISPLAY satt till söktext:', visInit.value);
       }
 
-      // Steg 1: HiddenButton – triggar sökning med DISPLAY-texten
+      // Steg 3: HiddenButton – triggar sökning i klassificeringsdatabasen med _DISPLAY-texten
       await väntalPåUpdatePanel(() =>
         pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControlHiddenButton', ''));
       console.log('[p360] HiddenButton klar.');
 
-      // Steg 2: sätt fältvärden (hidden + display)
-      sättKlassificering();
-
-      // Steg 3: dropDownList_PostBack – berättar för servern att ett val gjorts
-      await väntalPåUpdatePanel(() =>
-        pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_dropDownList_PostBack', ''));
-      console.log('[p360] dropDownList_PostBack klar.');
-
-      // Steg 4: re-sätt fältvärden (UpdatePanel kan ha ersatt DOM-noder)
+      // Steg 4: sätt fältvärden (hidden=recno + display=text)
       sättKlassificering();
     }
 
@@ -863,17 +861,20 @@ async function skapaFrånMall(mall) {
 
     visaStatus('Skapar ärende…');
 
-    // Skicka formuläret via __doPostBack → form.submit() – exakt samma mekanism som
-    // det manuella flödet. __doPostBack sätter __EVENTTARGET och __EVENTARGUMENT i DOM
-    // och anropar sedan form1.submit(). Browsern skickar som application/x-www-form-urlencoded
-    // (till skillnad från fetch + FormData som skickar multipart/form-data).
-    //
-    // Resultatet läses genom att lyssna på iframens load-event och sedan inspektera
-    // den nya sidans URL eller innehåll.
+    // Skicka formuläret via direkt form.submit() – INTE __doPostBack.
+    // __doPostBack fångas av PageRequestManager (async XHR) och iframen navigeras
+    // aldrig, så load-eventet triggas inte. Genom att sätta __EVENTTARGET +
+    // __EVENTARGUMENT direkt i DOM och anropa form.submit() kringgår vi
+    // ScriptManager helt – exakt som CLAUDE.md rekommenderar.
 
-    console.log('[p360] Skickar formulär via __doPostBack (nativ form.submit).',
+    console.log('[p360] Skickar formulär via direkt form.submit().',
       '| klassificering (hidden):', iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl')?.value,
       '| klassificering (display):', iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY')?.value);
+
+    // Sätt __EVENTTARGET och __EVENTARGUMENT i DOM (istället för __doPostBack)
+    iDoc.getElementById('__EVENTTARGET').value =
+      'ctl00$PlaceHolderMain$MainView$WizardNavigationButton';
+    iDoc.getElementById('__EVENTARGUMENT').value = 'finish';
 
     // Vänta på att iframen laddar om efter submit (max 30 s)
     const loadPromise = new Promise((resolve) => {
@@ -881,8 +882,8 @@ async function skapaFrånMall(mall) {
       iframe.addEventListener('load', () => { clearTimeout(timer); resolve('loaded'); }, { once: true });
     });
 
-    // Trigga submit via __doPostBack – exakt samma som manuellt klick på "Slutför"
-    pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
+    // Direkt form.submit() – kringgår PageRequestManager helt
+    iDoc.getElementById('form1').submit();
 
     const loadResult = await loadPromise;
     console.log('[p360] iframe load result:', loadResult);
