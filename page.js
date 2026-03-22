@@ -907,13 +907,34 @@ async function skapaFrånMall(mall) {
       console.warn('[p360] SI.UI.ModalDialog ej tillgänglig – CloseCallback kan ej interceptas.');
     }
 
-    // Diagnostik: logga endRequest-info direkt efter finish-XHR:et
+    // Patch alla funktioner på iWin.SI.UI.ModalDialog (iframe-fönstrets eget objekt)
+    // – responsen anropar troligen detta snarare än window.parent.SI.UI.ModalDialog.
+    if (iWin.SI?.UI?.ModalDialog) {
+      const iMD = iWin.SI.UI.ModalDialog;
+      for (const key of Object.getOwnPropertyNames(iMD)) {
+        if (typeof iMD[key] === 'function') {
+          const orig = iMD[key];
+          iMD[key] = function(...args) {
+            console.log('[p360] iWin.SI.UI.ModalDialog.' + key + '(', ...args, ')');
+            return orig.apply(this, args);
+          };
+        }
+      }
+    } else {
+      console.warn('[p360] iWin.SI.UI.ModalDialog ej tillgänglig.');
+    }
+
+    // Diagnostik: logga endRequest-info och responstext direkt efter finish-XHR:et
     const prmDiag = iWin.Sys?.WebForms?.PageRequestManager?.getInstance();
     if (prmDiag) {
       const diagHandler = (sender, args) => {
         prmDiag.remove_endRequest(diagHandler);
         console.log('[p360] finish endRequest. iframe URL:', iWin.location?.href?.slice(0, 120));
         try { console.log('[p360] PRM _redirectUrl:', prmDiag._redirectUrl); } catch (e) {}
+        try {
+          const txt = prmDiag._response?.responseText;
+          console.log('[p360] XHR responstext (första 800 tkn):', txt?.slice(0, 800));
+        } catch (e) { console.log('[p360] responstext-fel:', e.message); }
       };
       prmDiag.add_endRequest(diagHandler);
     }
