@@ -773,17 +773,41 @@ async function skapaFrånMall(mall) {
       console.error('[p360] FEL: titelElNu är null – formuläret kan ha laddats om.');
     }
 
-    // Klassificering – sätt hidden-fältet (recno) och display-fältet direkt.
-    // OnClick_PostBack triggas INTE – den är för sökning, inte selektion, och
-    // kan skriva om ViewState på ett sätt som rensar klassificeringen vid submit.
-    // I det normala typeahead-flödet sätter klienten bara fältvärdena utan PostBack.
+    // Klassificering via OnClick_PostBack med recno som __EVENTARGUMENT.
+    // Hypotes: vid normalt typeahead-val skickar JS recno-värdet som argument
+    // (t.ex. __doPostBack('...OnClick_PostBack', '100204')) – inte tomt ''.
+    // Servern lagrar då recno i ViewState som "valt värde", vilket krävs för
+    // att klassificeringen ska sparas i ärendet vid submit.
     if (mall.klassificering?.value) {
       console.log('[p360] Sätter klassificering:', mall.klassificering.value, mall.klassificering.display);
       const vis  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
       const dolt = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
       if (vis)  vis.value  = mall.klassificering.display || '';
       if (dolt) dolt.value = mall.klassificering.value;
-      console.log('[p360] Klassificering satt. dolt=', dolt?.value, '| display=', vis?.value);
+
+      await new Promise(resolve => {
+        let resolved = false;
+        const done = () => { if (!resolved) { resolved = true; resolve(); } };
+        const prm = iWin.Sys?.WebForms?.PageRequestManager?.getInstance();
+        if (prm) {
+          const handler = () => { prm.remove_endRequest(handler); done(); };
+          prm.add_endRequest(handler);
+        } else {
+          done();
+          return;
+        }
+        // Skicka recno som __EVENTARGUMENT – simulerar att användaren klickade ett autocompletesvar
+        pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_OnClick_PostBack',
+          mall.klassificering.value);
+        setTimeout(done, 5000);
+      });
+
+      const visFresh  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
+      const doltFresh = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
+      console.log('[p360] Klassificering FRÅN SERVERN (med recno-arg). dolt=', doltFresh?.value, '| display=', visFresh?.value);
+      if (visFresh)  visFresh.value  = mall.klassificering.display || '';
+      if (doltFresh) doltFresh.value = mall.klassificering.value;
+      console.log('[p360] Klassificering satt om. dolt=', doltFresh?.value, '| display=', visFresh?.value);
     }
 
     // Snapshot av kritiska fält direkt innan submit
