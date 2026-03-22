@@ -883,11 +883,42 @@ async function skapaFrånMall(mall) {
     };
     iframe.cancelPopup = () => { console.log('[p360] cancelPopup anropad.'); overlay.remove(); };
 
+    // Interceptera SI.UI.ModalDialog.CloseCallback i top-level-fönstret.
+    // 360° anropar window.parent.SI.UI.ModalDialog.CloseCallback(returnValue)
+    // i iframe-kontexten efter lyckad ärendeskapning. Utan en registrerad
+    // callback (vi öppnade inte dialogen via 360°:s system) navigeras aldrig.
+    const origCloseCallback = window.SI?.UI?.ModalDialog?.CloseCallback;
+    if (window.SI?.UI?.ModalDialog) {
+      window.SI.UI.ModalDialog.CloseCallback = function(returnValue, ...args) {
+        console.log('[p360] SI.UI.ModalDialog.CloseCallback:', returnValue, args);
+        window.SI.UI.ModalDialog.CloseCallback = origCloseCallback;
+        overlay.remove();
+        const s = String(returnValue || '');
+        if (s.includes('/DMS/') || s.includes('recno=')) {
+          window.location.href = s;
+        } else if (/^\d{5,}$/.test(s)) {
+          window.location.href =
+            `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${s}`;
+        } else if (origCloseCallback) {
+          origCloseCallback.call(this, returnValue, ...args);
+        }
+      };
+    } else {
+      console.warn('[p360] SI.UI.ModalDialog ej tillgänglig – CloseCallback kan ej interceptas.');
+    }
+
+    // Diagnostik: logga endRequest-info direkt efter finish-XHR:et
+    const prmDiag = iWin.Sys?.WebForms?.PageRequestManager?.getInstance();
+    if (prmDiag) {
+      const diagHandler = (sender, args) => {
+        prmDiag.remove_endRequest(diagHandler);
+        console.log('[p360] finish endRequest. iframe URL:', iWin.location?.href?.slice(0, 120));
+        try { console.log('[p360] PRM _redirectUrl:', prmDiag._redirectUrl); } catch (e) {}
+      };
+      prmDiag.add_endRequest(diagHandler);
+    }
+
     const submitFn = () => {
-      // Klicka den fysiska Slutför-knappen i formuläret – dess onclick kör
-      // SetCheckSumDetails() + ChecksumEventHandler() + __doPostBack(finish).
-      // Utan dessa checksums behandlar inte servern formuläret som en
-      // dialog-avslutning och navigering uteblir.
       const slutförBtn = iDoc.querySelector(
         'input[onclick*="WizardNavigationButton"][onclick*="finish"],' +
         'a[onclick*="WizardNavigationButton"][onclick*="finish"],' +
