@@ -773,16 +773,41 @@ async function skapaFrånMall(mall) {
       console.error('[p360] FEL: titelElNu är null – formuläret kan ha laddats om.');
     }
 
-    // Klassificering – sätt fälten direkt utan postback.
-    // OnClick_PostBack är en sökoperation (visar resultatlista) och bekräftar INTE
-    // valet i ViewState. Servern accepterar klassificering direkt via POST-värdena.
+    // Klassificering via OnClick_PostBack.
+    // Servern kräver att en UpdatePanel-postback triggats för klassificeringsfältet
+    // för att formuläret ska valideras. Utan den avvisar servern formuläret (200, ingen redirect).
+    // Efter PostBack läses serversvaret – om servern skickat tillbaka recno används det värdet,
+    // annars sätts det sparade recno-värdet om igen direkt på det (nytillagda) DOM-elementet.
     if (mall.klassificering?.value) {
       console.log('[p360] Sätter klassificering:', mall.klassificering.value, mall.klassificering.display);
       const vis  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
       const dolt = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
       if (vis)  vis.value  = mall.klassificering.display || '';
       if (dolt) dolt.value = mall.klassificering.value;
-      console.log('[p360] Klassificering satt. dolt.value=', dolt?.value);
+
+      // Vänta på att ScriptManagers endRequest är klar (UpdatePanel processad och ViewState uppdaterat).
+      await new Promise(resolve => {
+        let resolved = false;
+        const done = () => { if (!resolved) { resolved = true; resolve(); } };
+        const prm = iWin.Sys?.WebForms?.PageRequestManager?.getInstance();
+        if (prm) {
+          const handler = () => { prm.remove_endRequest(handler); done(); };
+          prm.add_endRequest(handler);
+        } else {
+          // Ingen ScriptManager – lös direkt
+          done();
+          return;
+        }
+        pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_OnClick_PostBack', '');
+        setTimeout(done, 5000);
+      });
+
+      // Sätt om klassificering på de (potentiellt) nytillagda DOM-elementen efter UpdatePanel
+      const visFresh  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
+      const doltFresh = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
+      if (visFresh)  visFresh.value  = mall.klassificering.display || '';
+      if (doltFresh) doltFresh.value = mall.klassificering.value;
+      console.log('[p360] Klassificering efter PostBack. dolt=', doltFresh?.value, '| display=', visFresh?.value);
     }
 
     // Snapshot av kritiska fält direkt innan submit
@@ -834,16 +859,21 @@ async function skapaFrånMall(mall) {
     const svarText  = await fetchSvar.text();
     console.log('[p360] fetch response.url:', slutUrl, '| status:', fetchSvar.status);
 
-    // Extrahera ärendeURL: antingen i redirect-URL:en eller i svarstextens HTML
+    // Extrahera ärendeURL från redirect-URL:en.
+    // Om servern redirectat till ärendesidan finns recno i slutUrl.
+    // Om slutUrl = POST-URL skapades inget ärende (validering misslyckades) – sök inte i brödtexten
+    // eftersom formulär-HTML innehåller URL-mallar med subtype-numret (t.ex. recno=61000) som
+    // ger falska träffar.
     let nyUrl = null;
+    const postUrlNorm = formUrl.split('?')[0];
+    const slutUrlNorm = slutUrl.split('?')[0];
     if (slutUrl.includes('/DMS/Case/Details/')) {
       nyUrl = slutUrl;
-    } else {
-      // Sök recno i svartexten (HTML eller ScriptManager-format)
+    } else if (slutUrlNorm !== postUrlNorm) {
+      // Redirect skedde men inte till ärendesidan – sök i svarstexten
       const patterns = [
-        /\/locator\/DMS\/Case\/Details\/[^\s"'<&]+/,
-        /recno[=\s:]+(\d{4,})/i,
-        /commitPopup\s*\(\s*['"]?(\d{4,})['"]?\s*\)/,
+        /\/locator\/DMS\/Case\/Details\/[^\s"'<&]+recno=(\d{5,})/,
+        /commitPopup\s*\(\s*['"]?(\d{5,})['"]?\s*\)/,
       ];
       for (const re of patterns) {
         const m = svarText.match(re);
@@ -863,9 +893,12 @@ async function skapaFrånMall(mall) {
     if (renUrl?.includes('/DMS/Case/Details/')) {
       window.location.href = renUrl;
     } else {
-      console.log('[p360] Navigering misslyckades. slutUrl:', slutUrl,
-        '| svarText (500 tecken):', svarText.substring(0, 500));
-      alert('Ärendet skapades men navigering misslyckades.\nSe konsolen för detaljer.');
+      const ingenRedirect = slutUrlNorm === postUrlNorm;
+      console.log('[p360] Skapande misslyckades. ingenRedirect=', ingenRedirect,
+        '| slutUrl:', slutUrl, '| svarText (1000 tecken):', svarText.substring(0, 1000));
+      alert(ingenRedirect
+        ? 'Ärendet skapades inte – servern returnerade valideringsfel.\nSe konsolen för mer info.'
+        : 'Ärendet skapades men navigering misslyckades.\nSe konsolen för detaljer.');
     }
 
   } catch (err) {
