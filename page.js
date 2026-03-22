@@ -773,43 +773,17 @@ async function skapaFrånMall(mall) {
       console.error('[p360] FEL: titelElNu är null – formuläret kan ha laddats om.');
     }
 
-    // Klassificering via OnClick_PostBack.
-    // Servern kräver att en UpdatePanel-postback triggats för klassificeringsfältet
-    // för att formuläret ska valideras. Utan den avvisar servern formuläret (200, ingen redirect).
-    // Efter PostBack läses serversvaret – om servern skickat tillbaka recno används det värdet,
-    // annars sätts det sparade recno-värdet om igen direkt på det (nytillagda) DOM-elementet.
+    // Klassificering – sätt hidden-fältet (recno) och display-fältet direkt.
+    // OnClick_PostBack triggas INTE – den är för sökning, inte selektion, och
+    // kan skriva om ViewState på ett sätt som rensar klassificeringen vid submit.
+    // I det normala typeahead-flödet sätter klienten bara fältvärdena utan PostBack.
     if (mall.klassificering?.value) {
       console.log('[p360] Sätter klassificering:', mall.klassificering.value, mall.klassificering.display);
       const vis  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
       const dolt = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
       if (vis)  vis.value  = mall.klassificering.display || '';
       if (dolt) dolt.value = mall.klassificering.value;
-
-      // Vänta på att ScriptManagers endRequest är klar (UpdatePanel processad och ViewState uppdaterat).
-      await new Promise(resolve => {
-        let resolved = false;
-        const done = () => { if (!resolved) { resolved = true; resolve(); } };
-        const prm = iWin.Sys?.WebForms?.PageRequestManager?.getInstance();
-        if (prm) {
-          const handler = () => { prm.remove_endRequest(handler); done(); };
-          prm.add_endRequest(handler);
-        } else {
-          // Ingen ScriptManager – lös direkt
-          done();
-          return;
-        }
-        pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_OnClick_PostBack', '');
-        setTimeout(done, 5000);
-      });
-
-      // Logga vad SERVERN returnerade för klassificering (innan vi skriver om det)
-      const visFresh  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
-      const doltFresh = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
-      console.log('[p360] Klassificering FRÅN SERVERN (UpdatePanel). dolt=', doltFresh?.value, '| display=', visFresh?.value);
-      // Sätt om klassificering på de (potentiellt) nytillagda DOM-elementen efter UpdatePanel
-      if (visFresh)  visFresh.value  = mall.klassificering.display || '';
-      if (doltFresh) doltFresh.value = mall.klassificering.value;
-      console.log('[p360] Klassificering satt om. dolt=', doltFresh?.value, '| display=', visFresh?.value);
+      console.log('[p360] Klassificering satt. dolt=', dolt?.value, '| display=', vis?.value);
     }
 
     // Snapshot av kritiska fält direkt innan submit
