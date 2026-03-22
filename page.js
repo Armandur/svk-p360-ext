@@ -863,12 +863,10 @@ async function skapaFrånMall(mall) {
     console.log('[p360] originalAction (ScriptManager):', originalAction);
 
     // Ta bort IsDlg=1 och dialogmode från POST-URL:en.
-    // Med IsDlg=1 returnerar servern dialog-HTML (ingen 302-redirect till ärendesidan).
-    // Med dialogmode=true skapar servern inte ärendet alls (returnerar formuläret igen).
-    const postUrlObj = new URL(originalAction, iWin.location.href);
-    postUrlObj.searchParams.delete('IsDlg');
-    postUrlObj.searchParams.delete('dialogmode');
-    const formUrl = postUrlObj.toString();
+    // Använd originalAction OFÖRÄNDRAD (med IsDlg=1 och dialogmode=true).
+    // Manuellt flöde skickar finish med dessa parametrar och sparar klassificering korrekt.
+    // Svaret är en dialog-respons (ej 302-redirect) – sök efter commitPopup(recno) i texten.
+    const formUrl = new URL(originalAction, iWin.location.href).toString();
 
     const formData = new FormData(formEl);
     formData.set('__EVENTTARGET',  'ctl00$PlaceHolderMain$MainView$WizardNavigationButton');
