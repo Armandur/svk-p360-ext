@@ -884,8 +884,22 @@ async function skapaFrånMall(mall) {
     iframe.cancelPopup = () => { console.log('[p360] cancelPopup anropad.'); overlay.remove(); };
 
     const submitFn = () => {
-      console.log('[p360] Anropar pb(finish) – via PageRequestManager.');
-      pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
+      // Klicka den fysiska Slutför-knappen i formuläret – dess onclick kör
+      // SetCheckSumDetails() + ChecksumEventHandler() + __doPostBack(finish).
+      // Utan dessa checksums behandlar inte servern formuläret som en
+      // dialog-avslutning och navigering uteblir.
+      const slutförBtn = iDoc.querySelector(
+        'input[onclick*="WizardNavigationButton"][onclick*="finish"],' +
+        'a[onclick*="WizardNavigationButton"][onclick*="finish"],' +
+        'button[onclick*="WizardNavigationButton"][onclick*="finish"]'
+      );
+      if (slutförBtn) {
+        console.log('[p360] Klickar fysisk Slutför-knapp:', slutförBtn.tagName, slutförBtn.id);
+        slutförBtn.click();
+      } else {
+        console.warn('[p360] Slutför-knapp ej hittad – faller tillbaka på pb(finish).');
+        pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
+      }
     };
 
     if (mall.debugPauseKlassificering) {
