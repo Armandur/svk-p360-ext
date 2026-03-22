@@ -860,15 +860,18 @@ async function skapaFrånMall(mall) {
       status:         iDoc.getElementById('PlaceHolderMain_MainView_StatusCaseComboControl')?.value,
     });
 
-    // Vänta på att iframen laddar om efter submit (max 30 s)
-    const loadPromise = new Promise((resolve) => {
-      const timer = setTimeout(() => resolve('timeout'), 30000);
-      iframe.addEventListener('load', () => { clearTimeout(timer); resolve('loaded'); }, { once: true });
-    });
+    // 360° kräver att finish-anropet sker via __doPostBack → PageRequestManager (async XHR).
+    // form.submit() kringgår ScriptManager och ger UnhandledError.aspx.
+    // När ärendet skapas kör 360° window.top.location = '<ny URL>' i XHR-svarskoden,
+    // vilket navigerar top-level-sidan. Vi pollar URL:en tills navigering sker (max 30 s).
+    const topUrlFör = window.location.href;
+
+    const submitFn = () => {
+      console.log('[p360] Anropar pb(finish) – via PageRequestManager.');
+      pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
+    };
 
     if (mall.debugPauseKlassificering) {
-      // Pausläge: alla fält är ifyllda automatiskt. Användaren kan granska formuläret
-      // och klicka "Skicka" när hen är nöjd. Spy-logg i DevTools fångar hela flödet.
       console.log('[p360] DEBUG PAUSE: Alla fält ifyllda. Väntar på manuell bekräftelse.');
       visaStatus('Granska fälten i formuläret – klicka Skicka nedan när du är redo.');
 
@@ -877,105 +880,62 @@ async function skapaFrånMall(mall) {
       slutförKnapp.style.cssText =
         'margin:8px 0 4px;padding:7px 18px;background:#1a5276;color:#fff;' +
         'border:none;border-radius:4px;cursor:pointer;font-size:13px;font-family:sans-serif;';
-      // Infoga knappen mellan statusText och iframe
       overlay.insertBefore(slutförKnapp, iframe);
 
       await new Promise(resolve => {
         slutförKnapp.onclick = () => {
           slutförKnapp.remove();
           visaStatus('Skapar ärende…');
-          console.log('[p360] DEBUG PAUSE: Slutför-knapp klickad. Snapshot klassificering:',
-            iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl')?.value,
-            '|', iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY')?.value);
-          iDoc.getElementById('__EVENTTARGET').value =
-            'ctl00$PlaceHolderMain$MainView$WizardNavigationButton';
-          iDoc.getElementById('__EVENTARGUMENT').value = 'finish';
-          iDoc.getElementById('form1').submit();
+          console.log('[p360] DEBUG PAUSE: Slutför-knapp klickad.');
+          submitFn();
           resolve();
         };
       });
     } else {
       visaStatus('Skapar ärende…');
-
-      // Skicka formuläret via direkt form.submit() – INTE __doPostBack.
-      // __doPostBack fångas av PageRequestManager (async XHR) och iframen navigeras
-      // aldrig, så load-eventet triggas inte. Genom att sätta __EVENTTARGET +
-      // __EVENTARGUMENT direkt i DOM och anropa form.submit() kringgår vi
-      // ScriptManager helt – exakt som CLAUDE.md rekommenderar.
-
-      console.log('[p360] Skickar formulär via direkt form.submit().',
-        '| klassificering (hidden):', iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl')?.value,
-        '| klassificering (display):', iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY')?.value);
-
-      iDoc.getElementById('__EVENTTARGET').value =
-        'ctl00$PlaceHolderMain$MainView$WizardNavigationButton';
-      iDoc.getElementById('__EVENTARGUMENT').value = 'finish';
-
-      iDoc.getElementById('form1').submit();
+      submitFn();
     }
 
-    const loadResult = await loadPromise;
-    console.log('[p360] iframe load result:', loadResult);
-
-    // Försök hitta ärendeURL i iframens nya sida.
-    // I dialogmode=true navigerar 360° window.top via JS i svars-HTML:en –
-    // iframen stannar på view.aspx och vi kan inte läsa recno ur href.
-    // Fallback: leta i HTML; om recno ej hittas, kontrollera valideringsfel.
-    let nyUrl = null;
-    let valideringsfel = [];
-    try {
-      const nyHref = iframe.contentWindow?.location?.href || '';
-      console.log('[p360] iframe efter submit – href:', nyHref);
-
-      if (nyHref.includes('/DMS/Case/Details/')) {
-        nyUrl = nyHref;
-      } else {
-        const nyDoc = iframe.contentDocument;
-        const html = nyDoc?.documentElement?.innerHTML || '';
-        console.log('[p360] Söker recno i iframe-HTML (längd:', html.length, ')');
-
-        const patterns = [
-          /\/locator\/DMS\/Case\/Details\/[^\s"'<&|]+recno=(\d{7,})/,
-          /commitPopup\s*\(\s*['"]?(\d{7,})['"]?\s*\)/,
-          // 360° dialog mode: window.top.location navigering
-          /(?:top|parent)\.location(?:\.href)?\s*=\s*['"]([^'"]+)['"]/,
-          /recno[=\s:"']+(\d{7,})/i,
-        ];
-        for (const re of patterns) {
-          const m = html.match(re);
-          if (m) {
-            const hit = m[1] || m[0];
-            nyUrl = hit.startsWith('/')
-              ? hit
-              : `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${hit}`;
-            break;
-          }
+    // Polla top-level URL (max 30 s) – 360° navigerar window.top när ärendet sparas.
+    let navigerad = false;
+    const deadline = Date.now() + 30000;
+    while (Date.now() < deadline) {
+      await sleep(300);
+      if (window.location.href !== topUrlFör) {
+        navigerad = true;
+        break;
+      }
+      try {
+        const iHref = iframe.contentWindow?.location?.href || '';
+        if (iHref.includes('UnhandledError')) {
+          overlay.remove();
+          alert('360° rapporterade ett serverfel vid ärendeskapande. Kontrollera 360° manuellt.');
+          return;
         }
+      } catch (e) { /* cross-origin – ignorera */ }
+    }
 
-        // Om recno inte hittades: kolla om det finns valideringsfel i formuläret.
-        // Inga valideringsfel = ärendet skapades, 360° navigerar window.top via eget JS.
-        if (!nyUrl && nyDoc) {
+    overlay.remove();
+
+    if (navigerad) {
+      console.log('[p360] Navigering detekterad – ärende skapat. URL:', window.location.href);
+    } else {
+      // Timeout – kolla valideringsfel i formuläret
+      let valideringsfel = [];
+      try {
+        const nyDoc = iframe.contentDocument;
+        if (nyDoc) {
           valideringsfel = Array.from(nyDoc.querySelectorAll('span.ms-formvalidation'))
             .filter(el => !el.id?.includes('mandatory') && el.textContent.trim().length > 2)
             .map(el => el.textContent.trim());
-          console.log('[p360] Valideringsfel i formulär:', valideringsfel);
         }
+      } catch (e) { /* cross-origin */ }
+      console.warn('[p360] Ingen navigering inom 30 s. Valideringsfel:', valideringsfel);
+      if (valideringsfel.length > 0) {
+        alert('Ärendet kunde inte skapas. Valideringsfel:\n' + valideringsfel.join('\n'));
+      } else {
+        alert('Ärendet skapades troligen inte – ingen navigering detekterades inom 30 s.');
       }
-    } catch (e) {
-      console.warn('[p360] Kunde inte läsa iframe efter submit:', e.message);
-    }
-
-    console.log('[p360] Ärendenavigering. URL:', nyUrl, '| Valideringsfel:', valideringsfel);
-    overlay.remove();
-    if (nyUrl?.includes('/DMS/Case/Details/') || nyUrl?.includes('recno=')) {
-      window.location.href = nyUrl;
-    } else if (valideringsfel.length > 0) {
-      // Formuläret har valideringsfel – ärendet skapades inte.
-      alert('Ärendet kunde inte skapas. Valideringsfel:\n' + valideringsfel.join('\n'));
-    } else {
-      // Inget recno hittat men inga valideringsfel –
-      // 360° navigerar window.top via svars-JS. Ingen åtgärd behövs.
-      console.log('[p360] Recno ej hittat i HTML men inga valideringsfel – 360° hanterar navigering.');
     }
 
   } catch (err) {
