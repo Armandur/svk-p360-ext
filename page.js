@@ -700,43 +700,6 @@ async function skapaFrånMall(mall) {
       }
     });
 
-    // Klassificering – simulerar manuellt typeahead-flöde:
-    // 1. Trigga ClassificationCode1ComboControlHiddenButton (aktiverar/öppnar kontrollen)
-    // 2. Sätt fältvärdena
-    // 3. Trigga dropDownList_PostBack (registrerar att ett val gjorts)
-    // 4. Re-sätt fälten efter UpdatePanel-svaret
-    // Utan steg 1+3 ignorerar servern klassificeringen (isDirty-flagga aldrig satt).
-    // OBS: Klassificering måste även re-registreras EFTER AccessCode-PostBacken (se nedan),
-    // eftersom AccessCode UpdatePanel-svaret kan ersätta DOM-noder och återställa fältvärdena.
-    if (mall.klassificering?.value) {
-      console.log('[p360] Sätter klassificering:', mall.klassificering.value, mall.klassificering.display);
-
-      // Steg 1: aktivera kontrollen (HiddenButton) med tomma fält
-      await väntalPåUpdatePanel(() =>
-        pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControlHiddenButton', ''));
-      console.log('[p360] HiddenButton klar.');
-
-      // Steg 2: sätt fältvärden
-      const sättKlassificering = () => {
-        const vis  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
-        const dolt = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
-        if (vis)  vis.value  = mall.klassificering.display || '';
-        if (dolt) dolt.value = mall.klassificering.value;
-        return { vis, dolt };
-      };
-      const { dolt: d1 } = sättKlassificering();
-      console.log('[p360] Klassificering satt (steg 2). dolt=', d1?.value);
-
-      // Steg 3: dropDownList_PostBack – registrerar att ett val gjorts
-      await väntalPåUpdatePanel(() =>
-        pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_dropDownList_PostBack', ''));
-      console.log('[p360] dropDownList_PostBack klar.');
-
-      // Steg 4: re-sätt fälten (UpdatePanel kan ha ersatt DOM-noder)
-      const { dolt: d2 } = sättKlassificering();
-      console.log('[p360] Klassificering re-satt (steg 4). dolt=', d2?.value);
-    }
-
     if (mall.skyddskod && mall.skyddskod !== '0') {
       console.log('[p360] Sätter skyddskod:', mall.skyddskod);
       // Sätt skyddskod och vänta på UpdatePanel-refresh (laddar paragraf-fälten).
@@ -792,30 +755,54 @@ async function skapaFrånMall(mall) {
       console.log('[p360] AccessCode satt till 0.');
     }
 
-    // Re-registrera klassificering i ViewState efter AccessCode- och
-    // SelectOfficialTitle-PostBackarna. Dessa PostBacks returnerar ny ViewState –
-    // klassificeringen måste skickas till servern igen via en ny PostBack
-    // (PaperDocAllowed) för att servern ska lagra den inför finish.
-    // SelectOfficialTitle-PostBacken är nu garanterat klar INNAN vi sätter
-    // fältvärdena här, så ingen race condition uppstår.
+    // Klassificering sätts SIST – efter AccessCode- och SelectOfficialTitle-PostBackarna.
+    // Dessa PostBacks skriver ny ViewState; om klassificering sätts INNAN dem rensas
+    // värdet ur ViewState. Genom att göra hela typeahead-flödet EFTER alla andra
+    // UpdatePanel-anrop säkerställs att ingen efterföljande PostBack kan störa.
+    //
+    // Flöde (speglar manuellt flöde):
+    //   1. HiddenButton – aktiverar typeahead-kontrollen
+    //   2. Sätt fältvärden (display + hidden)
+    //   3. dropDownList_PostBack – registrerar att ett val gjorts i serverViewState
+    //   4. Re-sätt fältvärden (UpdatePanel kan ha bytt DOM-noder)
+    //   5. PaperDocAllowed-PostBack – bär hidden=<recno> till servern som carrier
+    //   6. Re-sätt fältvärden en sista gång inför submit
     if (mall.klassificering?.value) {
-      const visR  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
-      const doltR = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
-      if (visR)  visR.value  = mall.klassificering.display || '';
-      if (doltR) doltR.value = mall.klassificering.value;
-      console.log('[p360] Klassificering re-satt efter AccessCode+SelectOfficialTitle. doltR=', doltR?.value);
+      console.log('[p360] Sätter klassificering (efter AccessCode+SelectOfficialTitle):',
+        mall.klassificering.value, mall.klassificering.display);
 
-      // Trigga PaperDocAllowed-PostBack som bär med sig hidden=<recno> till servern
-      // och lagrar klassificeringen i ViewState inför submit.
+      const sättKlassificering = () => {
+        const vis  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
+        const dolt = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
+        if (vis)  vis.value  = mall.klassificering.display || '';
+        if (dolt) dolt.value = mall.klassificering.value;
+        console.log('[p360] sättKlassificering: dolt=', dolt?.value);
+      };
+
+      // Steg 1: HiddenButton aktiverar typeahead-kontrollen
+      await väntalPåUpdatePanel(() =>
+        pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControlHiddenButton', ''));
+      console.log('[p360] HiddenButton klar.');
+
+      // Steg 2: sätt fältvärden
+      sättKlassificering();
+
+      // Steg 3: dropDownList_PostBack – berättar för servern att ett val gjorts
+      await väntalPåUpdatePanel(() =>
+        pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_dropDownList_PostBack', ''));
+      console.log('[p360] dropDownList_PostBack klar.');
+
+      // Steg 4: re-sätt fältvärden (UpdatePanel kan ha ersatt DOM-noder)
+      sättKlassificering();
+
+      // Steg 5: PaperDocAllowed som carrier-PostBack – skickar hidden=<recno> till
+      // servern som lagrar klassificeringen i ViewState inför submit.
       await väntalPåUpdatePanel(() =>
         pb('ctl00$PlaceHolderMain$MainView$PaperDocAllowedComboControl', ''));
+      console.log('[p360] PaperDoc-PostBack klar.');
 
-      // Re-sätt fälten igen ifall UpdatePanel-svaret ersatte DOM-noder
-      const visR2  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
-      const doltR2 = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
-      if (visR2)  visR2.value  = mall.klassificering.display || '';
-      if (doltR2) doltR2.value = mall.klassificering.value;
-      console.log('[p360] Klassificering re-satt efter PaperDoc-PostBack. doltR2=', doltR2?.value);
+      // Steg 6: re-sätt en sista gång inför submit
+      sättKlassificering();
     }
 
     if (mall.externaKontakter?.length > 0) {
