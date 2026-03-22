@@ -767,7 +767,7 @@ async function skapaFrånMall(mall) {
     //   4. Re-sätt fältvärden (UpdatePanel kan ha bytt DOM-noder)
     //   5. PaperDocAllowed-PostBack – bär hidden=<recno> till servern som carrier
     //   6. Re-sätt fältvärden en sista gång inför submit
-    if (mall.klassificering?.value) {
+    if (mall.klassificering?.value && !mall.debugPauseKlassificering) {
       console.log('[p360] Sätter klassificering (efter AccessCode+SelectOfficialTitle):',
         mall.klassificering.value, mall.klassificering.display);
 
@@ -804,8 +804,25 @@ async function skapaFrånMall(mall) {
         pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControlHiddenButton', ''));
       console.log('[p360] HiddenButton klar.');
 
+      // Logga vad servern faktiskt returnerade för klassificeringskontrollen
+      const dropDownEl = iDoc.getElementById(
+        'PlaceHolderMain_MainView_ClassificationCode1ComboControl_dropDownList');
+      const nativeOpts = dropDownEl
+        ? Array.from(dropDownEl.options).map(o => `${o.value}=${o.text.trim()}`)
+        : [];
+      const selectizeOpts = Array.from(
+        iDoc.querySelectorAll('.selectize-dropdown-content .option[data-value]')
+      ).map(el => `${el.dataset.value}=${el.textContent.trim()}`);
+      const doltFörre = iDoc.getElementById(
+        'PlaceHolderMain_MainView_ClassificationCode1ComboControl')?.value;
+      console.log('[p360] HiddenButton svar – _dropDownList options (native):', nativeOpts);
+      console.log('[p360] HiddenButton svar – Selectize dropdown options:', selectizeOpts);
+      console.log('[p360] Klassificering hidden-fält FÖRE sättKlassificering:', doltFörre);
+
       // Steg 4: sätt fältvärden (hidden=recno + display=text)
       sättKlassificering();
+    } else if (mall.debugPauseKlassificering) {
+      console.log('[p360] DEBUG PAUSE: Klassificeringsautomatisering pausad. Spy aktiv.');
     }
 
     if (mall.externaKontakter?.length > 0) {
@@ -863,31 +880,37 @@ async function skapaFrånMall(mall) {
       status:         iDoc.getElementById('PlaceHolderMain_MainView_StatusCaseComboControl')?.value,
     });
 
-    visaStatus('Skapar ärende…');
-
-    // Skicka formuläret via direkt form.submit() – INTE __doPostBack.
-    // __doPostBack fångas av PageRequestManager (async XHR) och iframen navigeras
-    // aldrig, så load-eventet triggas inte. Genom att sätta __EVENTTARGET +
-    // __EVENTARGUMENT direkt i DOM och anropa form.submit() kringgår vi
-    // ScriptManager helt – exakt som CLAUDE.md rekommenderar.
-
-    console.log('[p360] Skickar formulär via direkt form.submit().',
-      '| klassificering (hidden):', iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl')?.value,
-      '| klassificering (display):', iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY')?.value);
-
-    // Sätt __EVENTTARGET och __EVENTARGUMENT i DOM (istället för __doPostBack)
-    iDoc.getElementById('__EVENTTARGET').value =
-      'ctl00$PlaceHolderMain$MainView$WizardNavigationButton';
-    iDoc.getElementById('__EVENTARGUMENT').value = 'finish';
-
-    // Vänta på att iframen laddar om efter submit (max 30 s)
+    // Vänta på att iframen laddar om efter submit (max 90 s i pausläge, annars 30 s)
+    const submitTimeout = mall.debugPauseKlassificering ? 90000 : 30000;
     const loadPromise = new Promise((resolve) => {
-      const timer = setTimeout(() => resolve('timeout'), 30000);
+      const timer = setTimeout(() => resolve('timeout'), submitTimeout);
       iframe.addEventListener('load', () => { clearTimeout(timer); resolve('loaded'); }, { once: true });
     });
 
-    // Direkt form.submit() – kringgår PageRequestManager helt
-    iDoc.getElementById('form1').submit();
+    if (mall.debugPauseKlassificering) {
+      // Pausläge: spy är aktiv, vänta på att användaren manuellt sätter klassificering och klickar Slutför
+      console.log('[p360] DEBUG PAUSE: Väntar på manuellt Slutför (spy fångar nätverkstrafik).');
+      visaStatus('Spy aktiv – sätt klassificering manuellt i formuläret och klicka Slutför.');
+    } else {
+      visaStatus('Skapar ärende…');
+
+      // Skicka formuläret via direkt form.submit() – INTE __doPostBack.
+      // __doPostBack fångas av PageRequestManager (async XHR) och iframen navigeras
+      // aldrig, så load-eventet triggas inte. Genom att sätta __EVENTTARGET +
+      // __EVENTARGUMENT direkt i DOM och anropa form.submit() kringgår vi
+      // ScriptManager helt – exakt som CLAUDE.md rekommenderar.
+
+      console.log('[p360] Skickar formulär via direkt form.submit().',
+        '| klassificering (hidden):', iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl')?.value,
+        '| klassificering (display):', iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY')?.value);
+
+      // Sätt __EVENTTARGET och __EVENTARGUMENT i DOM (istället för __doPostBack)
+      iDoc.getElementById('__EVENTTARGET').value =
+        'ctl00$PlaceHolderMain$MainView$WizardNavigationButton';
+      iDoc.getElementById('__EVENTARGUMENT').value = 'finish';
+
+      iDoc.getElementById('form1').submit();
+    }
 
     const loadResult = await loadPromise;
     console.log('[p360] iframe load result:', loadResult);

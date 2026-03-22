@@ -438,6 +438,7 @@ async function sparaMall() {
       : '',
     status: document.getElementById('mall-status').value,
     kommentar: document.getElementById('mall-kommentar').value.trim(),
+    debugPauseKlassificering: document.getElementById('mall-debug-pause-klass').checked,
     externaKontakter: kontakter,
   };
 
@@ -486,6 +487,7 @@ async function laddaMall(id) {
   document.getElementById('mall-skyddskod').value = mall.skyddskod || '0';
   document.getElementById('mall-status').value = mall.status || '5';
   document.getElementById('mall-kommentar').value = mall.kommentar || '';
+  document.getElementById('mall-debug-pause-klass').checked = !!mall.debugPauseKlassificering;
 
   if (mall.klassificering) {
     document.getElementById('mall-klass-display').value = mall.klassificering.display || '';

@@ -387,6 +387,22 @@
       <h3>Kommentar</h3>
       <textarea id="mall-kommentar" rows="3" placeholder="Kommentar som förfylls i ärendet (valfritt)"></textarea>
     </div>
+
+    <!-- Felsökning -->
+    <div class="sektion">
+      <h3>Felsökning</h3>
+      <div class="faltrad">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="mall-debug-pause-klass">
+          Pausa inför klassificering (manuellt läge)
+        </label>
+        <span style="font-size:11px;color:#888;display:block;margin-top:4px;">
+          Om ikryssad: tillägget fyller alla andra fält automatiskt men stannar
+          inför klassificeringssteget. Sätt klassificering manuellt i formuläret
+          och klicka Slutför. Spy-logg i DevTools fångar hela flödet.
+        </span>
+      </div>
+    </div>
   </div>
 
   <!-- Fasta knappar längst ner -->
