@@ -684,17 +684,55 @@ async function skapaFrånMall(mall) {
     await sättSelTyst('PlaceHolderMain_MainView_PaperDocAllowedComboControl', mall.sparatPaPapper || '0');
     console.log('[p360] Sparat på papper satt.');
 
-    // Klassificering sätts HÄR – innan AccessCode-PostBacken.
-    // Servern lagrar klassificeringen i ViewState när nästa PostBack (AccessCode) skickar med
-    // klassificeringsfältets värde i XHR-bodyn. Ingen separat klassificerings-PostBack behövs.
-    // AccessCode-UpdatePanel återställer inte klassificeringsfälten (verifierat).
+    // Klassificering – simulerar manuellt typeahead-flöde:
+    // 1. Trigga ClassificationCode1ComboControlHiddenButton (aktiverar/öppnar kontrollen)
+    // 2. Sätt fältvärdena
+    // 3. Trigga dropDownList_PostBack (registrerar att ett val gjorts)
+    // 4. Re-sätt fälten efter UpdatePanel-svaret
+    // Utan steg 1+3 ignorerar servern klassificeringen (isDirty-flagga aldrig satt).
     if (mall.klassificering?.value) {
       console.log('[p360] Sätter klassificering:', mall.klassificering.value, mall.klassificering.display);
-      const vis  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
-      const dolt = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
-      if (vis)  vis.value  = mall.klassificering.display || '';
-      if (dolt) dolt.value = mall.klassificering.value;
-      console.log('[p360] Klassificering satt. dolt=', dolt?.value, '| display=', vis?.value);
+
+      // Hjälpfunktion: vänta på en UpdatePanel-endRequest
+      const väntalPåUpdatePanel = (fn) => new Promise(resolve => {
+        let done = false;
+        const finish = () => { if (!done) { done = true; resolve(); } };
+        const prm = iWin.Sys?.WebForms?.PageRequestManager?.getInstance();
+        if (prm) {
+          const handler = () => { prm.remove_endRequest(handler); finish(); };
+          prm.add_endRequest(handler);
+          fn();
+          setTimeout(finish, 5000);
+        } else {
+          fn();
+          finish();
+        }
+      });
+
+      // Steg 1: aktivera kontrollen (HiddenButton) med tomma fält
+      await väntalPåUpdatePanel(() =>
+        pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControlHiddenButton', ''));
+      console.log('[p360] HiddenButton klar.');
+
+      // Steg 2: sätt fältvärden
+      const sättKlassificering = () => {
+        const vis  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
+        const dolt = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
+        if (vis)  vis.value  = mall.klassificering.display || '';
+        if (dolt) dolt.value = mall.klassificering.value;
+        return { vis, dolt };
+      };
+      const { dolt: d1 } = sättKlassificering();
+      console.log('[p360] Klassificering satt (steg 2). dolt=', d1?.value);
+
+      // Steg 3: dropDownList_PostBack – registrerar att ett val gjorts
+      await väntalPåUpdatePanel(() =>
+        pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_dropDownList_PostBack', ''));
+      console.log('[p360] dropDownList_PostBack klar.');
+
+      // Steg 4: re-sätt fälten (UpdatePanel kan ha ersatt DOM-noder)
+      const { dolt: d2 } = sättKlassificering();
+      console.log('[p360] Klassificering re-satt (steg 4). dolt=', d2?.value);
     }
 
     if (mall.skyddskod && mall.skyddskod !== '0') {
