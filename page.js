@@ -852,12 +852,23 @@ async function skapaFrånMall(mall) {
     }
 
     const formEl  = iDoc.getElementById('form1');
-    const formUrl = formEl.action || iWin.location.href;
+
+    // Ta bort IsDlg=1 och dialogmode från POST-URL:en.
+    // I IsDlg=1-läge returnerar servern formulär-HTML igen (för dialog-ramverket) i stället
+    // för att göra en 302-redirect till ärendesidan. Utan dessa parametrar får vi en normal
+    // redirect som fetch() kan följa via response.url.
+    const rawFormUrl = formEl.action || iWin.location.href;
+    const postUrlObj = new URL(rawFormUrl);
+    postUrlObj.searchParams.delete('IsDlg');
+    postUrlObj.searchParams.delete('dialogmode');
+    const formUrl = postUrlObj.toString();
+
     const formData = new FormData(formEl);
     formData.set('__EVENTTARGET',  'ctl00$PlaceHolderMain$MainView$WizardNavigationButton');
     formData.set('__EVENTARGUMENT', 'finish');
 
-    console.log('[p360] Skickar formulär via fetch. klassificering i FormData:',
+    console.log('[p360] Skickar formulär via fetch. POST-URL:', formUrl,
+      '| klassificering i FormData:',
       formData.get('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl'));
 
     const fetchSvar = await iWin.fetch(formUrl, {
