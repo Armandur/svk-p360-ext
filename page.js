@@ -802,12 +802,14 @@ async function skapaFrånMall(mall) {
         setTimeout(done, 5000);
       });
 
-      // Sätt om klassificering på de (potentiellt) nytillagda DOM-elementen efter UpdatePanel
+      // Logga vad SERVERN returnerade för klassificering (innan vi skriver om det)
       const visFresh  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
       const doltFresh = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
+      console.log('[p360] Klassificering FRÅN SERVERN (UpdatePanel). dolt=', doltFresh?.value, '| display=', visFresh?.value);
+      // Sätt om klassificering på de (potentiellt) nytillagda DOM-elementen efter UpdatePanel
       if (visFresh)  visFresh.value  = mall.klassificering.display || '';
       if (doltFresh) doltFresh.value = mall.klassificering.value;
-      console.log('[p360] Klassificering efter PostBack. dolt=', doltFresh?.value, '| display=', visFresh?.value);
+      console.log('[p360] Klassificering satt om. dolt=', doltFresh?.value, '| display=', visFresh?.value);
     }
 
     // Snapshot av kritiska fält direkt innan submit
