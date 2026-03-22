@@ -684,30 +684,32 @@ async function skapaFrånMall(mall) {
     await sättSelTyst('PlaceHolderMain_MainView_PaperDocAllowedComboControl', mall.sparatPaPapper || '0');
     console.log('[p360] Sparat på papper satt.');
 
+    // Hjälpfunktion: vänta på en UpdatePanel-endRequest (används av klassificering och re-registrering)
+    const väntalPåUpdatePanel = (fn) => new Promise(resolve => {
+      let done = false;
+      const finish = () => { if (!done) { done = true; resolve(); } };
+      const prm = iWin.Sys?.WebForms?.PageRequestManager?.getInstance();
+      if (prm) {
+        const handler = () => { prm.remove_endRequest(handler); finish(); };
+        prm.add_endRequest(handler);
+        fn();
+        setTimeout(finish, 5000);
+      } else {
+        fn();
+        finish();
+      }
+    });
+
     // Klassificering – simulerar manuellt typeahead-flöde:
     // 1. Trigga ClassificationCode1ComboControlHiddenButton (aktiverar/öppnar kontrollen)
     // 2. Sätt fältvärdena
     // 3. Trigga dropDownList_PostBack (registrerar att ett val gjorts)
     // 4. Re-sätt fälten efter UpdatePanel-svaret
     // Utan steg 1+3 ignorerar servern klassificeringen (isDirty-flagga aldrig satt).
+    // OBS: Klassificering måste även re-registreras EFTER AccessCode-PostBacken (se nedan),
+    // eftersom AccessCode UpdatePanel-svaret kan ersätta DOM-noder och återställa fältvärdena.
     if (mall.klassificering?.value) {
       console.log('[p360] Sätter klassificering:', mall.klassificering.value, mall.klassificering.display);
-
-      // Hjälpfunktion: vänta på en UpdatePanel-endRequest
-      const väntalPåUpdatePanel = (fn) => new Promise(resolve => {
-        let done = false;
-        const finish = () => { if (!done) { done = true; resolve(); } };
-        const prm = iWin.Sys?.WebForms?.PageRequestManager?.getInstance();
-        if (prm) {
-          const handler = () => { prm.remove_endRequest(handler); finish(); };
-          prm.add_endRequest(handler);
-          fn();
-          setTimeout(finish, 5000);
-        } else {
-          fn();
-          finish();
-        }
-      });
 
       // Steg 1: aktivera kontrollen (HiddenButton) med tomma fält
       await väntalPåUpdatePanel(() =>
@@ -780,6 +782,30 @@ async function skapaFrånMall(mall) {
       console.log('[p360] Skyddskod = offentlig (0), sätter AccessCode till 0.');
       await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', '0');
       console.log('[p360] AccessCode satt till 0.');
+    }
+
+    // Re-registrera klassificering i ViewState efter AccessCode-PostBacken.
+    // AccessCode UpdatePanel-svaret ersätter delar av DOM:en och skriver över
+    // den gamla ViewState – klassificeringen måste skickas till servern igen
+    // via en ny PostBack (PaperDocAllowed) för att servern ska lagra den.
+    if (mall.klassificering?.value) {
+      const visR  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
+      const doltR = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
+      if (visR)  visR.value  = mall.klassificering.display || '';
+      if (doltR) doltR.value = mall.klassificering.value;
+      console.log('[p360] Klassificering re-satt efter AccessCode. doltR=', doltR?.value);
+
+      // Trigga en PostBack (PaperDocAllowed) så att servern tar emot hidden=<recno>
+      // och lagrar klassificeringen i det uppdaterade ViewState.
+      await väntalPåUpdatePanel(() =>
+        pb('ctl00$PlaceHolderMain$MainView$PaperDocAllowedComboControl', ''));
+
+      // Re-sätt fälten igen ifall UpdatePanel-svaret ersatte DOM-noder
+      const visR2  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
+      const doltR2 = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
+      if (visR2)  visR2.value  = mall.klassificering.display || '';
+      if (doltR2) doltR2.value = mall.klassificering.value;
+      console.log('[p360] Klassificering re-satt efter PaperDoc-PostBack. doltR2=', doltR2?.value);
     }
 
     if (mall.externaKontakter?.length > 0) {
