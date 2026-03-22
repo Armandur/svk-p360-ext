@@ -776,15 +776,25 @@ async function skapaFrånMall(mall) {
         const dolt = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
         if (vis)  vis.value  = mall.klassificering.display || '';
         if (dolt) dolt.value = mall.klassificering.value;
-        console.log('[p360] sättKlassificering: dolt=', dolt?.value);
+        console.log('[p360] sättKlassificering: vis=', vis?.value, 'dolt=', dolt?.value);
       };
 
-      // Steg 1: HiddenButton aktiverar typeahead-kontrollen
+      // Steg 0: Sätt söktext i DISPLAY-fältet INNAN HiddenButton.
+      // I det manuella flödet visade spionen att _DISPLAY hade söktexten (t.ex. "%")
+      // när HiddenButton PostBack avfyrades. Servern söker då i klassificeringsdatabasen
+      // och sparar giltiga resultat internt – utan denna sökning accepteras inte värdet.
+      const visInit = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
+      if (visInit) {
+        visInit.value = mall.klassificering.display || '';
+        console.log('[p360] Steg 0: _DISPLAY satt till söktext:', visInit.value);
+      }
+
+      // Steg 1: HiddenButton – triggar sökning med DISPLAY-texten
       await väntalPåUpdatePanel(() =>
         pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControlHiddenButton', ''));
       console.log('[p360] HiddenButton klar.');
 
-      // Steg 2: sätt fältvärden
+      // Steg 2: sätt fältvärden (hidden + display)
       sättKlassificering();
 
       // Steg 3: dropDownList_PostBack – berättar för servern att ett val gjorts
@@ -793,15 +803,6 @@ async function skapaFrånMall(mall) {
       console.log('[p360] dropDownList_PostBack klar.');
 
       // Steg 4: re-sätt fältvärden (UpdatePanel kan ha ersatt DOM-noder)
-      sättKlassificering();
-
-      // Steg 5: PaperDocAllowed som carrier-PostBack – skickar hidden=<recno> till
-      // servern som lagrar klassificeringen i ViewState inför submit.
-      await väntalPåUpdatePanel(() =>
-        pb('ctl00$PlaceHolderMain$MainView$PaperDocAllowedComboControl', ''));
-      console.log('[p360] PaperDoc-PostBack klar.');
-
-      // Steg 6: re-sätt en sista gång inför submit
       sättKlassificering();
     }
 
