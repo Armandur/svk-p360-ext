@@ -15,7 +15,7 @@ if (!window.__p360ContentInitierat) {
   }
 
   // Åtgärder som inte kräver att vi är på en ärendesida (fungerar på hela p360-domänen)
-  const ÅTGÄRDER_UTAN_SIDKRAV = new Set(['skapaFrånMall', 'läsInAlternativ']);
+  const ÅTGÄRDER_UTAN_SIDKRAV = new Set(['skapaFrånMall', 'läsInAlternativ', 'startaSpion']);
 
   /**
    * Skickar ett anrop till page.js (MAIN world) och väntar på svar via CustomEvent.

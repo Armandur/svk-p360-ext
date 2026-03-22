@@ -999,6 +999,86 @@ async function läggTillExternKontakt(kontakt, pb = __doPostBack) {
 if (!window.__p360Initierat) {
   window.__p360Initierat = true;
 
+/**
+ * Ärendespion – loggar alla __doPostBack-anrop och XHR-förfrågningar
+ * i ärendeskapande-iframes. Används för diagnostik av manuellt skapade ärenden.
+ * Returnerar antalet patchade iframes.
+ */
+function startaÄrendespion() {
+  const iframes = Array.from(document.querySelectorAll('iframe'));
+  let antal = 0;
+
+  iframes.forEach((iframe, idx) => {
+    let iWin, iDoc;
+    try {
+      iWin = iframe.contentWindow;
+      iDoc = iframe.contentDocument;
+    } catch { return; }
+    if (!iWin || !iDoc) return;
+
+    // Patcha __doPostBack
+    if (typeof iWin.__doPostBack === 'function' && !iWin.__doPostBack.__spion) {
+      const orig = iWin.__doPostBack;
+      iWin.__doPostBack = function (target, arg) {
+        console.log(`[SPION iframe${idx}] __doPostBack | target: ${target} | arg: ${arg}`);
+        return orig.apply(this, arguments);
+      };
+      iWin.__doPostBack.__spion = true;
+    }
+
+    // Patcha XHR för att fånga UpdatePanel-anrop (klassificering m.m.)
+    if (!iWin.XMLHttpRequest.prototype.__spion) {
+      const origOpen = iWin.XMLHttpRequest.prototype.open;
+      const origSend = iWin.XMLHttpRequest.prototype.send;
+      iWin.XMLHttpRequest.prototype.open = function (method, url) {
+        this.__spionUrl = url;
+        return origOpen.apply(this, arguments);
+      };
+      iWin.XMLHttpRequest.prototype.send = function (body) {
+        if (body) {
+          try {
+            const params = new URLSearchParams(body);
+            const target = params.get('__EVENTTARGET') || '';
+            const arg    = params.get('__EVENTARGUMENT') || '';
+            const klass  = params.get('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl') || '';
+            const klassD = params.get('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_DISPLAY') || '';
+            console.log(`[SPION iframe${idx}] XHR POST ${this.__spionUrl}`);
+            console.log(`  __EVENTTARGET=${target} | __EVENTARGUMENT=${arg}`);
+            if (klass || klassD) {
+              console.log(`  klassificering hidden=${klass} | display=${klassD}`);
+            }
+          } catch { /* ignorera parsningsfel */ }
+        }
+        return origSend.apply(this, arguments);
+      };
+      iWin.XMLHttpRequest.prototype.__spion = true;
+    }
+
+    // Fånga formulärspar (submit-event i iframe)
+    const formEl = iDoc.getElementById('form1');
+    if (formEl && !formEl.__spion) {
+      formEl.addEventListener('submit', () => {
+        const fd = new FormData(formEl);
+        console.log(`[SPION iframe${idx}] form1.submit`);
+        const intressanta = [
+          'ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl',
+          'ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_DISPLAY',
+          '__EVENTTARGET', '__EVENTARGUMENT',
+        ];
+        for (const k of intressanta) {
+          console.log(`  ${k} = ${fd.get(k)}`);
+        }
+      }, true);
+      formEl.__spion = true;
+    }
+
+    antal++;
+  });
+
+  console.log(`[SPION] Aktiverad på ${antal} iframe(s). Skapa nu ett ärende manuellt.`);
+  return antal;
+}
+
 // Tar emot anrop från content.js och skickar tillbaka svar
 window.addEventListener('p360-anrop', async (event) => {
   const { id, action, data } = event.detail;
@@ -1027,6 +1107,12 @@ window.addEventListener('p360-anrop', async (event) => {
       return;
     } else if (action === 'skapaFrånMall') {
       await skapaFrånMall(data.mall);
+    } else if (action === 'startaSpion') {
+      const antal = startaÄrendespion();
+      window.dispatchEvent(new CustomEvent('p360-svar', {
+        detail: { id, success: true, data: { patchadeIframes: antal } }
+      }));
+      return;
     } else if (postbackNycklar[action]) {
       anropaPostBack(postbackNycklar[action]);
     } else {
