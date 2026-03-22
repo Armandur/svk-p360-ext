@@ -845,8 +845,8 @@ async function skapaFrånMall(mall) {
     formData.set('__EVENTARGUMENT', 'finish');
 
     console.log('[p360] Skickar formulär via fetch. POST-URL:', formUrl,
-      '| klassificering i FormData:',
-      formData.get('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl'));
+      '| klassificering (hidden):', formData.get('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl'),
+      '| klassificering (display):', formData.get('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_DISPLAY'));
 
     const fetchSvar = await iWin.fetch(formUrl, {
       method: 'POST',
@@ -858,6 +858,16 @@ async function skapaFrånMall(mall) {
     const slutUrl   = fetchSvar.url;
     const svarText  = await fetchSvar.text();
     console.log('[p360] fetch response.url:', slutUrl, '| status:', fetchSvar.status);
+
+    // Diagnostik: hitta klassificeringsfältets värde i svarstexten och eventuella valideringsfel
+    const klassIdx = svarText.indexOf('ClassificationCode1ComboControl');
+    if (klassIdx >= 0) {
+      console.log('[p360] Klassificering i svartext (±300 tecken):', svarText.substring(Math.max(0, klassIdx - 100), klassIdx + 300));
+    }
+    const felIdx = svarText.indexOf('ms-formvalidation');
+    if (felIdx >= 0) {
+      console.log('[p360] Valideringsfel i svartext (±200 tecken):', svarText.substring(Math.max(0, felIdx - 50), felIdx + 200));
+    }
 
     // Extrahera ärendeURL från redirect-URL:en eller svarstextens HTML.
     // I icke-IsDlg-läge skapar servern ärendet och returnerar en sida vars HTML
