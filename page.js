@@ -806,13 +806,12 @@ async function skapaFrånMall(mall) {
 
     const formEl  = iDoc.getElementById('form1');
 
-    // Bygg POST-URL från iframe-fönstrets faktiska adress (iWin.location.href) – inte
-    // formEl.action, som saknar dialogmode=true och IsDlg=1 (ASP.NET sätter form.action
-    // utan dessa parametrar). Vi tar bort IsDlg=1 (som gör att servern returnerar
-    // formulär-HTML igen istället för 302-redirect) men behåller dialogmode=true
-    // (som styr server-side-bearbetning av bl.a. klassificering).
+    // Ta bort IsDlg=1 och dialogmode från POST-URL:en.
+    // Med IsDlg=1 returnerar servern dialog-HTML (ingen 302-redirect till ärendesidan).
+    // Med dialogmode=true skapar servern inte ärendet alls (returnerar formuläret igen).
     const postUrlObj = new URL(iWin.location.href);
     postUrlObj.searchParams.delete('IsDlg');
+    postUrlObj.searchParams.delete('dialogmode');
     const formUrl = postUrlObj.toString();
 
     const formData = new FormData(formEl);
