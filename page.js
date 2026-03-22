@@ -869,6 +869,10 @@ async function skapaFrånMall(mall) {
     // Vi lägger till commitPopup innan submit och navigerar därifrån.
     const topUrlFör = window.location.href;
 
+    // Resize krävs av ResizeDialogAuto() som anropas i startup-skript i UpdatePanel-svaret.
+    // Utan den kastas ett uncaught TypeError som avbryter startup-kedjan innan commitPopup nås.
+    iframe.Resize = () => { console.log('[p360] iframe.Resize (no-op)'); };
+
     iframe.commitPopup = (returnVal) => {
       console.log('[p360] commitPopup anropad:', returnVal);
       overlay.remove();
