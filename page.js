@@ -859,21 +859,23 @@ async function skapaFrånMall(mall) {
     const svarText  = await fetchSvar.text();
     console.log('[p360] fetch response.url:', slutUrl, '| status:', fetchSvar.status);
 
-    // Extrahera ärendeURL från redirect-URL:en.
-    // Om servern redirectat till ärendesidan finns recno i slutUrl.
-    // Om slutUrl = POST-URL skapades inget ärende (validering misslyckades) – sök inte i brödtexten
-    // eftersom formulär-HTML innehåller URL-mallar med subtype-numret (t.ex. recno=61000) som
-    // ger falska träffar.
+    // Extrahera ärendeURL från redirect-URL:en eller svarstextens HTML.
+    // I icke-IsDlg-läge skapar servern ärendet och returnerar en sida vars HTML
+    // innehåller ärendesidans URL med recno. response.url är oftast fortfarande
+    // formulär-URL (servern renderar svaret i samma view.aspx-skal).
+    // Viktigt: formulär-HTML innehåller URL-mallar med subtype-numret 61000 (5 siffror)
+    // som ger falska träffar – kräv ≥7 siffror i recno för att skilja ut riktiga ärendeID:n.
     let nyUrl = null;
     const postUrlNorm = formUrl.split('?')[0];
     const slutUrlNorm = slutUrl.split('?')[0];
     if (slutUrl.includes('/DMS/Case/Details/')) {
       nyUrl = slutUrl;
-    } else if (slutUrlNorm !== postUrlNorm) {
-      // Redirect skedde men inte till ärendesidan – sök i svarstexten
+    } else {
+      // Sök i svarstexten – recno är alltid ≥7 siffror (t.ex. 1355101), subtype 61000 är 5
       const patterns = [
-        /\/locator\/DMS\/Case\/Details\/[^\s"'<&]+recno=(\d{5,})/,
-        /commitPopup\s*\(\s*['"]?(\d{5,})['"]?\s*\)/,
+        /\/locator\/DMS\/Case\/Details\/[^\s"'<&]+recno=(\d{7,})/,
+        /commitPopup\s*\(\s*['"]?(\d{7,})['"]?\s*\)/,
+        /recno[=\s:"']+(\d{7,})/i,
       ];
       for (const re of patterns) {
         const m = svarText.match(re);
@@ -894,6 +896,7 @@ async function skapaFrånMall(mall) {
       window.location.href = renUrl;
     } else {
       const ingenRedirect = slutUrlNorm === postUrlNorm;
+
       console.log('[p360] Skapande misslyckades. ingenRedirect=', ingenRedirect,
         '| slutUrl:', slutUrl, '| svarText (1000 tecken):', svarText.substring(0, 1000));
       alert(ingenRedirect
