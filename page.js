@@ -862,9 +862,26 @@ async function skapaFrånMall(mall) {
 
     // 360° kräver att finish-anropet sker via __doPostBack → PageRequestManager (async XHR).
     // form.submit() kringgår ScriptManager och ger UnhandledError.aspx.
-    // När ärendet skapas kör 360° window.top.location = '<ny URL>' i XHR-svarskoden,
-    // vilket navigerar top-level-sidan. Vi pollar URL:en tills navigering sker (max 30 s).
+    //
+    // I IsDlg=1-läge (SharePoint-dialogmönster) kallar 360°:s svarskod
+    // window.frameElement.commitPopup(returnVal) i iframe-kontexten när ärendet
+    // sparas. Utan denna metod på vårt <iframe>-element sker ingen navigering.
+    // Vi lägger till commitPopup innan submit och navigerar därifrån.
     const topUrlFör = window.location.href;
+
+    iframe.commitPopup = (returnVal) => {
+      console.log('[p360] commitPopup anropad:', returnVal);
+      overlay.remove();
+      // returnVal kan vara en URL, ett recno-nummer eller null
+      const s = String(returnVal || '');
+      if (s.includes('/DMS/') || s.includes('recno=')) {
+        window.location.href = s;
+      } else if (/^\d{5,}$/.test(s)) {
+        window.location.href =
+          `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${s}`;
+      }
+    };
+    iframe.cancelPopup = () => { console.log('[p360] cancelPopup anropad.'); overlay.remove(); };
 
     const submitFn = () => {
       console.log('[p360] Anropar pb(finish) – via PageRequestManager.');
