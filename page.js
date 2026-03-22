@@ -871,6 +871,9 @@ async function skapaFrånMall(mall) {
     const formData = new FormData(formEl);
     formData.set('__EVENTTARGET',  'ctl00$PlaceHolderMain$MainView$WizardNavigationButton');
     formData.set('__EVENTARGUMENT', 'finish');
+    // UpdatePanel-async-flagga – krävs för att servern ska behandla anropet som
+    // en UpdatePanel XHR (samma kodväg som manuellt flöde) och inte som vanlig form POST.
+    formData.set('__ASYNCPOST', 'true');
 
     console.log('[p360] Skickar formulär via fetch. POST-URL:', formUrl,
       '| klassificering (hidden):', formData.get('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl'),
@@ -881,31 +884,22 @@ async function skapaFrånMall(mall) {
       body: formData,
       credentials: 'include',
       redirect: 'follow',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-MicrosoftAjax':  'Delta=true',
+      },
     });
 
     const slutUrl   = fetchSvar.url;
     const svarText  = await fetchSvar.text();
     console.log('[p360] fetch response.url:', slutUrl, '| status:', fetchSvar.status);
 
-    // Diagnostik: hitta klassificeringsfältets dolda INPUT-element i svarstexten
-    // Sök efter type="hidden" nära klassificerings-ID:t för att se vilket value servern satte
-    const hiddenKlassIdx = svarText.indexOf('ClassificationCode1ComboControl" value=');
-    if (hiddenKlassIdx >= 0) {
-      console.log('[p360] Klassificering hidden INPUT i svartext:', svarText.substring(hiddenKlassIdx, hiddenKlassIdx + 100));
-    } else {
-      // Fallback: visa ±400 tecken runt första förekomst
-      const klassIdx = svarText.indexOf('ClassificationCode1ComboControl');
-      if (klassIdx >= 0) {
-        console.log('[p360] Klassificering i svartext (±400 tecken):', svarText.substring(Math.max(0, klassIdx - 50), klassIdx + 400));
-      }
-    }
+    // Diagnostik – logga de första 500 tecknen av svarstexten för att se UpdatePanel-formatet
+    console.log('[p360] svarText (500 tecken):', svarText.substring(0, 500));
 
-    // Extrahera ärendeURL från redirect-URL:en eller svarstextens HTML.
-    // I icke-IsDlg-läge skapar servern ärendet och returnerar en sida vars HTML
-    // innehåller ärendesidans URL med recno. response.url är oftast fortfarande
-    // formulär-URL (servern renderar svaret i samma view.aspx-skal).
-    // Viktigt: formulär-HTML innehåller URL-mallar med subtype-numret 61000 (5 siffror)
-    // som ger falska träffar – kräv ≥7 siffror i recno för att skilja ut riktiga ärendeID:n.
+    // Extrahera ärendeURL. Med UpdatePanel-headers returnerar servern Delta-format:
+    //   0|pageRedirect||/locator/DMS/Case/Details/...|
+    // eller scripblock med commitPopup(recno) / redirect.
     let nyUrl = null;
     const postUrlNorm = formUrl.split('?')[0];
     const slutUrlNorm = slutUrl.split('?')[0];
@@ -914,7 +908,8 @@ async function skapaFrånMall(mall) {
     } else {
       // Sök i svarstexten – recno är alltid ≥7 siffror (t.ex. 1355101), subtype 61000 är 5
       const patterns = [
-        /\/locator\/DMS\/Case\/Details\/[^\s"'<&]+recno=(\d{7,})/,
+        /pageRedirect\|\|([^|]+recno=(\d{7,})[^|]*)\|/,       // UpdatePanel pageRedirect
+        /\/locator\/DMS\/Case\/Details\/[^\s"'<&|]+recno=(\d{7,})/,
         /commitPopup\s*\(\s*['"]?(\d{7,})['"]?\s*\)/,
         /recno[=\s:"']+(\d{7,})/i,
       ];
