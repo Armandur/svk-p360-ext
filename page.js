@@ -967,7 +967,26 @@ async function skapaFrånMall(mall) {
       console.warn('[p360] iWin.SI.UI.ModalDialog ej tillgänglig.');
     }
 
+    // XHR-interceptor: fånga råsvaret från finish-postback för att se vad servern returnerar
+    let fångaFinishSvar = false;
+    const origXHROpen = iWin.XMLHttpRequest.prototype.open;
+    iWin.XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+      if (fångaFinishSvar && String(url).includes('view.aspx')) {
+        this.addEventListener('load', function() {
+          console.log('[p360] XHR finish-svar (första 2000 tecken):', this.responseText.slice(0, 2000));
+          // Leta efter recno, redirectUrl, eller navigeringskod i svaret
+          const m = this.responseText.match(/recno[=:](\d+)/i)
+                 || this.responseText.match(/"recno"\s*:\s*"?(\d+)"?/i);
+          if (m) console.log('[p360] recno funnet i XHR-svar:', m[1]);
+          const redir = this.responseText.match(/redirectUrl['":\s]+([^|"<\s]{10,})/i);
+          if (redir) console.log('[p360] redirectUrl funnet:', redir[1]);
+        });
+      }
+      return origXHROpen.call(this, method, url, ...rest);
+    };
+
     const submitFn = () => {
+      fångaFinishSvar = true;
       const slutförBtn = iDoc.querySelector(
         'input[onclick*="WizardNavigationButton"][onclick*="finish"],' +
         'a[onclick*="WizardNavigationButton"][onclick*="finish"],' +
