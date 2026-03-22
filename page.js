@@ -913,20 +913,37 @@ async function skapaFrånMall(mall) {
       submitFn();
     }
 
-    // Polla top-level URL (max 30 s) – 360° navigerar window.top när ärendet sparas.
+    // Polla top-level URL och iframe-URL (max 30 s).
+    // 360° kan navigera antingen window.top eller enbart iframen (ScriptManager följer 302).
     let navigerad = false;
     const deadline = Date.now() + 30000;
     while (Date.now() < deadline) {
       await sleep(300);
+
+      // 1. Top-level navigering (window.top.location ändrades)
       if (window.location.href !== topUrlFör) {
         navigerad = true;
         break;
       }
+
+      // 2. Iframe navigerad till ärendesida (ScriptManager följde 302 i iframe-kontexten)
       try {
         const iHref = iframe.contentWindow?.location?.href || '';
+        console.log('[p360] iframe-URL poll:', iHref.slice(0, 120));
         if (iHref.includes('UnhandledError')) {
           overlay.remove();
           alert('360° rapporterade ett serverfel vid ärendeskapande. Kontrollera 360° manuellt.');
+          return;
+        }
+        if (iHref.includes('recno=') && !iHref.includes('cf7c6540')) {
+          // Iframe är nu på ärendesidan – navigera top-level dit (utan dialogmode)
+          const recno = new URLSearchParams(iHref.split('?')[1] || '').get('recno');
+          const målUrl = recno
+            ? `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${recno}`
+            : iHref;
+          console.log('[p360] Iframe navigerad till ärende, navigerar top-level:', målUrl);
+          overlay.remove();
+          window.location.href = målUrl;
           return;
         }
       } catch (e) { /* cross-origin – ignorera */ }
@@ -935,7 +952,7 @@ async function skapaFrånMall(mall) {
     overlay.remove();
 
     if (navigerad) {
-      console.log('[p360] Navigering detekterad – ärende skapat. URL:', window.location.href);
+      console.log('[p360] Top-level navigering detekterad – ärende skapat. URL:', window.location.href);
     } else {
       // Timeout – kolla valideringsfel i formuläret
       let valideringsfel = [];
