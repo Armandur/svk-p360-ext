@@ -775,9 +775,20 @@ async function skapaFrånMall(mall) {
         const vis   = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
         const dolt  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
         const lista = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_dropDownList');
-        if (vis)   vis.value   = mall.klassificering.display || '';
-        if (dolt)  dolt.value  = mall.klassificering.value;
-        if (lista) lista.value = mall.klassificering.value;
+        if (vis)  vis.value  = mall.klassificering.display || '';
+        if (dolt) dolt.value = mall.klassificering.value;
+        if (lista) {
+          // _dropDownList är ett namngivet SELECT som skickas med form.submit().
+          // Om HiddenButton-svaret inte populerade options (tom lista) måste vi
+          // lägga till alternativet manuellt – annars sätts .value tyst till ''.
+          if (!Array.from(lista.options).some(o => o.value === mall.klassificering.value)) {
+            const opt = iDoc.createElement('option');
+            opt.value = mall.klassificering.value;
+            opt.text  = mall.klassificering.display || mall.klassificering.value;
+            lista.appendChild(opt);
+          }
+          lista.value = mall.klassificering.value;
+        }
         console.log('[p360] sättKlassificering: vis=', vis?.value, 'dolt=', dolt?.value, 'lista=', lista?.value);
       };
 
@@ -937,8 +948,12 @@ async function skapaFrånMall(mall) {
     const loadResult = await loadPromise;
     console.log('[p360] iframe load result:', loadResult);
 
-    // Försök hitta ärendeURL i iframens nya sida
+    // Försök hitta ärendeURL i iframens nya sida.
+    // I dialogmode=true navigerar 360° window.top via JS i svars-HTML:en –
+    // iframen stannar på view.aspx och vi kan inte läsa recno ur href.
+    // Fallback: leta i HTML; om recno ej hittas, kontrollera valideringsfel.
     let nyUrl = null;
+    let valideringsfel = [];
     try {
       const nyHref = iframe.contentWindow?.location?.href || '';
       console.log('[p360] iframe efter submit – href:', nyHref);
@@ -946,7 +961,6 @@ async function skapaFrånMall(mall) {
       if (nyHref.includes('/DMS/Case/Details/')) {
         nyUrl = nyHref;
       } else {
-        // dialogmode=true: servern returnerar formulärsidan med JS som har recno
         const nyDoc = iframe.contentDocument;
         const html = nyDoc?.documentElement?.innerHTML || '';
         console.log('[p360] Söker recno i iframe-HTML (längd:', html.length, ')');
@@ -954,6 +968,8 @@ async function skapaFrånMall(mall) {
         const patterns = [
           /\/locator\/DMS\/Case\/Details\/[^\s"'<&|]+recno=(\d{7,})/,
           /commitPopup\s*\(\s*['"]?(\d{7,})['"]?\s*\)/,
+          // 360° dialog mode: window.top.location navigering
+          /(?:top|parent)\.location(?:\.href)?\s*=\s*['"]([^'"]+)['"]/,
           /recno[=\s:"']+(\d{7,})/i,
         ];
         for (const re of patterns) {
@@ -966,18 +982,31 @@ async function skapaFrånMall(mall) {
             break;
           }
         }
+
+        // Om recno inte hittades: kolla om det finns valideringsfel i formuläret.
+        // Inga valideringsfel = ärendet skapades, 360° navigerar window.top via eget JS.
+        if (!nyUrl && nyDoc) {
+          valideringsfel = Array.from(nyDoc.querySelectorAll('span.ms-formvalidation'))
+            .filter(el => !el.id?.includes('mandatory') && el.textContent.trim().length > 2)
+            .map(el => el.textContent.trim());
+          console.log('[p360] Valideringsfel i formulär:', valideringsfel);
+        }
       }
     } catch (e) {
       console.warn('[p360] Kunde inte läsa iframe efter submit:', e.message);
     }
 
-    console.log('[p360] Ärendenavigering. URL:', nyUrl);
+    console.log('[p360] Ärendenavigering. URL:', nyUrl, '| Valideringsfel:', valideringsfel);
     overlay.remove();
     if (nyUrl?.includes('/DMS/Case/Details/') || nyUrl?.includes('recno=')) {
       window.location.href = nyUrl;
+    } else if (valideringsfel.length > 0) {
+      // Formuläret har valideringsfel – ärendet skapades inte.
+      alert('Ärendet kunde inte skapas. Valideringsfel:\n' + valideringsfel.join('\n'));
     } else {
-      console.log('[p360] Skapande misslyckades eller recno kunde inte hittas.');
-      alert('Ärendet kunde inte skapas eller navigering misslyckades.\nSe konsolen (F12) för mer info.');
+      // Inget recno hittat men inga valideringsfel –
+      // 360° navigerar window.top via svars-JS. Ingen åtgärd behövs.
+      console.log('[p360] Recno ej hittat i HTML men inga valideringsfel – 360° hanterar navigering.');
     }
 
   } catch (err) {
