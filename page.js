@@ -863,97 +863,71 @@ async function skapaFrånMall(mall) {
 
     visaStatus('Skapar ärende…');
 
-    // Skicka formuläret via fetch() – ger oss response.url (slutlig URL efter alla redirects)
-    // och response-texten direkt, utan att behöva övervaka iframe-navigering eller XHR.
-    // fetch() följer 302-redirects automatiskt; response.url är den SISTA URL:en i kedjan.
-    // Om servern skapar ärendet och sedan redirectar till ärendesidan hittar vi recno i response.url.
-    // Om servern redirectar till formuläret igen letar vi i svarstexten.
+    // Skicka formuläret via __doPostBack → form.submit() – exakt samma mekanism som
+    // det manuella flödet. __doPostBack sätter __EVENTTARGET och __EVENTARGUMENT i DOM
+    // och anropar sedan form1.submit(). Browsern skickar som application/x-www-form-urlencoded
+    // (till skillnad från fetch + FormData som skickar multipart/form-data).
+    //
+    // Resultatet läses genom att lyssna på iframens load-event och sedan inspektera
+    // den nya sidans URL eller innehåll.
 
-    const formEl  = iDoc.getElementById('form1');
+    console.log('[p360] Skickar formulär via __doPostBack (nativ form.submit).',
+      '| klassificering (hidden):', iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl')?.value,
+      '| klassificering (display):', iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY')?.value);
 
-    // Diagnostik: logga formEl.action för att se om den har full context-data
-    // (med name,Primary,DMS.Case.New.61000 som verkar krävas för att klassificeringen sparas)
-    console.log('[p360] formEl.action:', formEl?.action);
-    console.log('[p360] iWin.location.href:', iWin.location.href);
-
-    // Hämta POST-URL från ScriptManagerns sparade originalaction (har full context-data)
-    // eller fall tillbaka på formEl.action / iWin.location.href.
-    const prm = iWin.Sys?.WebForms?.PageRequestManager?.getInstance();
-    const originalAction = prm?._postBackAction || prm?._originalAction || formEl?.action || iWin.location.href;
-    console.log('[p360] originalAction (ScriptManager):', originalAction);
-
-    // Ta bort IsDlg=1 och dialogmode från POST-URL:en.
-    // Använd originalAction OFÖRÄNDRAD (med IsDlg=1 och dialogmode=true).
-    // Manuellt flöde skickar finish med dessa parametrar och sparar klassificering korrekt.
-    // Svaret är en dialog-respons (ej 302-redirect) – sök efter commitPopup(recno) i texten.
-    const formUrl = new URL(originalAction, iWin.location.href).toString();
-
-    const formData = new FormData(formEl);
-    formData.set('__EVENTTARGET',  'ctl00$PlaceHolderMain$MainView$WizardNavigationButton');
-    formData.set('__EVENTARGUMENT', 'finish');
-    // INGEN __ASYNCPOST / X-MicrosoftAjax – skicka som vanlig form POST (samma kodväg som
-    // manuellt flöde). Servern svarar med 302-redirect till ärendesidan; fetch med
-    // redirect:'follow' följer kedjan och response.url blir den slutliga ärendeURL:en.
-
-    console.log('[p360] Skickar formulär via fetch (sync POST). POST-URL:', formUrl,
-      '| klassificering (hidden):', formData.get('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl'),
-      '| klassificering (display):', formData.get('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_DISPLAY'));
-
-    const fetchSvar = await iWin.fetch(formUrl, {
-      method: 'POST',
-      body: formData,
-      credentials: 'include',
-      redirect: 'follow',
+    // Vänta på att iframen laddar om efter submit (max 30 s)
+    const loadPromise = new Promise((resolve) => {
+      const timer = setTimeout(() => resolve('timeout'), 30000);
+      iframe.addEventListener('load', () => { clearTimeout(timer); resolve('loaded'); }, { once: true });
     });
 
-    const slutUrl   = fetchSvar.url;
-    const svarText  = await fetchSvar.text();
-    console.log('[p360] fetch response.url:', slutUrl, '| status:', fetchSvar.status);
+    // Trigga submit via __doPostBack – exakt samma som manuellt klick på "Slutför"
+    pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
 
-    // Diagnostik – logga de första 500 tecknen av svarstexten för att se UpdatePanel-formatet
-    console.log('[p360] svarText (500 tecken):', svarText.substring(0, 500));
+    const loadResult = await loadPromise;
+    console.log('[p360] iframe load result:', loadResult);
 
-    // Extrahera ärendeURL. Med UpdatePanel-headers returnerar servern Delta-format:
-    //   0|pageRedirect||/locator/DMS/Case/Details/...|
-    // eller scripblock med commitPopup(recno) / redirect.
+    // Försök hitta ärendeURL i iframens nya sida
     let nyUrl = null;
-    const postUrlNorm = formUrl.split('?')[0];
-    const slutUrlNorm = slutUrl.split('?')[0];
-    if (slutUrl.includes('/DMS/Case/Details/')) {
-      nyUrl = slutUrl;
-    } else {
-      // Sök i svarstexten – recno är alltid ≥7 siffror (t.ex. 1355101), subtype 61000 är 5
-      const patterns = [
-        /pageRedirect\|\|([^|]+recno=(\d{7,})[^|]*)\|/,       // UpdatePanel pageRedirect
-        /\/locator\/DMS\/Case\/Details\/[^\s"'<&|]+recno=(\d{7,})/,
-        /commitPopup\s*\(\s*['"]?(\d{7,})['"]?\s*\)/,
-        /recno[=\s:"']+(\d{7,})/i,
-      ];
-      for (const re of patterns) {
-        const m = svarText.match(re);
-        if (m) {
-          const hit = m[1] || m[0];
-          nyUrl = hit.startsWith('/') ? hit
-            : `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${hit}`;
-          break;
+    try {
+      const nyHref = iframe.contentWindow?.location?.href || '';
+      console.log('[p360] iframe efter submit – href:', nyHref);
+
+      if (nyHref.includes('/DMS/Case/Details/')) {
+        nyUrl = nyHref;
+      } else {
+        // dialogmode=true: servern returnerar formulärsidan med JS som har recno
+        const nyDoc = iframe.contentDocument;
+        const html = nyDoc?.documentElement?.innerHTML || '';
+        console.log('[p360] Söker recno i iframe-HTML (längd:', html.length, ')');
+
+        const patterns = [
+          /\/locator\/DMS\/Case\/Details\/[^\s"'<&|]+recno=(\d{7,})/,
+          /commitPopup\s*\(\s*['"]?(\d{7,})['"]?\s*\)/,
+          /recno[=\s:"']+(\d{7,})/i,
+        ];
+        for (const re of patterns) {
+          const m = html.match(re);
+          if (m) {
+            const hit = m[1] || m[0];
+            nyUrl = hit.startsWith('/')
+              ? hit
+              : `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${hit}`;
+            break;
+          }
         }
       }
+    } catch (e) {
+      console.warn('[p360] Kunde inte läsa iframe efter submit:', e.message);
     }
 
-    // Avkoda unicode-escapes (\u0026 → &) som kan finnas i URL:er från ScriptManager
-    const renUrl = nyUrl?.replace(/\\u([\da-fA-F]{4})/g, (_, h) => String.fromCharCode(parseInt(h, 16)));
-    console.log('[p360] Ärendenavigering. URL:', renUrl);
+    console.log('[p360] Ärendenavigering. URL:', nyUrl);
     overlay.remove();
-    if (renUrl?.includes('/DMS/Case/Details/')) {
-      window.location.href = renUrl;
+    if (nyUrl?.includes('/DMS/Case/Details/') || nyUrl?.includes('recno=')) {
+      window.location.href = nyUrl;
     } else {
-      const ingenRedirect = slutUrlNorm === postUrlNorm;
-
-      console.log('[p360] Skapande misslyckades. ingenRedirect=', ingenRedirect,
-        '| slutUrl:', slutUrl, '| svarText (1000 tecken):', svarText.substring(0, 1000));
-      alert(ingenRedirect
-        ? 'Ärendet skapades inte – servern returnerade valideringsfel.\nSe konsolen för mer info.'
-        : 'Ärendet skapades men navigering misslyckades.\nSe konsolen för detaljer.');
+      console.log('[p360] Skapande misslyckades eller recno kunde inte hittas.');
+      alert('Ärendet kunde inte skapas eller navigering misslyckades.\nSe konsolen (F12) för mer info.');
     }
 
   } catch (err) {
