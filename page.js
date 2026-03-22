@@ -331,9 +331,15 @@ async function växlaStatus() {
 
 // URL till nytt-ärende-formuläret i dialogläge. Laddas som iframe inom befintlig 360°-sida
 // för att säkerställa rätt sessionskontekst – direktnavigering via GET fungerar ej.
+// context-data måste innehålla alla tre parametrar som 360°:s menyknapp skickar:
+//   subtype,Primary,61000  – ärendetyp
+//   IsDlg,Primary,1        – dialog-flagga (context-data-versionen)
+//   name,Primary,DMS.Case.New.61000 – formulärnamn (krävs för att servern ska
+//                                      spara klassificering och övriga fält korrekt)
 const NY_ÄRENDE_URL =
   '/view.aspx?id=cf7c6540-7018-4c8c-9da8-783d6ce5d8cf' +
-  '&dialogmode=true&IsDlg=1&context-data=subtype,Primary,61000';
+  '&dialogmode=true&IsDlg=1' +
+  '&context-data=subtype%2cPrimary%2c61000%3bIsDlg%2cPrimary%2c1%3bname%2cPrimary%2cDMS.Case.New.61000%3b';
 
 /**
  * Väntar på att ett iframe dyker upp (i huvud-dokumentet) vars src eller
