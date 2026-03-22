@@ -788,11 +788,15 @@ async function skapaFrånMall(mall) {
         pb('ctl00$PlaceHolderMain$MainView$invalidatebutton_ClassificationCode1ComboControl', ''));
       console.log('[p360] invalidatebutton klar.');
 
-      // Steg 2: Sätt söktext i DISPLAY-fältet – servern söker med detta värde
+      // Steg 2: Sätt söktext i DISPLAY-fältet – servern söker med detta värde.
+      // Servern söker med prefix/kod (t.ex. "2.7"), inte hela displaytexten ("2.7 - Ge service").
+      // Extrahera koddelen (före " - ") som söktext; om inget " - " finns används hela strängen.
       const visInit = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
       if (visInit) {
-        visInit.value = mall.klassificering.display || '';
-        console.log('[p360] _DISPLAY satt till söktext:', visInit.value);
+        const displayText = mall.klassificering.display || '';
+        const sökText = displayText.includes(' - ') ? displayText.split(' - ')[0].trim() : displayText;
+        visInit.value = sökText;
+        console.log('[p360] _DISPLAY satt till söktext:', sökText, '(från display:', displayText, ')');
       }
 
       // Steg 3: HiddenButton – triggar sökning i klassificeringsdatabasen med _DISPLAY-texten
