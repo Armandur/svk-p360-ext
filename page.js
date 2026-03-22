@@ -773,57 +773,16 @@ async function skapaFrånMall(mall) {
       console.error('[p360] FEL: titelElNu är null – formuläret kan ha laddats om.');
     }
 
-    // Klassificering – OnClick-PostBack (bockknappen) krävs av servern för validering.
-    // Skicka PostBack och vänta tillräckligt länge (1 500 ms) på serverns svar.
-    // Logga vad servern returnerade – om fältet är tomt efter PostBack behöver vi
-    // kanske trigga en sökning (% som sökterm) innan bockknappen klickas.
+    // Klassificering – sätt fälten direkt utan postback.
+    // OnClick_PostBack är en sökoperation (visar resultatlista) och bekräftar INTE
+    // valet i ViewState. Servern accepterar klassificering direkt via POST-värdena.
     if (mall.klassificering?.value) {
       console.log('[p360] Sätter klassificering:', mall.klassificering.value, mall.klassificering.display);
       const vis  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
       const dolt = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
       if (vis)  vis.value  = mall.klassificering.display || '';
       if (dolt) dolt.value = mall.klassificering.value;
-
-      // Vänta på att ScriptManager är helt klar med OnClick-PostBack (endRequest-event).
-      // Vi får INTE anropa pb('finish') medan ScriptManager fortfarande processar OnClick –
-      // ScriptManager tillåter bara en aktiv async PostBack åt gången och ignorerar annars finish.
-      // Att lösa Promise:n från rå XHR load-event (före ScriptManagers egna load-hantering)
-      // orsakade exakt detta problem: finish skickades för tidigt → inget ärende skapades.
-      await new Promise(resolve => {
-        let resolved = false;
-        const done = () => { if (!resolved) { resolved = true; resolve(); } };
-
-        // Fånga XHR för att logga svaret (för felsökning av klassificering)
-        const origSend = iWin.XMLHttpRequest.prototype.send;
-        iWin.XMLHttpRequest.prototype.send = function(body) {
-          this.addEventListener('load', function() {
-            iWin.XMLHttpRequest.prototype.send = origSend;
-            try {
-              const resp = this.responseText || '';
-              console.log('[p360] OnClick XHR url:', this.responseURL, '| len:', resp.length);
-              console.log('[p360] OnClick XHR start:', resp.substring(0, 2000));
-              if (resp.length > 2000) console.log('[p360] OnClick XHR slut:', resp.substring(resp.length - 1000));
-            } catch {}
-            // Lös INTE Promise:n här – vänta på ScriptManagers endRequest istället.
-            // Annars fortsätter vi medan ScriptManager fortfarande processar svaret.
-          });
-          origSend.apply(this, arguments);
-        };
-
-        // Primär: ScriptManagers endRequest = PostBack fullt processad, ViewState uppdaterat
-        const prm = iWin.Sys?.WebForms?.PageRequestManager?.getInstance();
-        if (prm) {
-          const handler = () => { prm.remove_endRequest(handler); done(); };
-          prm.add_endRequest(handler);
-        }
-
-        pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_OnClick_PostBack', '');
-        setTimeout(done, 5000); // fallback om endRequest aldrig triggas
-      });
-
-      const doltEfter = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
-      console.log('[p360] Klassificering efter OnClick-PostBack. serverVärde=', doltEfter?.value,
-        '| display=', iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY')?.value);
+      console.log('[p360] Klassificering satt. dolt.value=', dolt?.value);
     }
 
     // Snapshot av kritiska fält direkt innan submit
@@ -843,13 +802,6 @@ async function skapaFrånMall(mall) {
     // fetch() följer 302-redirects automatiskt; response.url är den SISTA URL:en i kedjan.
     // Om servern skapar ärendet och sedan redirectar till ärendesidan hittar vi recno i response.url.
     // Om servern redirectar till formuläret igen letar vi i svarstexten.
-
-    // Sätt klassificering SYNKRONT precis innan FormData skapas – inga awaits emellan.
-    if (mall.klassificering?.value) {
-      const doltFinal = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
-      if (doltFinal) doltFinal.value = mall.klassificering.value;
-      console.log('[p360] Klassificering final (precis innan FormData):', doltFinal?.value);
-    }
 
     const formEl  = iDoc.getElementById('form1');
 
