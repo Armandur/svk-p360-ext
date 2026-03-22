@@ -763,12 +763,20 @@ async function skapaFrånMall(mall) {
         console.log('[p360] Skydda kontakter satt till:', checkbox.checked);
       }
 
-      // SelectOfficialTitleComboBox MÅSTE trigga PostBack för alla värden.
-      // Spionen visade att manuellt flöde triggar SelectOfficialTitle-PostBack mellan
-      // de två finish-försöken – utan den PostBacken sparas inte klassificeringen korrekt.
-      console.log('[p360] Sätter offentligTitelVal:', mall.offentligTitelVal || '1');
-      await sättSel('PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl', mall.offentligTitelVal || '1');
-      if (mall.offentligTitelVal === '3') {
+      // SelectOfficialTitle triggar ett UpdatePanel-anrop vars PostBack schemaläggs
+      // via setTimeout i Selectize-onchange. Om vi använder sättSel() returnerar
+      // awaitern INNAN PostBacken faktiskt avfyrats, vilket leder till race condition
+      // med klassificerings-re-registreringen nedan. Lösning: sätt värdet tyst och
+      // trigga sedan PostBacken explicit via väntalPåUpdatePanel så att den guaranteed
+      // är klar innan vi fortsätter.
+      const offTitelVal = mall.offentligTitelVal || '1';
+      console.log('[p360] Sätter offentligTitelVal (tyst):', offTitelVal);
+      await sättSelTyst('PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl', offTitelVal);
+      console.log('[p360] Triggar SelectOfficialTitle-PostBack och väntar…');
+      await väntalPåUpdatePanel(() =>
+        pb('ctl00$PlaceHolderMain$MainView$SelectOfficialTitleComboBoxControl', ''));
+      console.log('[p360] SelectOfficialTitle-PostBack klar.');
+      if (offTitelVal === '3') {
         console.log('[p360] Väntar på offentlig titel-fält…');
         const offFält = await waitForElement(iDoc, '#PlaceHolderMain_MainView_PublicTitleTextBoxControl', 8000);
         if (offFält) {
@@ -784,19 +792,21 @@ async function skapaFrånMall(mall) {
       console.log('[p360] AccessCode satt till 0.');
     }
 
-    // Re-registrera klassificering i ViewState efter AccessCode-PostBacken.
-    // AccessCode UpdatePanel-svaret ersätter delar av DOM:en och skriver över
-    // den gamla ViewState – klassificeringen måste skickas till servern igen
-    // via en ny PostBack (PaperDocAllowed) för att servern ska lagra den.
+    // Re-registrera klassificering i ViewState efter AccessCode- och
+    // SelectOfficialTitle-PostBackarna. Dessa PostBacks returnerar ny ViewState –
+    // klassificeringen måste skickas till servern igen via en ny PostBack
+    // (PaperDocAllowed) för att servern ska lagra den inför finish.
+    // SelectOfficialTitle-PostBacken är nu garanterat klar INNAN vi sätter
+    // fältvärdena här, så ingen race condition uppstår.
     if (mall.klassificering?.value) {
       const visR  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
       const doltR = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
       if (visR)  visR.value  = mall.klassificering.display || '';
       if (doltR) doltR.value = mall.klassificering.value;
-      console.log('[p360] Klassificering re-satt efter AccessCode. doltR=', doltR?.value);
+      console.log('[p360] Klassificering re-satt efter AccessCode+SelectOfficialTitle. doltR=', doltR?.value);
 
-      // Trigga en PostBack (PaperDocAllowed) så att servern tar emot hidden=<recno>
-      // och lagrar klassificeringen i det uppdaterade ViewState.
+      // Trigga PaperDocAllowed-PostBack som bär med sig hidden=<recno> till servern
+      // och lagrar klassificeringen i ViewState inför submit.
       await väntalPåUpdatePanel(() =>
         pb('ctl00$PlaceHolderMain$MainView$PaperDocAllowedComboControl', ''));
 
