@@ -872,6 +872,24 @@ async function skapaFrånMall(mall) {
     // Resize krävs av ResizeDialogAuto() som anropas i startup-skript i UpdatePanel-svaret.
     // Utan den kastas ett uncaught TypeError som avbryter startup-kedjan innan commitPopup nås.
     iframe.Resize = () => { console.log('[p360] iframe.Resize (no-op)'); };
+    // IsLoading sätts explicit till false – 360°:s close-kod kontrollerar detta och
+    // fortsätter med navigering enbart om dialogen "inte längre laddar".
+    iframe.IsLoading = false;
+
+    // Patcha alla funktioner på iWin.SI.UI.ModalDialog för att fånga vilket
+    // anrop som sker efter IsLoading-kontrollen (CloseCallback, CloseDialog el. liknande).
+    if (iWin.SI?.UI?.ModalDialog) {
+      for (const key of Object.getOwnPropertyNames(iWin.SI.UI.ModalDialog)) {
+        if (typeof iWin.SI.UI.ModalDialog[key] === 'function') {
+          const orig = iWin.SI.UI.ModalDialog[key];
+          iWin.SI.UI.ModalDialog[key] = function(...args) {
+            console.log('[p360] iWin.SI.UI.ModalDialog.' + key + '(' +
+              args.map(a => String(a).slice(0, 80)).join(', ') + ')');
+            return orig.apply(this, args);
+          };
+        }
+      }
+    }
 
     iframe.commitPopup = (returnVal) => {
       console.log('[p360] commitPopup anropad:', returnVal);
