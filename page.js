@@ -772,11 +772,13 @@ async function skapaFrånMall(mall) {
         mall.klassificering.value, mall.klassificering.display);
 
       const sättKlassificering = () => {
-        const vis  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
-        const dolt = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
-        if (vis)  vis.value  = mall.klassificering.display || '';
-        if (dolt) dolt.value = mall.klassificering.value;
-        console.log('[p360] sättKlassificering: vis=', vis?.value, 'dolt=', dolt?.value);
+        const vis   = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
+        const dolt  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
+        const lista = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_dropDownList');
+        if (vis)   vis.value   = mall.klassificering.display || '';
+        if (dolt)  dolt.value  = mall.klassificering.value;
+        if (lista) lista.value = mall.klassificering.value;
+        console.log('[p360] sättKlassificering: vis=', vis?.value, 'dolt=', dolt?.value, 'lista=', lista?.value);
       };
 
       // Flöde bekräftat via spionlogg (manuellt test 2026-03-22):
