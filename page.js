@@ -890,11 +890,11 @@ async function skapaFrånMall(mall) {
     const formData = new FormData(formEl);
     formData.set('__EVENTTARGET',  'ctl00$PlaceHolderMain$MainView$WizardNavigationButton');
     formData.set('__EVENTARGUMENT', 'finish');
-    // UpdatePanel-async-flagga – krävs för att servern ska behandla anropet som
-    // en UpdatePanel XHR (samma kodväg som manuellt flöde) och inte som vanlig form POST.
-    formData.set('__ASYNCPOST', 'true');
+    // INGEN __ASYNCPOST / X-MicrosoftAjax – skicka som vanlig form POST (samma kodväg som
+    // manuellt flöde). Servern svarar med 302-redirect till ärendesidan; fetch med
+    // redirect:'follow' följer kedjan och response.url blir den slutliga ärendeURL:en.
 
-    console.log('[p360] Skickar formulär via fetch. POST-URL:', formUrl,
+    console.log('[p360] Skickar formulär via fetch (sync POST). POST-URL:', formUrl,
       '| klassificering (hidden):', formData.get('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl'),
       '| klassificering (display):', formData.get('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_DISPLAY'));
 
@@ -903,10 +903,6 @@ async function skapaFrånMall(mall) {
       body: formData,
       credentials: 'include',
       redirect: 'follow',
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest',
-        'X-MicrosoftAjax':  'Delta=true',
-      },
     });
 
     const slutUrl   = fetchSvar.url;
