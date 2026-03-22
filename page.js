@@ -1047,7 +1047,7 @@ function startaÄrendespion() {
       iWin.__doPostBack.__spion = true;
     }
 
-    // Patcha XHR för att fånga UpdatePanel-anrop (klassificering m.m.)
+    // Patcha XHR – logga request + response för varje UpdatePanel-anrop
     if (!iWin.XMLHttpRequest.prototype.__spion) {
       const origOpen = iWin.XMLHttpRequest.prototype.open;
       const origSend = iWin.XMLHttpRequest.prototype.send;
@@ -1058,17 +1058,29 @@ function startaÄrendespion() {
       iWin.XMLHttpRequest.prototype.send = function (body) {
         if (body) {
           try {
-            const params = new URLSearchParams(body);
-            const target = params.get('__EVENTTARGET') || '';
-            const arg    = params.get('__EVENTARGUMENT') || '';
-            const klass  = params.get('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl') || '';
-            const klassD = params.get('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_DISPLAY') || '';
-            console.log(`[SPION iframe${idx}] XHR POST ${this.__spionUrl}`);
-            console.log(`  __EVENTTARGET=${target} | __EVENTARGUMENT=${arg}`);
-            if (klass || klassD) {
-              console.log(`  klassificering hidden=${klass} | display=${klassD}`);
+            const params  = new URLSearchParams(body);
+            const target  = params.get('__EVENTTARGET') || '';
+            const arg     = params.get('__EVENTARGUMENT') || '';
+            const klass   = params.get('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl') || '';
+            const klassD  = params.get('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_DISPLAY') || '';
+            const vs      = params.get('__VIEWSTATE') || '';
+            const offentl = params.get('ctl00$PlaceHolderMain$MainView$SelectOfficialTitleComboBoxControl') || '';
+
+            console.log(`[SPION iframe${idx}] → XHR target=${target} | arg=${arg} | VS-storlek=${vs.length}`);
+            console.log(`  klassificering hidden=${klass} | display=${klassD}`);
+            if (offentl) console.log(`  SelectOfficialTitle=${offentl}`);
+
+            // Logga svar för finish och classification-relaterade anrop
+            const intressant = target.includes('WizardNavigation') ||
+                                target.includes('Classification') ||
+                                target.includes('SelectOfficialTitle');
+            if (intressant) {
+              this.addEventListener('load', () => {
+                const svar = this.responseText || '';
+                console.log(`[SPION iframe${idx}] ← SVAR (${svar.length} bytes, 600 tecken): ${svar.substring(0, 600)}`);
+              });
             }
-          } catch { /* ignorera parsningsfel */ }
+          } catch { /* ignorera */ }
         }
         return origSend.apply(this, arguments);
       };
@@ -1082,9 +1094,10 @@ function startaÄrendespion() {
         const fd = new FormData(formEl);
         console.log(`[SPION iframe${idx}] form1.submit`);
         const intressanta = [
+          '__EVENTTARGET', '__EVENTARGUMENT',
           'ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl',
           'ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_DISPLAY',
-          '__EVENTTARGET', '__EVENTARGUMENT',
+          'ctl00$PlaceHolderMain$MainView$SelectOfficialTitleComboBoxControl',
         ];
         for (const k of intressanta) {
           console.log(`  ${k} = ${fd.get(k)}`);
