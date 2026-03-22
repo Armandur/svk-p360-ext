@@ -807,10 +807,21 @@ async function skapaFrånMall(mall) {
 
     const formEl  = iDoc.getElementById('form1');
 
+    // Diagnostik: logga formEl.action för att se om den har full context-data
+    // (med name,Primary,DMS.Case.New.61000 som verkar krävas för att klassificeringen sparas)
+    console.log('[p360] formEl.action:', formEl?.action);
+    console.log('[p360] iWin.location.href:', iWin.location.href);
+
+    // Hämta POST-URL från ScriptManagerns sparade originalaction (har full context-data)
+    // eller fall tillbaka på formEl.action / iWin.location.href.
+    const prm = iWin.Sys?.WebForms?.PageRequestManager?.getInstance();
+    const originalAction = prm?._postBackAction || prm?._originalAction || formEl?.action || iWin.location.href;
+    console.log('[p360] originalAction (ScriptManager):', originalAction);
+
     // Ta bort IsDlg=1 och dialogmode från POST-URL:en.
     // Med IsDlg=1 returnerar servern dialog-HTML (ingen 302-redirect till ärendesidan).
     // Med dialogmode=true skapar servern inte ärendet alls (returnerar formuläret igen).
-    const postUrlObj = new URL(iWin.location.href);
+    const postUrlObj = new URL(originalAction, iWin.location.href);
     postUrlObj.searchParams.delete('IsDlg');
     postUrlObj.searchParams.delete('dialogmode');
     const formUrl = postUrlObj.toString();
