@@ -830,8 +830,6 @@ async function skapaFrånMall(mall) {
 
       // Steg 4: sätt fältvärden (hidden=recno + display=text)
       sättKlassificering();
-    } else if (mall.debugPauseKlassificering) {
-      console.log('[p360] DEBUG PAUSE: Klassificeringsautomatisering pausad. Spy aktiv.');
     }
 
     if (mall.externaKontakter?.length > 0) {
@@ -896,15 +894,13 @@ async function skapaFrånMall(mall) {
     });
 
     if (mall.debugPauseKlassificering) {
-      // Pausläge: spy är aktiv. Användaren sätter klassificering manuellt.
-      // Vi lägger till en "Slutför"-knapp i overlayens övre del som sedan triggar
-      // form.submit() precis som det automatiserade flödet – detta säkerställer att
-      // iframe.load-eventet triggas och navigeringen fungerar korrekt.
-      console.log('[p360] DEBUG PAUSE: Väntar på manuell klassificering. Spy aktiv.');
-      visaStatus('Spy aktiv – sätt klassificering manuellt i formuläret, klicka sedan Slutför nedan.');
+      // Pausläge: alla fält är ifyllda automatiskt. Användaren kan granska formuläret
+      // och klicka "Skicka" när hen är nöjd. Spy-logg i DevTools fångar hela flödet.
+      console.log('[p360] DEBUG PAUSE: Alla fält ifyllda. Väntar på manuell bekräftelse.');
+      visaStatus('Granska fälten i formuläret – klicka Skicka nedan när du är redo.');
 
       const slutförKnapp = document.createElement('button');
-      slutförKnapp.textContent = 'Slutför (efter manuell klassificering)';
+      slutförKnapp.textContent = 'Skicka (skapa ärende)';
       slutförKnapp.style.cssText =
         'margin:8px 0 4px;padding:7px 18px;background:#1a5276;color:#fff;' +
         'border:none;border-radius:4px;cursor:pointer;font-size:13px;font-family:sans-serif;';
