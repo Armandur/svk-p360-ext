@@ -946,7 +946,7 @@ async function skapaFrånMall(mall) {
           window.location.href = målUrl;
           return;
         }
-      } catch (e) { /* cross-origin – ignorera */ }
+      } catch (e) { console.log('[p360] iframe-URL poll fel:', e.message); }
     }
 
     overlay.remove();
