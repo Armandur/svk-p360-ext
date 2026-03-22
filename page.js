@@ -872,9 +872,9 @@ async function skapaFrånMall(mall) {
     // Resize krävs av ResizeDialogAuto() som anropas i startup-skript i UpdatePanel-svaret.
     // Utan den kastas ett uncaught TypeError som avbryter startup-kedjan innan commitPopup nås.
     iframe.Resize = () => { console.log('[p360] iframe.Resize (no-op)'); };
-    // IsLoading sätts explicit till false – 360°:s close-kod kontrollerar detta och
-    // fortsätter med navigering enbart om dialogen "inte längre laddar".
-    iframe.IsLoading = false;
+    // IsLoading = true signalerar att dialogen aktivt bearbetar en form-submit.
+    // 360°:s close-kod fortsätter med commitPopup/navigering ENBART om IsLoading är truthy.
+    iframe.IsLoading = true;
 
     // Patcha alla funktioner på iWin.SI.UI.ModalDialog för att fånga vilket
     // anrop som sker efter IsLoading-kontrollen (CloseCallback, CloseDialog el. liknande).
