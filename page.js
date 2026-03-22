@@ -700,6 +700,55 @@ async function skapaFrånMall(mall) {
       }
     });
 
+    // Klassificering sätts FÖRE skyddskods-blocket – HiddenButton-PostBacken återställer
+    // annars paragraf-fältet (verifierat 2026-03-22). AccessCode-UpdatePanel återställer
+    // INTE klassificeringen (verifierat i CLAUDE.md), så denna ordning är säker.
+    if (mall.klassificering?.value) {
+      console.log('[p360] Sätter klassificering (före AccessCode):',
+        mall.klassificering.value, mall.klassificering.display);
+
+      const sättKlassificering = () => {
+        const vis   = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
+        const dolt  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
+        const lista = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_dropDownList');
+        if (vis)  vis.value  = mall.klassificering.display || '';
+        if (dolt) dolt.value = mall.klassificering.value;
+        if (lista) {
+          if (!Array.from(lista.options).some(o => o.value === mall.klassificering.value)) {
+            const opt = iDoc.createElement('option');
+            opt.value = mall.klassificering.value;
+            opt.text  = mall.klassificering.display || mall.klassificering.value;
+            lista.appendChild(opt);
+          }
+          lista.value = mall.klassificering.value;
+        }
+        console.log('[p360] sättKlassificering: vis=', vis?.value, 'dolt=', dolt?.value, 'lista=', lista?.value);
+      };
+
+      const visInit = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
+      if (visInit) {
+        const displayText = mall.klassificering.display || '';
+        const sökText = displayText.split(' ')[0].trim() || displayText;
+        visInit.value = sökText;
+        console.log('[p360] _DISPLAY satt till söktext:', sökText, '(från display:', displayText, ')');
+      }
+
+      await väntalPåUpdatePanel(() =>
+        pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControlHiddenButton', ''));
+      console.log('[p360] HiddenButton klar.');
+
+      const dropDownEl = iDoc.getElementById(
+        'PlaceHolderMain_MainView_ClassificationCode1ComboControl_dropDownList');
+      const nativeOpts = dropDownEl
+        ? Array.from(dropDownEl.options).map(o => `${o.value}=${o.text.trim()}`)
+        : [];
+      console.log('[p360] HiddenButton svar – _dropDownList options (native):', nativeOpts);
+      console.log('[p360] Klassificering hidden-fält FÖRE sättKlassificering:',
+        iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl')?.value);
+
+      sättKlassificering();
+    }
+
     if (mall.skyddskod && mall.skyddskod !== '0') {
       console.log('[p360] Sätter skyddskod:', mall.skyddskod);
       // Sätt skyddskod och vänta på UpdatePanel-refresh (laddar paragraf-fälten).
@@ -755,83 +804,6 @@ async function skapaFrånMall(mall) {
       console.log('[p360] AccessCode satt till 0.');
     }
 
-    // Klassificering sätts SIST – efter AccessCode- och SelectOfficialTitle-PostBackarna.
-    // Dessa PostBacks skriver ny ViewState; om klassificering sätts INNAN dem rensas
-    // värdet ur ViewState. Genom att göra hela typeahead-flödet EFTER alla andra
-    // UpdatePanel-anrop säkerställs att ingen efterföljande PostBack kan störa.
-    //
-    // Flöde (speglar manuellt flöde):
-    //   1. HiddenButton – aktiverar typeahead-kontrollen
-    //   2. Sätt fältvärden (display + hidden)
-    //   3. dropDownList_PostBack – registrerar att ett val gjorts i serverViewState
-    //   4. Re-sätt fältvärden (UpdatePanel kan ha bytt DOM-noder)
-    //   5. PaperDocAllowed-PostBack – bär hidden=<recno> till servern som carrier
-    //   6. Re-sätt fältvärden en sista gång inför submit
-    if (mall.klassificering?.value) {
-      console.log('[p360] Sätter klassificering (efter AccessCode+SelectOfficialTitle):',
-        mall.klassificering.value, mall.klassificering.display);
-
-      const sättKlassificering = () => {
-        const vis   = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
-        const dolt  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
-        const lista = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_dropDownList');
-        if (vis)  vis.value  = mall.klassificering.display || '';
-        if (dolt) dolt.value = mall.klassificering.value;
-        if (lista) {
-          // _dropDownList är ett namngivet SELECT som skickas med form.submit().
-          // Om HiddenButton-svaret inte populerade options (tom lista) måste vi
-          // lägga till alternativet manuellt – annars sätts .value tyst till ''.
-          if (!Array.from(lista.options).some(o => o.value === mall.klassificering.value)) {
-            const opt = iDoc.createElement('option');
-            opt.value = mall.klassificering.value;
-            opt.text  = mall.klassificering.display || mall.klassificering.value;
-            lista.appendChild(opt);
-          }
-          lista.value = mall.klassificering.value;
-        }
-        console.log('[p360] sättKlassificering: vis=', vis?.value, 'dolt=', dolt?.value, 'lista=', lista?.value);
-      };
-
-      // Flöde bekräftat via spionlogg (manuellt test 2026-03-22):
-      //   HiddenButton (med _DISPLAY som söktext) → välj i Selectize (klientside) → finish
-      // Varken invalidatebutton eller dropDownList_PostBack används i det manuella flödet.
-
-      // Steg 1: Sätt söktext i DISPLAY-fältet – servern söker med detta värde.
-      // Servern söker med prefix/kod (t.ex. "2.7"), inte hela displaytexten ("2.7 Ge service").
-      // Extrahera koddelen (före " - " eller " ") som söktext.
-      const visInit = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
-      if (visInit) {
-        const displayText = mall.klassificering.display || '';
-        // Koden är allt fram till första mellanslag (t.ex. "2.7" ur "2.7 Ge service")
-        const sökText = displayText.split(' ')[0].trim() || displayText;
-        visInit.value = sökText;
-        console.log('[p360] _DISPLAY satt till söktext:', sökText, '(från display:', displayText, ')');
-      }
-
-      // Steg 2: HiddenButton – triggar sökning i klassificeringsdatabasen med _DISPLAY-texten
-      await väntalPåUpdatePanel(() =>
-        pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControlHiddenButton', ''));
-      console.log('[p360] HiddenButton klar.');
-
-      // Logga vad servern faktiskt returnerade för klassificeringskontrollen
-      const dropDownEl = iDoc.getElementById(
-        'PlaceHolderMain_MainView_ClassificationCode1ComboControl_dropDownList');
-      const nativeOpts = dropDownEl
-        ? Array.from(dropDownEl.options).map(o => `${o.value}=${o.text.trim()}`)
-        : [];
-      const selectizeOpts = Array.from(
-        iDoc.querySelectorAll('.selectize-dropdown-content .option[data-value]')
-      ).map(el => `${el.dataset.value}=${el.textContent.trim()}`);
-      const doltFörre = iDoc.getElementById(
-        'PlaceHolderMain_MainView_ClassificationCode1ComboControl')?.value;
-      console.log('[p360] HiddenButton svar – _dropDownList options (native):', nativeOpts);
-      console.log('[p360] HiddenButton svar – Selectize dropdown options:', selectizeOpts);
-      console.log('[p360] Klassificering hidden-fält FÖRE sättKlassificering:', doltFörre);
-
-      // Steg 4: sätt fältvärden (hidden=recno + display=text)
-      sättKlassificering();
-    }
-
     if (mall.externaKontakter?.length > 0) {
       console.log('[p360] Lägger till', mall.externaKontakter.length, 'externa kontakter.');
       pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'ContactsStep');
@@ -883,6 +855,7 @@ async function skapaFrånMall(mall) {
       diarieenhet:    iDoc.getElementById('PlaceHolderMain_MainView_JournalUnitComboControl')?.value,
       klassificering: iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl')?.value,
       accessCode:     iDoc.getElementById('PlaceHolderMain_MainView_AccessCodeComboControl')?.value,
+      paragraf:       iDoc.getElementById('PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl')?.value,
       sparatPaPapper: iDoc.getElementById('PlaceHolderMain_MainView_PaperDocAllowedComboControl')?.value,
       status:         iDoc.getElementById('PlaceHolderMain_MainView_StatusCaseComboControl')?.value,
     });
