@@ -859,14 +859,17 @@ async function skapaFrånMall(mall) {
     const svarText  = await fetchSvar.text();
     console.log('[p360] fetch response.url:', slutUrl, '| status:', fetchSvar.status);
 
-    // Diagnostik: hitta klassificeringsfältets värde i svarstexten och eventuella valideringsfel
-    const klassIdx = svarText.indexOf('ClassificationCode1ComboControl');
-    if (klassIdx >= 0) {
-      console.log('[p360] Klassificering i svartext (±300 tecken):', svarText.substring(Math.max(0, klassIdx - 100), klassIdx + 300));
-    }
-    const felIdx = svarText.indexOf('ms-formvalidation');
-    if (felIdx >= 0) {
-      console.log('[p360] Valideringsfel i svartext (±200 tecken):', svarText.substring(Math.max(0, felIdx - 50), felIdx + 200));
+    // Diagnostik: hitta klassificeringsfältets dolda INPUT-element i svarstexten
+    // Sök efter type="hidden" nära klassificerings-ID:t för att se vilket value servern satte
+    const hiddenKlassIdx = svarText.indexOf('ClassificationCode1ComboControl" value=');
+    if (hiddenKlassIdx >= 0) {
+      console.log('[p360] Klassificering hidden INPUT i svartext:', svarText.substring(hiddenKlassIdx, hiddenKlassIdx + 100));
+    } else {
+      // Fallback: visa ±400 tecken runt första förekomst
+      const klassIdx = svarText.indexOf('ClassificationCode1ComboControl');
+      if (klassIdx >= 0) {
+        console.log('[p360] Klassificering i svartext (±400 tecken):', svarText.substring(Math.max(0, klassIdx - 50), klassIdx + 400));
+      }
     }
 
     // Extrahera ärendeURL från redirect-URL:en eller svarstextens HTML.
