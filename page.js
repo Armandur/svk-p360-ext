@@ -767,7 +767,7 @@ async function skapaFrånMall(mall) {
     //   4. Re-sätt fältvärden (UpdatePanel kan ha bytt DOM-noder)
     //   5. PaperDocAllowed-PostBack – bär hidden=<recno> till servern som carrier
     //   6. Re-sätt fältvärden en sista gång inför submit
-    if (mall.klassificering?.value && !mall.debugPauseKlassificering) {
+    if (mall.klassificering?.value) {
       console.log('[p360] Sätter klassificering (efter AccessCode+SelectOfficialTitle):',
         mall.klassificering.value, mall.klassificering.display);
 
