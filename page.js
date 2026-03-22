@@ -761,15 +761,11 @@ async function skapaFrånMall(mall) {
         console.log('[p360] Skydda kontakter satt till:', checkbox.checked);
       }
 
-      // SelectOfficialTitleComboBox har ett PostBack-onchange som laddar offentligTitel-fältet.
-      // Sätt värdet tyst om val=1 eller 2 (inget UpdatePanel-svar behövs).
-      // Sätt med PostBack om val=3 (offentlig titel-fältet laddas via UpdatePanel).
+      // SelectOfficialTitleComboBox MÅSTE trigga PostBack för alla värden.
+      // Spionen visade att manuellt flöde triggar SelectOfficialTitle-PostBack mellan
+      // de två finish-försöken – utan den PostBacken sparas inte klassificeringen korrekt.
       console.log('[p360] Sätter offentligTitelVal:', mall.offentligTitelVal || '1');
-      if ((mall.offentligTitelVal || '1') === '3') {
-        await sättSel('PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl', '3');
-      } else {
-        await sättSelTyst('PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl', mall.offentligTitelVal || '1');
-      }
+      await sättSel('PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl', mall.offentligTitelVal || '1');
       if (mall.offentligTitelVal === '3') {
         console.log('[p360] Väntar på offentlig titel-fält…');
         const offFält = await waitForElement(iDoc, '#PlaceHolderMain_MainView_PublicTitleTextBoxControl', 8000);
