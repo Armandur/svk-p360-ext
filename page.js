@@ -917,10 +917,33 @@ async function skapaFrånMall(mall) {
     if (iWin.SI?.UI?.ModalDialog) {
       const iMD = iWin.SI.UI.ModalDialog;
       const origGetChildDialog = iMD.get_childDialog?.bind(iMD);
+
+      // Proxy-omslag runt iframe – loggar alla property-accesses och metodanrop
+      // så vi ser exakt vad 360°:s dialog-close-kod anropar på dialog-objektet.
+      const dialogProxy = new iWin.Proxy(iframe, {
+        get(target, prop) {
+          const val = target[prop];
+          if (typeof val === 'function') {
+            return (...args) => {
+              console.log('[p360] dialog.' + String(prop) + '(' +
+                args.map(a => String(a).slice(0, 80)).join(', ') + ')');
+              return val.apply(target, args);
+            };
+          }
+          console.log('[p360] dialog.' + String(prop) + ' GET →', String(val).slice(0, 80));
+          return val;
+        },
+        set(target, prop, value) {
+          console.log('[p360] dialog.' + String(prop) + ' SET =', String(value).slice(0, 80));
+          target[prop] = value;
+          return true;
+        },
+      });
+
       iMD.get_childDialog = function() {
         const existing = origGetChildDialog?.();
-        console.log('[p360] get_childDialog() → befintlig:', existing, '→ returnerar iframe');
-        return existing ?? iframe;
+        console.log('[p360] get_childDialog() → befintlig:', existing, '→ returnerar proxy');
+        return existing ?? dialogProxy;
       };
     } else {
       console.warn('[p360] iWin.SI.UI.ModalDialog ej tillgänglig.');
