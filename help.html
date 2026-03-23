@@ -90,7 +90,7 @@
   <h2>Snabbkommandon</h2>
   <p>
     Snabbkommandona fungerar direkt på en ärendesida utan att öppna tilläggets popup.
-    De kan anpassas via <a href="chrome://extensions/shortcuts" id="lank-shortcuts">chrome://extensions/shortcuts</a> i Chrome.
+    De kan anpassas via <a href="#" id="lank-shortcuts">Tillägg &rsaquo; Kortkommandon</a> i webbläsarens tilläggsinställningar.
   </p>
   <table>
     <thead>
@@ -222,10 +222,13 @@
 
   <div class="footer">360° Hjälptillägg &mdash; Svenska kyrkan</div>
   <script>
-    // chrome://-länkar kan inte navigeras direkt – öppna via chrome.tabs.create
+    // chrome://-/edge://-länkar kan inte navigeras direkt – öppna via chrome.tabs.create
     document.getElementById('lank-shortcuts').addEventListener('click', e => {
       e.preventDefault();
-      chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+      const url = navigator.userAgent.includes('Edg/')
+        ? 'edge://extensions/shortcuts'
+        : 'chrome://extensions/shortcuts';
+      chrome.tabs.create({ url });
     });
   </script>
 </body>
