@@ -90,7 +90,7 @@
   <h2>Snabbkommandon</h2>
   <p>
     Snabbkommandona fungerar direkt på en ärendesida utan att öppna tilläggets popup.
-    De kan anpassas via <strong>chrome://extensions/shortcuts</strong> i Chrome.
+    De kan anpassas via <a href="chrome://extensions/shortcuts" id="lank-shortcuts">chrome://extensions/shortcuts</a> i Chrome.
   </p>
   <table>
     <thead>
@@ -106,6 +106,21 @@
         <td>Växla status</td>
         <td><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd></td>
         <td>Växlar ärendets status mellan <em>Öppet</em> och <em>Avslutat</em></td>
+      </tr>
+      <tr>
+        <td>Redigera egenskaper</td>
+        <td><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd></td>
+        <td>Öppnar dialogen för att redigera ärendets egenskaper</td>
+      </tr>
+      <tr>
+        <td>Makulera</td>
+        <td><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd></td>
+        <td>Öppnar statusdialogen förinställd på <em>Makulerat</em></td>
+      </tr>
+      <tr>
+        <td>Spara som nytt ärende</td>
+        <td><em>Ingen standard – tilldela manuellt</em></td>
+        <td>Öppnar dialogen för att spara ärendet som ett nytt ärende</td>
       </tr>
     </tbody>
   </table>
@@ -206,5 +221,12 @@
   </ul>
 
   <div class="footer">360° Hjälptillägg &mdash; Svenska kyrkan</div>
+  <script>
+    // chrome://-länkar kan inte navigeras direkt – öppna via chrome.tabs.create
+    document.getElementById('lank-shortcuts').addEventListener('click', e => {
+      e.preventDefault();
+      chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
+    });
+  </script>
 </body>
 </html>
