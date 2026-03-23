@@ -720,6 +720,8 @@ async function skapaFrånMall(mall) {
       await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', '0');
     }
 
+    const bytteFlik = mall.externaKontakter?.length > 0 || !!mall.kommentar;
+
     if (mall.externaKontakter?.length > 0) {
       pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'ContactsStep');
       visaStatus('Lägger till externa kontakter…');
@@ -741,6 +743,14 @@ async function skapaFrånMall(mall) {
       } else {
         console.warn('[p360] Kommentar-fält hittades inte.');
       }
+    }
+
+    // Om vi navigerat bort från Generellt måste vi navigera tillbaka – annars
+    // finns inte TitleTextBoxControl i DOM:en (ASP.NET Wizard renderar bara aktiv flik).
+    if (bytteFlik) {
+      visaStatus('Återgår till Generellt…');
+      pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'GeneralStep');
+      await waitForElement(iDoc, '#PlaceHolderMain_MainView_TitleTextBoxControl', 6000);
     }
 
     // Titel sätts sist, direkt innan submit – undviker att UpdatePanel-svar från
