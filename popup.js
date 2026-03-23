@@ -93,23 +93,6 @@ document.getElementById('btn-sätt-status').addEventListener('click', () => {
   skicka({ action: 'sättStatus', statusVärde });
 });
 
-// Ärendespion – aktiverar diagnostikloggning i öppna ärendeiframes
-document.getElementById('btn-starta-spion').addEventListener('click', async () => {
-  döljFelmeddelande();
-  const tab = await hämtaAktivFlik();
-  if (!tab) return;
-  try {
-    const svar = await chrome.tabs.sendMessage(tab.id, { action: 'startaSpion' });
-    if (svar?.success) {
-      const n = svar.data?.patchadeIframes ?? 0;
-      alert(`Spion aktiverad på ${n} iframe(s).\nÖppna nu ärendeskapande-dialogen och skapa ett ärende manuellt.\nAlla __doPostBack-anrop och formulärdata loggas i DevTools-konsolen.`);
-    } else {
-      visaFel(svar?.fel ?? 'Kunde inte starta spion.');
-    }
-  } catch {
-    visaFel('Kunde inte kommunicera med sidan. Ladda om fliken och försök igen.');
-  }
-});
 
 // Hjälplänken öppnar help.html i en ny flik
 document.getElementById('hjalp-lank').addEventListener('click', (e) => {
