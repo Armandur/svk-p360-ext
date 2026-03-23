@@ -13,6 +13,27 @@ _(ingenting just nu)_
 
 ## Planerat / Prioriterat
 
+### Ärendedokument – kartläggning, mall och filuppladdning
+
+**Nästa steg:** Dokumentera hur ett ärendedokument skapas när man är inne i ett
+befintligt ärende (element-ID:n, PostBack-nycklar, formulärfält, flöde).
+
+**Långsiktigt mål – tre steg:**
+
+1. **Kartlägg** ärendedokument-formuläret på samma sätt som nytt-ärende-formuläret
+   är kartlagt i CLAUDE.md: URL, formulärfält, Selectize-fält, ViewState-hantering,
+   spara-mekanism och hur dokumentnumret läses ut efter skapande.
+
+2. **Mall för ärendedokument** – utöka mallsystemet så att en ärendemall kan
+   innehålla en eller flera ärendedokumentmallar. När ett mallärende skapas
+   skapas även de ingående ärendedokumenten automatiskt med förifyllda fält.
+
+3. **Filuppladdning** – möjlighet att ladda upp en fil (t.ex. PDF) till ett
+   ärendedokument som en del av mallflödet. Kräver kartläggning av hur 360°
+   hanterar fil-upload (troligen multipart/form-data eller en separat dialog).
+
+---
+
 ### Mall-ärenden med förifyllda fält
 
 Möjlighet att skapa nya ärenden utifrån sparade mallar där fält som ärendetyp, status,
