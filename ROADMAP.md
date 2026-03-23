@@ -28,10 +28,16 @@ Formuläret öppnas via dialog-iframe, fält fylls med `element.selectize.setVal
 `textarea.value`, sedan anropas `__doPostBack('...WizardNavigationButton', 'finish')` i
 iframe-kontexten. Se CLAUDE.md → "Skapa nytt ärende" för komplett teknisk spec.
 
-**Återstår att kartlägga:**
+**Återstår att kartlägga / implementera:**
 - Sekretessfältens element-ID och beteende (extra fält vid val av KO/OSL):
   paragraf-/skyddskodsfältet samt alternativ för ärendetitelns sekretesshantering
   (skyddad / manuell / samma som ärendetitel)
+- **Projekt och Fastighet i mallredigeraren** – fälten finns på respektive flik i
+  ärendeformuläret och ser ut som klassificering (typeahead med synligt visningsvärde
+  + dolt recno-fält). Inläsning av tillgängliga alternativ och sättning av värdet
+  bör kunna göras på samma sätt som klassificering (PostBack + hidden field + display
+  field). Kartlägg element-ID:n och PostBack-nycklar, lägg sedan till stöd i
+  mallredigeraren och i fyll-i-flödet.
 
 ### Massregistrering av in-/utträdesärenden från Excel/CSV
 
