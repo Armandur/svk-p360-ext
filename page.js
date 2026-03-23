@@ -624,13 +624,8 @@ async function skapaFrånMall(mall) {
     const iDoc = iframe.contentDocument;
     const iWin = iframe.contentWindow;
 
-    // Patcha __doPostBack i iframe för att logga alla anrop under körningen.
-    // Avslöjar hur många PostBacks som skickas och från vilka fält.
     const _origPB = iWin.__doPostBack;
-    iWin.__doPostBack = function(target, arg) {
-      console.log('[p360] __doPostBack:', target, '| arg:', arg, '| tid:', Date.now());
-      return _origPB.call(iWin, target, arg);
-    };
+    iWin.__doPostBack = function(target, arg) { return _origPB.call(iWin, target, arg); };
 
     // pb: postback i formulärets eget fönster (via patchad version)
     const pb = (t, a) => iWin.__doPostBack(t, a);
@@ -649,40 +644,20 @@ async function skapaFrånMall(mall) {
     visaStatus('Fyller i fält…');
 
     if (mall.diarieenhet?.value) {
-      console.log('[p360] Sätter diarieenhet:', mall.diarieenhet.value);
       await sättSel('PlaceHolderMain_MainView_JournalUnitComboControl', mall.diarieenhet.value);
-      console.log('[p360] Diarieenhet satt. Väntar 800 ms på eventuell UpdatePanel…');
       await sleep(800);
     }
-
-    if (mall.delarkiv?.value) {
-      console.log('[p360] Sätter delarkiv:', mall.delarkiv.value);
+    if (mall.delarkiv?.value)
       await sättSelTyst('PlaceHolderMain_MainView_CaseSubArchiveComboControl', mall.delarkiv.value);
-      console.log('[p360] Delarkiv satt.');
-    }
-    if (mall.atkomstgrupp?.value) {
-      console.log('[p360] Sätter åtkomstgrupp:', mall.atkomstgrupp.value);
+    if (mall.atkomstgrupp?.value)
       await sättSelTyst('PlaceHolderMain_MainView_AccessGroupComboControl', mall.atkomstgrupp.value);
-      console.log('[p360] Åtkomstgrupp satt.');
-    }
-    if (mall.ansvarigEnhet?.value) {
-      console.log('[p360] Sätter ansvarig enhet:', mall.ansvarigEnhet.value);
+    if (mall.ansvarigEnhet?.value)
       await sättSelTyst('PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl', mall.ansvarigEnhet.value);
-      console.log('[p360] Ansvarig enhet satt.');
-    }
-    if (mall.ansvarigPerson?.value) {
-      console.log('[p360] Sätter ansvarig person:', mall.ansvarigPerson.value);
+    if (mall.ansvarigPerson?.value)
       await sättSelTyst('PlaceHolderMain_MainView_ResponsibleUserComboControl', mall.ansvarigPerson.value);
-      console.log('[p360] Ansvarig person satt.');
-    }
 
-    console.log('[p360] Sätter status:', mall.status || '5');
     await sättSelTyst('PlaceHolderMain_MainView_StatusCaseComboControl', mall.status || '5');
-    console.log('[p360] Status satt.');
-
-    console.log('[p360] Sätter sparat på papper:', mall.sparatPaPapper || '0');
     await sättSelTyst('PlaceHolderMain_MainView_PaperDocAllowedComboControl', mall.sparatPaPapper || '0');
-    console.log('[p360] Sparat på papper satt.');
 
     // Hjälpfunktion: vänta på en UpdatePanel-endRequest (används av klassificering och re-registrering)
     const väntalPåUpdatePanel = (fn) => new Promise(resolve => {
@@ -704,9 +679,6 @@ async function skapaFrånMall(mall) {
     // annars paragraf-fältet (verifierat 2026-03-22). AccessCode-UpdatePanel återställer
     // INTE klassificeringen (verifierat i CLAUDE.md), så denna ordning är säker.
     if (mall.klassificering?.value) {
-      console.log('[p360] Sätter klassificering (före AccessCode):',
-        mall.klassificering.value, mall.klassificering.display);
-
       const sättKlassificering = () => {
         const vis   = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
         const dolt  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
@@ -722,143 +694,86 @@ async function skapaFrånMall(mall) {
           }
           lista.value = mall.klassificering.value;
         }
-        console.log('[p360] sättKlassificering: vis=', vis?.value, 'dolt=', dolt?.value, 'lista=', lista?.value);
       };
 
       const visInit = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
       if (visInit) {
         const displayText = mall.klassificering.display || '';
-        const sökText = displayText.split(' ')[0].trim() || displayText;
-        visInit.value = sökText;
-        console.log('[p360] _DISPLAY satt till söktext:', sökText, '(från display:', displayText, ')');
+        visInit.value = displayText.split(' ')[0].trim() || displayText;
       }
 
       await väntalPåUpdatePanel(() =>
         pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControlHiddenButton', ''));
-      console.log('[p360] HiddenButton klar.');
-
-      const dropDownEl = iDoc.getElementById(
-        'PlaceHolderMain_MainView_ClassificationCode1ComboControl_dropDownList');
-      const nativeOpts = dropDownEl
-        ? Array.from(dropDownEl.options).map(o => `${o.value}=${o.text.trim()}`)
-        : [];
-      console.log('[p360] HiddenButton svar – _dropDownList options (native):', nativeOpts);
-      console.log('[p360] Klassificering hidden-fält FÖRE sättKlassificering:',
-        iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl')?.value);
-
       sättKlassificering();
     }
 
     if (mall.skyddskod && mall.skyddskod !== '0') {
-      console.log('[p360] Sätter skyddskod:', mall.skyddskod);
       // Sätt skyddskod och vänta på UpdatePanel-refresh (laddar paragraf-fälten).
       await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', mall.skyddskod);
-      console.log('[p360] Skyddskod satt. Väntar på paragraf-fält i DOM…');
 
       // Vänta tills paragraf-fältet dyker upp (bekräftar att servern svarat).
+      // Selectize är initialiserat synkront med UpdatePanel-svaret – ingen extra sleep behövs.
       const paragrafFält = await waitForElement(
         iDoc, '#PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', 10000
       );
-      console.log('[p360] Paragraf-fält hittades:', !!paragrafFält);
-
-      // Selectize på paragraf-fältet är initialiserat direkt när UpdatePanel-svaret laddats –
-      // ingen extra sleep behövs. Övriga fält (titel, accessCode m.m.) påverkas inte av svaret.
-      if (paragrafFält && mall.sekretessParag) {
-        console.log('[p360] Sätter paragraf:', mall.sekretessParag);
+      if (paragrafFält && mall.sekretessParag)
         await sättSelTyst('PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', mall.sekretessParag);
-        console.log('[p360] Paragraf satt.');
-      }
 
       const checkbox = iDoc.getElementById('PlaceHolderMain_MainView_UnofficialContactCheckBoxControl');
-      if (checkbox) {
-        checkbox.checked = !!mall.skyddaKontakter;
-        console.log('[p360] Skydda kontakter satt till:', checkbox.checked);
-      }
+      if (checkbox) checkbox.checked = !!mall.skyddaKontakter;
 
-      // SelectOfficialTitle triggar ett UpdatePanel-anrop vars PostBack schemaläggs
-      // via setTimeout i Selectize-onchange. Om vi använder sättSel() returnerar
-      // awaitern INNAN PostBacken faktiskt avfyrats, vilket leder till race condition
-      // med klassificerings-re-registreringen nedan. Lösning: sätt värdet tyst och
-      // trigga sedan PostBacken explicit via väntalPåUpdatePanel så att den guaranteed
-      // är klar innan vi fortsätter.
+      // SelectOfficialTitle: sätt tyst och trigga PostBacken explicit för att undvika
+      // race condition med setTimeout i Selectize-onchange.
       const offTitelVal = mall.offentligTitelVal || '1';
-      console.log('[p360] Sätter offentligTitelVal (tyst):', offTitelVal);
       await sättSelTyst('PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl', offTitelVal);
-      console.log('[p360] Triggar SelectOfficialTitle-PostBack och väntar…');
       await väntalPåUpdatePanel(() =>
         pb('ctl00$PlaceHolderMain$MainView$SelectOfficialTitleComboBoxControl', ''));
-      console.log('[p360] SelectOfficialTitle-PostBack klar.');
       if (offTitelVal === '3') {
-        console.log('[p360] Väntar på offentlig titel-fält…');
         const offFält = await waitForElement(iDoc, '#PlaceHolderMain_MainView_PublicTitleTextBoxControl', 8000);
         if (offFält) {
           offFält.value = mall.offentligTitel || '';
-          console.log('[p360] Offentlig titel satt:', offFält.value);
         } else {
           console.warn('[p360] Offentlig titel-fält hittades inte inom timeout.');
         }
       }
     } else {
-      console.log('[p360] Skyddskod = offentlig (0), sätter AccessCode till 0.');
       await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', '0');
-      console.log('[p360] AccessCode satt till 0.');
     }
 
     if (mall.externaKontakter?.length > 0) {
-      console.log('[p360] Lägger till', mall.externaKontakter.length, 'externa kontakter.');
       pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'ContactsStep');
       visaStatus('Lägger till externa kontakter…');
       await sleep(1500);
       for (const kontakt of mall.externaKontakter) {
-        console.log('[p360] Lägger till kontakt:', kontakt.namn);
         // pb skickas med för att postback-anrop ska ske i formulärets iframe-kontext.
         // Kontaktdialogerna hamnar i huvud-dokumentets body (window.top) som syskoniframes.
         await läggTillExternKontakt(kontakt, pb);
-        console.log('[p360] Kontakt tillagd:', kontakt.namn);
         await sleep(500);
       }
     }
 
     if (mall.kommentar) {
-      console.log('[p360] Sätter kommentar.');
       pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'NotesStep');
       await sleep(1000);
       const kFält = await waitForElement(iDoc, '#PlaceHolderMain_MainView_NotesStep_Control', 3000);
       if (kFält) {
         kFält.value = mall.kommentar;
-        console.log('[p360] Kommentar satt.');
       } else {
         console.warn('[p360] Kommentar-fält hittades inte.');
       }
     }
 
     // Titel sätts sist, direkt innan submit – undviker att UpdatePanel-svar från
-    // övriga fält (diarieenhet, ansvarig enhet m.m.) hinner ersätta DOM-noder och
-    // nollställa värdet. Hämtar elementet färskt ur aktuell DOM (inte gammal referens).
-    console.log('[p360] Sätter titel (sist, färskt element):', mall.titel);
+    // övriga fält hinner ersätta DOM-noder och nollställa värdet.
     const titelElNu = iDoc.getElementById('PlaceHolderMain_MainView_TitleTextBoxControl');
-    console.log('[p360] titelElNu hittades:', !!titelElNu, '| isConnected:', titelElNu?.isConnected);
     if (titelElNu) {
       titelElNu.value = mall.titel || '';
       titelElNu.dispatchEvent(new Event('input',  { bubbles: true }));
       titelElNu.dispatchEvent(new Event('change', { bubbles: true }));
       titelElNu.dispatchEvent(new Event('blur',   { bubbles: true }));
-      console.log('[p360] Titel satt. titelElNu.value=', titelElNu.value);
     } else {
       console.error('[p360] FEL: titelElNu är null – formuläret kan ha laddats om.');
     }
-
-
-    // Snapshot av kritiska fält direkt innan submit
-    console.log('[p360] Snapshot innan submit:', {
-      titel:          iDoc.getElementById('PlaceHolderMain_MainView_TitleTextBoxControl')?.value,
-      diarieenhet:    iDoc.getElementById('PlaceHolderMain_MainView_JournalUnitComboControl')?.value,
-      klassificering: iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl')?.value,
-      accessCode:     iDoc.getElementById('PlaceHolderMain_MainView_AccessCodeComboControl')?.value,
-      paragraf:       iDoc.getElementById('PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl')?.value,
-      sparatPaPapper: iDoc.getElementById('PlaceHolderMain_MainView_PaperDocAllowedComboControl')?.value,
-      status:         iDoc.getElementById('PlaceHolderMain_MainView_StatusCaseComboControl')?.value,
-    });
 
     // 360° kräver att finish-anropet sker via __doPostBack → PageRequestManager (async XHR).
     // form.submit() kringgår ScriptManager och ger UnhandledError.aspx.
@@ -869,32 +784,14 @@ async function skapaFrånMall(mall) {
     // Vi lägger till commitPopup innan submit och navigerar därifrån.
     const topUrlFör = window.location.href;
 
-    // Resize krävs av ResizeDialogAuto() som anropas i startup-skript i UpdatePanel-svaret.
-    // Utan den kastas ett uncaught TypeError som avbryter startup-kedjan innan commitPopup nås.
-    iframe.Resize = () => { console.log('[p360] iframe.Resize (no-op)'); };
+    // Resize krävs av ResizeDialogAuto() – utan den kastas TypeError som avbryter startup-kedjan.
+    iframe.Resize = () => {};
     // IsLoading = true signalerar att dialogen aktivt bearbetar en form-submit.
-    // 360°:s close-kod fortsätter med commitPopup/navigering ENBART om IsLoading är truthy.
     iframe.IsLoading = true;
 
-    // Patcha alla funktioner på iWin.SI.UI.ModalDialog för att fånga vilket
-    // anrop som sker efter IsLoading-kontrollen (CloseCallback, CloseDialog el. liknande).
-    if (iWin.SI?.UI?.ModalDialog) {
-      for (const key of Object.getOwnPropertyNames(iWin.SI.UI.ModalDialog)) {
-        if (typeof iWin.SI.UI.ModalDialog[key] === 'function') {
-          const orig = iWin.SI.UI.ModalDialog[key];
-          iWin.SI.UI.ModalDialog[key] = function(...args) {
-            console.log('[p360] iWin.SI.UI.ModalDialog.' + key + '(' +
-              args.map(a => String(a).slice(0, 80)).join(', ') + ')');
-            return orig.apply(this, args);
-          };
-        }
-      }
-    }
-
+    // commitPopup/cancelPopup – fallback om 360° ändrar beteende och börjar anropa dessa.
     iframe.commitPopup = (returnVal) => {
-      console.log('[p360] commitPopup anropad:', returnVal);
       overlay.remove();
-      // returnVal kan vara en URL, ett recno-nummer eller null
       const s = String(returnVal || '');
       if (s.includes('/DMS/') || s.includes('recno=')) {
         window.location.href = s;
@@ -903,16 +800,12 @@ async function skapaFrånMall(mall) {
           `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${s}`;
       }
     };
-    iframe.cancelPopup = () => { console.log('[p360] cancelPopup anropad.'); overlay.remove(); };
+    iframe.cancelPopup = () => { overlay.remove(); };
 
-    // Interceptera SI.UI.ModalDialog.CloseCallback i top-level-fönstret.
-    // 360° anropar window.parent.SI.UI.ModalDialog.CloseCallback(returnValue)
-    // i iframe-kontexten efter lyckad ärendeskapning. Utan en registrerad
-    // callback (vi öppnade inte dialogen via 360°:s system) navigeras aldrig.
+    // Interceptera CloseCallback i top-level-fönstret (fallback om 360° anropar den).
     const origCloseCallback = window.SI?.UI?.ModalDialog?.CloseCallback;
     if (window.SI?.UI?.ModalDialog) {
       window.SI.UI.ModalDialog.CloseCallback = function(returnValue, ...args) {
-        console.log('[p360] SI.UI.ModalDialog.CloseCallback:', returnValue, args);
         window.SI.UI.ModalDialog.CloseCallback = origCloseCallback;
         overlay.remove();
         const s = String(returnValue || '');
@@ -925,46 +818,14 @@ async function skapaFrånMall(mall) {
           origCloseCallback.call(this, returnValue, ...args);
         }
       };
-    } else {
-      console.warn('[p360] SI.UI.ModalDialog ej tillgänglig – CloseCallback kan ej interceptas.');
     }
 
-    // get_childDialog() anropas i iframe-fönstrets SI.UI.ModalDialog under dialog-close-flödet.
-    // Returnerar null när dialogen inte öppnats via 360°:s eget system → navigering uteblir.
-    // Lösning: returnera vår iframe så att close-koden kan anropa iframe.commitPopup(url).
+    // get_childDialog() anropas av ResizeDialogAuto() i iframe-kontexten.
+    // Utan en känd dialog-instans returneras null → TypeError avbryter kedjan.
     if (iWin.SI?.UI?.ModalDialog) {
       const iMD = iWin.SI.UI.ModalDialog;
       const origGetChildDialog = iMD.get_childDialog?.bind(iMD);
-
-      // Proxy-omslag runt iframe – loggar alla property-accesses och metodanrop
-      // så vi ser exakt vad 360°:s dialog-close-kod anropar på dialog-objektet.
-      const dialogProxy = new iWin.Proxy(iframe, {
-        get(target, prop) {
-          const val = target[prop];
-          if (typeof val === 'function') {
-            return (...args) => {
-              console.log('[p360] dialog.' + String(prop) + '(' +
-                args.map(a => String(a).slice(0, 80)).join(', ') + ')');
-              return val.apply(target, args);
-            };
-          }
-          console.log('[p360] dialog.' + String(prop) + ' GET →', String(val).slice(0, 80));
-          return val;
-        },
-        set(target, prop, value) {
-          console.log('[p360] dialog.' + String(prop) + ' SET =', String(value).slice(0, 80));
-          target[prop] = value;
-          return true;
-        },
-      });
-
-      iMD.get_childDialog = function() {
-        const existing = origGetChildDialog?.();
-        console.log('[p360] get_childDialog() → befintlig:', existing, '→ returnerar proxy');
-        return existing ?? dialogProxy;
-      };
-    } else {
-      console.warn('[p360] iWin.SI.UI.ModalDialog ej tillgänglig.');
+      iMD.get_childDialog = function() { return origGetChildDialog?.() ?? iframe; };
     }
 
     // XHR-interceptor: fånga recno från finish-postback och navigera direkt
@@ -981,8 +842,6 @@ async function skapaFrånMall(mall) {
             console.log('[p360] recno funnet i XHR-svar:', m[1]);
             recnoFrånXHR = m[1];
           }
-          const redir = svar.match(/redirectUrl['":\s]+([^|"<\s]{10,})/i);
-          if (redir) console.log('[p360] redirectUrl funnet:', redir[1]);
         });
       }
       return origXHROpen.call(this, method, url, ...rest);
@@ -1005,7 +864,6 @@ async function skapaFrånMall(mall) {
     };
 
     if (mall.debugPauseKlassificering) {
-      console.log('[p360] DEBUG PAUSE: Alla fält ifyllda. Väntar på manuell bekräftelse.');
       visaStatus('Granska fälten i formuläret – klicka Skicka nedan när du är redo.');
 
       const slutförKnapp = document.createElement('button');
@@ -1019,7 +877,6 @@ async function skapaFrånMall(mall) {
         slutförKnapp.onclick = () => {
           slutförKnapp.remove();
           visaStatus('Skapar ärende…');
-          console.log('[p360] DEBUG PAUSE: Slutför-knapp klickad.');
           submitFn();
           resolve();
         };
@@ -1074,9 +931,7 @@ async function skapaFrånMall(mall) {
 
     overlay.remove();
 
-    if (navigerad) {
-      console.log('[p360] Top-level navigering detekterad – ärende skapat. URL:', window.location.href);
-    } else {
+    if (!navigerad) {
       // Timeout – kolla valideringsfel i formuläret
       let valideringsfel = [];
       try {

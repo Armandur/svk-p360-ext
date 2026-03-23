@@ -401,9 +401,20 @@ iWin.SI.UI.ModalDialog.get_childDialog = function() {
 };
 ```
 
-**Pågående kartläggning:** Exakt vad UpdatePanel-svaret från `view.aspx` (finish) innehåller
-och vilken mekanism som slutligen triggar `commitPopup` är ännu ej fullständigt känd.
-En XHR-interceptor (se `page.js`) loggar råsvaret för vidare analys.
+**Verifierat beteende (2026-03-23):** UpdatePanel-svaret från `view.aspx` (finish) innehåller
+recno direkt i svarstexten som strängen `recno=<nummer>`. `commitPopup` anropas **inte** i
+praktiken – `get_childDialog()` returnerar `undefined` i 360°:s interna kod och navigeringen
+sker aldrig via det spåret. Tillägget läser recno ur XHR-svaret och navigerar direkt:
+
+```js
+// XHR-interceptor i iframe-fönstret:
+const m = responseText.match(/recno[=:](\d+)/i);
+if (m) window.top.location.href =
+  `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${m[1]}`;
+```
+
+`commitPopup`, `cancelPopup` och `CloseCallback` finns kvar i koden som fallbacks
+om 360° ändrar beteende i framtida versioner.
 
 ---
 
