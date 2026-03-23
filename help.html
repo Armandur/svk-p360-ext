@@ -222,15 +222,12 @@
 
   <div class="footer">360° Hjälptillägg &mdash; Svenska kyrkan</div>
   <script>
-    // chrome://-/edge://-länkar kan inte navigeras direkt – öppna via chrome.tabs.create.
-    // userAgentData.brands är mer tillförlitligt än userAgent-strängen för att detektera Edge.
+    // chrome://-länkar kan inte navigeras direkt – öppna via chrome.tabs.create.
+    // Edge mappar chrome://extensions/shortcuts till sin egen sida automatiskt,
+    // så samma URL fungerar i både Chrome och Edge.
     document.getElementById('lank-shortcuts').addEventListener('click', e => {
       e.preventDefault();
-      const brands = navigator.userAgentData?.brands?.map(b => b.brand) ?? [];
-      const url = brands.includes('Microsoft Edge')
-        ? 'edge://extensions/shortcuts'
-        : 'chrome://extensions/shortcuts';
-      chrome.tabs.create({ url });
+      chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
     });
   </script>
 </body>
