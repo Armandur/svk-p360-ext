@@ -710,8 +710,11 @@ Dagboksbladet öppnas via PostBack-nyckeln `key_innehallsforteckning`. 360° anr
 |----------|------------------|----------|
 | `dagboksblad-skriv-ut` | **Alt+Shift+D** | Öppnar dagboksblad och visar utskriftsdialog |
 | `växla-status`         | **Alt+Shift+S** | Växlar status mellan Öppet och Avslutat |
+| `redigera-egenskaper`  | **Alt+Shift+E** | Öppnar Redigera egenskaper-dialogen |
+| `makulera`             | **Alt+Shift+M** | Öppnar statusdialogen förinställd på Makulerat |
+| `spara-som-nytt`       | *(ingen standard)* | Spara som nytt ärende – tilldelas manuellt vid behov |
 
-Alla snabbkommandon är konfigurerbara via `chrome://extensions/shortcuts`.
+Chrome tillåter max 4 `suggested_key` per tillägg. Alla kommandon är konfigurerbara via `chrome://extensions/shortcuts`.
 
 ## Projektstruktur
 ```

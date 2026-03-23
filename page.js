@@ -1063,6 +1063,8 @@ window.addEventListener('p360-anrop', async (event) => {
   try {
     if (action === 'sättStatus') {
       await sättStatus(data.statusVärde);
+    } else if (action === 'makulera') {
+      await sättStatus('8');
     } else if (action === 'växlaStatus') {
       await växlaStatus();
     } else if (action === 'dagboksblad') {
