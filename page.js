@@ -845,21 +845,31 @@ async function skapaFrånMall(mall) {
     if (mall.debugPauseKlassificering) {
       visaStatus('Granska fälten i formuläret – klicka Skicka nedan när du är redo.');
 
+      const knappRad = document.createElement('div');
+      knappRad.style.cssText = 'display:flex;gap:8px;margin:8px 0 4px;';
+
       const slutförKnapp = document.createElement('button');
       slutförKnapp.textContent = 'Skicka (skapa ärende)';
       slutförKnapp.style.cssText =
-        'margin:8px 0 4px;padding:7px 18px;background:#1a5276;color:#fff;' +
+        'padding:7px 18px;background:#1a5276;color:#fff;' +
         'border:none;border-radius:4px;cursor:pointer;font-size:13px;font-family:sans-serif;';
-      overlay.insertBefore(slutförKnapp, iframe);
 
-      await new Promise(resolve => {
-        slutförKnapp.onclick = () => {
-          slutförKnapp.remove();
-          visaStatus('Skapar ärende…');
-          submitFn();
-          resolve();
-        };
+      const avbrytKnapp = document.createElement('button');
+      avbrytKnapp.textContent = 'Avbryt';
+      avbrytKnapp.style.cssText =
+        'padding:7px 18px;background:#666;color:#fff;' +
+        'border:none;border-radius:4px;cursor:pointer;font-size:13px;font-family:sans-serif;';
+
+      knappRad.appendChild(slutförKnapp);
+      knappRad.appendChild(avbrytKnapp);
+      overlay.insertBefore(knappRad, iframe);
+
+      const fortsätt = await new Promise(resolve => {
+        slutförKnapp.onclick = () => { knappRad.remove(); visaStatus('Skapar ärende…'); submitFn(); resolve(true); };
+        avbrytKnapp.onclick = () => { resolve(false); };
       });
+
+      if (!fortsätt) { overlay.remove(); return; }
     } else {
       visaStatus('Skapar ärende…');
       submitFn();
