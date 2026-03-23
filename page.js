@@ -610,6 +610,16 @@ async function skapaFrånMall(mall) {
       titel: mall.titel, diarieenhet: mall.diarieenhet?.value,
       klassificering: mall.klassificering?.value, skyddskod: mall.skyddskod,
     }));
+
+    // Fixa layout: 360°:s dialog-CSS lägger flikrad och formulärinnehåll sida vid sida
+    // när formuläret renderas utanför dialogsystemet. Tvinga dem att staplas vertikalt.
+    const layoutStyle = iDoc.createElement('style');
+    layoutStyle.textContent = `
+      .si-dialog-maintable { display: flex !important; flex-direction: column !important; }
+      .tab-view-menu { width: 100% !important; flex-shrink: 0 !important; }
+    `;
+    iDoc.head.appendChild(layoutStyle);
+
     visaStatus('Fyller i fält…');
 
     if (mall.diarieenhet?.value) {
