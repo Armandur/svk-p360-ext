@@ -967,9 +967,7 @@ async function läggTillExternKontakt(kontakt, pb = __doPostBack) {
   if (typSel?.selectize) { typSel.selectize.setValue('0'); } else if (typSel) { typSel.value = '0'; }
   await sleep(200);
 
-  typDoc.getElementById('__EVENTTARGET').value   = 'ctl00$PlaceHolderMain$MainView$DialogButton';
-  typDoc.getElementById('__EVENTARGUMENT').value = 'finish';
-  typDoc.getElementById('form1').submit();
+  typIframe.contentWindow.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish');
 
   // Steg 2: Kontaktformulär
   const kontaktIframe = await waitForNyIframe('JournalCaseContactNew', 10000);
@@ -989,9 +987,7 @@ async function läggTillExternKontakt(kontakt, pb = __doPostBack) {
   sättFält('PlaceHolderMain_MainView_ContactNotesControl',        kontakt.kommentar);
   await sleep(200);
 
-  kDoc.getElementById('__EVENTTARGET').value   = 'ctl00$PlaceHolderMain$MainView$DialogButton';
-  kDoc.getElementById('__EVENTARGUMENT').value = 'finish';
-  kDoc.getElementById('form1').submit();
+  kontaktIframe.contentWindow.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish');
 
   // Steg 3 (villkorligt): Dubblettvarning
   await sleep(1500);
@@ -1001,9 +997,7 @@ async function läggTillExternKontakt(kontakt, pb = __doPostBack) {
   });
   if (dubblettIframe) {
     const dDoc = dubblettIframe.contentDocument;
-    dDoc.getElementById('__EVENTTARGET').value   = 'ctl00$PlaceHolderMain$MainView$DialogButton';
-    dDoc.getElementById('__EVENTARGUMENT').value = 'no';
-    dDoc.getElementById('form1').submit();
+    dubblettIframe.contentWindow.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'no');
     await sleep(1000);
   }
 
