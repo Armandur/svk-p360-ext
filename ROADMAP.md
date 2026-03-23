@@ -103,6 +103,10 @@ skyddskod, ansvarig enhet osv.).
 - **Kontakttyp:** Externa kontakter stöder för närvarande bara typen
   **Oregistrerad kontakt**. Kontaktperson och Organisation kräver ytterligare
   kartläggning och implementation.
+- **Dubblettvarning:** Om namnet liknar en befintlig kontakt i 360° visas dialogen
+  "Möjliga dubbletter i kontaktlistan". Tillägget svarar alltid med "Spara/Skapa ny"
+  och skapar alltså alltid en ny oregistrerad kontakt, oavsett om en matchande
+  registrerad kontakt finns.
 
 ---
 
