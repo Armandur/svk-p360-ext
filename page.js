@@ -973,10 +973,23 @@ async function läggTillExternKontakt(kontakt, pb = __doPostBack) {
   const kontaktIframe = await waitForNyIframe('JournalCaseContactNew', 10000);
   if (!kontaktIframe) { alert('Kontaktformuläret öppnades inte för kontakt: ' + (kontakt.namn || '')); return; }
 
+  // Hämta alltid contentDocument via iframen (inte via cachad variabel) för att
+  // undvika inaktuell referens efter en eventuell client-side redirect.
+  const namnEl = await waitForElement(kontaktIframe.contentDocument, '#PlaceHolderMain_MainView_ContactNameControl', 5000);
   const kDoc = kontaktIframe.contentDocument;
-  await waitForElement(kDoc, '#PlaceHolderMain_MainView_ContactNameControl', 5000);
 
-  const sättFält = (id, val) => { const el = kDoc.getElementById(id); if (el && val) el.value = val; };
+  console.log('[p360] kontaktIframe href:', kDoc.location?.href);
+  console.log('[p360] kontakt.namn:', kontakt.namn);
+  console.log('[p360] namnEl hittat:', !!namnEl, namnEl?.tagName, namnEl?.id);
+
+  const sättFält = (id, val) => {
+    const el = kDoc.getElementById(id);
+    if (el && val) {
+      el.value = val;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  };
   sättFält('PlaceHolderMain_MainView_ContactNameControl',         kontakt.namn);
   sättFält('PlaceHolderMain_MainView_ContactName2Control',        kontakt.kontaktperson);
   sättFält('PlaceHolderMain_MainView_ContactAddressControl',      kontakt.adress);
@@ -985,7 +998,10 @@ async function läggTillExternKontakt(kontakt, pb = __doPostBack) {
   sättFält('PlaceHolderMain_MainView_ContactEmailControl',        kontakt.epost);
   sättFält('PlaceHolderMain_MainView_Phone',                      kontakt.telefon);
   sättFält('PlaceHolderMain_MainView_ContactNotesControl',        kontakt.kommentar);
-  await sleep(200);
+
+  console.log('[p360] namnEl.value efter sättFält:', kDoc.getElementById('PlaceHolderMain_MainView_ContactNameControl')?.value);
+  await sleep(300);
+  console.log('[p360] namnEl.value precis före submit:', kDoc.getElementById('PlaceHolderMain_MainView_ContactNameControl')?.value);
 
   kontaktIframe.contentWindow.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish');
 
