@@ -692,23 +692,11 @@ Dagboksbladet öppnas via PostBack-nyckeln `key_innehallsforteckning`. 360° anr
    returnerar en instans (max 10 s). `$find` är en global ASP.NET-funktion i popup-fönstret.
 
 3. **Visa utskriftsdialogen** – `rv.invokePrintDialog()` renderar MSRS utskriftsdialog
-   i popup-fönstret. Dialogen innehåller:
-   - `.msrs-printdialog-divprintbutton` – den röda Print-knappen
-   - `.msrs-printdialog-downloadlink` – en `<a href="" download="">` med **tom** href
+   i popup-fönstret. Dialogen innehåller bl.a. `.msrs-printdialog-divprintbutton`.
 
 4. **Klicka Print-knappen** – `.msrs-printdialog-divprintbutton` klickas programmatiskt.
-   Därefter populerar MSRS `href` på download-länken med en URL till
-   `/Reserved.ReportViewerWebControl.axd` med dynamiskt `ControlID` och `rc:PrintOnOpen=true`.
-
-5. **Polla tills href finns** – När `.msrs-printdialog-downloadlink` har ett `href`
-   som innehåller `.axd` är PDF:en redo (max 20 s).
-
-6. **Hämta som blob** – `fetch(pdfUrl, { credentials: 'include' })` hämtar PDF:en med
-   sessionscookies. Servern sätter `Content-Disposition: attachment` vilket tvingar
-   nedladdning om URL:en öppnas direkt. Blob-URL saknar detta header.
-
-7. **Öppna i Chrome** – `URL.createObjectURL(blob)` skapar en blob-URL som öppnas med
-   `window.open(blobUrl, '_blank')`. Chrome öppnar blob-URL:er alltid i inbyggd PDF-visare.
+   MSRS utskriftsdialog är nu synlig i popup-fönstret och användaren skriver ut eller
+   sparar som PDF därifrån. Flödet är klart.
 
 ### Kända begränsningar
 
@@ -720,7 +708,7 @@ Dagboksbladet öppnas via PostBack-nyckeln `key_innehallsforteckning`. 360° anr
 
 | Kommando | Standardtangenter | Funktion |
 |----------|------------------|----------|
-| `dagboksblad-skriv-ut` | **Alt+Shift+D** | Hämtar och öppnar dagboksblad som PDF |
+| `dagboksblad-skriv-ut` | **Alt+Shift+D** | Öppnar dagboksblad och visar utskriftsdialog |
 | `växla-status`         | **Alt+Shift+S** | Växlar status mellan Öppet och Avslutat |
 
 Alla snabbkommandon är konfigurerbara via `chrome://extensions/shortcuts`.

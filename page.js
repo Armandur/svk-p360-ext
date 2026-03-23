@@ -101,40 +101,9 @@ async function triggerDagboksblad() {
     return;
   }
 
-  // Klicka Print – MSRS genererar PDF:en och populerar download-länkens href
+  // Klicka Print – MSRS visar utskriftsdialogen i popup-fönstret.
+  // Användaren skriver ut eller sparar som PDF därifrån.
   printKnapp.click();
-
-  // Polla tills download-länken har fått ett href med PDF-URL:en (max 20 s)
-  const pdfUrl = await new Promise(resolve => {
-    const start = Date.now();
-    const check = setInterval(() => {
-      try {
-        const dl = popup.document.querySelector('.msrs-printdialog-downloadlink');
-        if (dl?.href?.includes('.axd')) { clearInterval(check); resolve(dl.href); }
-      } catch { /* popup stängd */ }
-      if (Date.now() - start > 20000) { clearInterval(check); resolve(null); }
-    }, 150);
-  });
-
-  if (!pdfUrl) {
-    alert('Kunde inte hämta PDF:en från dagboksbladet.');
-    return;
-  }
-
-  // Hämta PDF:en som blob med sessionscookies – kringgår Content-Disposition: attachment
-  // som servern sätter på .axd-URL:en. Blob-URL:er öppnas alltid inline i Chrome.
-  let blobUrl;
-  try {
-    const resp = await fetch(pdfUrl, { credentials: 'include' });
-    const blob = await resp.blob();
-    blobUrl = URL.createObjectURL(blob);
-  } catch {
-    alert('Kunde inte ladda PDF:en.');
-    return;
-  }
-
-  popup.close();
-  window.open(blobUrl, '_blank');
 }
 
 /**
