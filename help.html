@@ -221,14 +221,6 @@
   </ul>
 
   <div class="footer">360° Hjälptillägg &mdash; Svenska kyrkan</div>
-  <script>
-    // chrome://-länkar kan inte navigeras direkt – öppna via chrome.tabs.create.
-    // Edge mappar chrome://extensions/shortcuts till sin egen sida automatiskt,
-    // så samma URL fungerar i både Chrome och Edge.
-    document.getElementById('lank-shortcuts').addEventListener('click', e => {
-      e.preventDefault();
-      chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
-    });
-  </script>
+  <script src="help.js"></script>
 </body>
 </html>
