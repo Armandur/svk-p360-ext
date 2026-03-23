@@ -611,14 +611,18 @@ async function skapaFrånMall(mall) {
       klassificering: mall.klassificering?.value, skyddskod: mall.skyddskod,
     }));
 
-    // Fixa layout: 360°:s dialog-CSS lägger flikrad och formulärinnehåll sida vid sida
-    // när formuläret renderas utanför dialogsystemet. Tvinga dem att staplas vertikalt.
-    const layoutStyle = iDoc.createElement('style');
-    layoutStyle.textContent = `
-      .si-dialog-maintable { display: flex !important; flex-direction: column !important; }
-      .tab-view-menu { width: 100% !important; flex-shrink: 0 !important; }
-    `;
-    iDoc.head.appendChild(layoutStyle);
+    // Fixa layout: flikrad och formulärinnehåll överlappar när formuläret renderas
+    // utanför 360°:s eget dialogsystem. Mät flikradens faktiska höjd och applicera
+    // motsvarande padding-top på formulärinnehållet som följer efter.
+    iWin.requestAnimationFrame(() => {
+      const tabMenu = iDoc.querySelector('.tab-view-menu');
+      if (!tabMenu) return;
+      const h = tabMenu.getBoundingClientRect().height;
+      const pushH = h > 0 ? h : 42; // fallback 42px om mätning misslyckas
+      Array.from(tabMenu.parentElement.children).forEach(el => {
+        if (el !== tabMenu) el.style.paddingTop = pushH + 'px';
+      });
+    });
 
     visaStatus('Fyller i fält…');
 
