@@ -967,18 +967,21 @@ async function skapaFrånMall(mall) {
       console.warn('[p360] iWin.SI.UI.ModalDialog ej tillgänglig.');
     }
 
-    // XHR-interceptor: fånga råsvaret från finish-postback för att se vad servern returnerar
+    // XHR-interceptor: fånga recno från finish-postback och navigera direkt
     let fångaFinishSvar = false;
+    let recnoFrånXHR = null;
     const origXHROpen = iWin.XMLHttpRequest.prototype.open;
     iWin.XMLHttpRequest.prototype.open = function(method, url, ...rest) {
       if (fångaFinishSvar && String(url).includes('view.aspx')) {
         this.addEventListener('load', function() {
-          console.log('[p360] XHR finish-svar (första 2000 tecken):', this.responseText.slice(0, 2000));
-          // Leta efter recno, redirectUrl, eller navigeringskod i svaret
-          const m = this.responseText.match(/recno[=:](\d+)/i)
-                 || this.responseText.match(/"recno"\s*:\s*"?(\d+)"?/i);
-          if (m) console.log('[p360] recno funnet i XHR-svar:', m[1]);
-          const redir = this.responseText.match(/redirectUrl['":\s]+([^|"<\s]{10,})/i);
+          const svar = this.responseText;
+          const m = svar.match(/recno[=:](\d+)/i)
+                 || svar.match(/"recno"\s*:\s*"?(\d+)"?/i);
+          if (m) {
+            console.log('[p360] recno funnet i XHR-svar:', m[1]);
+            recnoFrånXHR = m[1];
+          }
+          const redir = svar.match(/redirectUrl['":\s]+([^|"<\s]{10,})/i);
           if (redir) console.log('[p360] redirectUrl funnet:', redir[1]);
         });
       }
@@ -1039,17 +1042,24 @@ async function skapaFrånMall(mall) {
         break;
       }
 
-      // 2. Iframe navigerad till ärendesida (ScriptManager följde 302 i iframe-kontexten)
+      // 2. Recno hittades i XHR-svaret – navigera direkt
+      if (recnoFrånXHR) {
+        const målUrl = `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${recnoFrånXHR}`;
+        console.log('[p360] Navigerar till nytt ärende via XHR-recno:', målUrl);
+        overlay.remove();
+        window.location.href = målUrl;
+        return;
+      }
+
+      // 3. Iframe navigerad till ärendesida (ScriptManager följde 302 i iframe-kontexten)
       try {
         const iHref = iframe.contentWindow?.location?.href || '';
-        console.log('[p360] iframe-URL poll:', iHref.slice(0, 120));
         if (iHref.includes('UnhandledError')) {
           overlay.remove();
           alert('360° rapporterade ett serverfel vid ärendeskapande. Kontrollera 360° manuellt.');
           return;
         }
         if (iHref.includes('recno=') && !iHref.includes('cf7c6540')) {
-          // Iframe är nu på ärendesidan – navigera top-level dit (utan dialogmode)
           const recno = new URLSearchParams(iHref.split('?')[1] || '').get('recno');
           const målUrl = recno
             ? `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${recno}`
@@ -1059,7 +1069,7 @@ async function skapaFrånMall(mall) {
           window.location.href = målUrl;
           return;
         }
-      } catch (e) { console.log('[p360] iframe-URL poll fel:', e.message); }
+      } catch (e) { /* cross-origin */ }
     }
 
     overlay.remove();
