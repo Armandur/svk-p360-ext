@@ -94,6 +94,18 @@ skyddskod, ansvarig enhet osv.).
 
 ---
 
+## Kända begränsningar / ej testat
+
+- **Testad roll:** Tillägget är hittills enbart testat med rollen **registrator /
+  huvudregistrator**. Beteendet för rollerna **Handläggare**, **Handläggare+**,
+  **Mötessekreterare** och **Ansökan KAE** är okänt – dessa kan ha annorlunda
+  behörigheter, andra tillgängliga fält eller annorlunda PostBack-nycklar.
+- **Kontakttyp:** Externa kontakter stöder för närvarande bara typen
+  **Oregistrerad kontakt**. Kontaktperson och Organisation kräver ytterligare
+  kartläggning och implementation.
+
+---
+
 ## Idéer och förslag
 
 Funktioner som diskuterats men ännu inte prioriterats.
