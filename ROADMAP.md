@@ -64,6 +64,34 @@ Primär användning: utträdesärenden (och inträden) från exportfiler ur past
 - Hantera fel per rad utan att avbryta hela batchen
 - Köhantering så att 360° inte överbelastas (fördröjning mellan ärenden)
 
+### Import av mallar från fil (TSV/CSV/Excel)
+
+Möjlighet att importera mallärenden från en tabbseparerad, kommaseparerad eller
+Excel-fil (`.txt`, `.csv`, `.xls`, `.xlsx`). Varje rad i filen representerar en mall
+med namngivna kolumner som motsvarar mallfälten (titel, diarieenhet, klassificering,
+skyddskod, ansvarig enhet osv.).
+
+**Användningsfall:**
+- Snabb uppsättning av många mallar på en gång
+- Dela mallkonfigurationer mellan kollegor (exportera → skicka fil → importera)
+- Versionsstyra mallar utanför tillägget (t.ex. i ett kalkylblad)
+
+**Förväntade kolumner:** samma fält som i mallformuläret – `namn`, `titel`,
+`diarieenhet`, `klassificering`, `skyddskod`, `paragraf`, `ansvarigEnhet`,
+`ansvarigPerson`, `status`, `sparatPaPapper`, `kommentar` m.fl.
+
+**Flöde:**
+1. Användaren laddar upp filen i mallinställningssidan
+2. Tillägget parsar filen och visar en förhandsgranskning av mallarna
+3. Befintliga mallar kan behållas, slås samman eller ersättas
+4. Möjlighet att även exportera befintliga mallar till samma filformat
+
+**Tekniska noteringar:**
+- Excel-parsning kräver ett externt bibliotek (t.ex. SheetJS/xlsx) eller
+  begränsning till CSV/TSV för att undvika beroenden
+- Fältvärden för dropdowns (diarieenhet, ansvarig enhet m.m.) är instansspecifika –
+  import av värde-ID:n fungerar bara inom samma 360°-installation
+
 ---
 
 ## Idéer och förslag
