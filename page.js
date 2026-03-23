@@ -2,6 +2,13 @@
 // Har direkt tillgång till sidans globala funktioner som __doPostBack och Selectize.
 // Kommunicerar med content.js (ISOLATED world) via CustomEvents.
 
+// Skydda mot dubbel-injektion (executeScript körs ibland flera gånger).
+// IIFE skapar ett eget scope – const-deklarationer krockar inte och
+// return är giltigt för tidig exit vid ominjicering.
+(function () {
+if (window._p360PageJsLoaded) return;
+window._p360PageJsLoaded = true;
+
 /**
  * Triggar en åtgärd via huvudmenyn i 360°.
  */
@@ -94,40 +101,9 @@ async function triggerDagboksblad() {
     return;
   }
 
-  // Klicka Print – MSRS genererar PDF:en och populerar download-länkens href
+  // Klicka Print – MSRS visar utskriftsdialogen i popup-fönstret.
+  // Användaren skriver ut eller sparar som PDF därifrån.
   printKnapp.click();
-
-  // Polla tills download-länken har fått ett href med PDF-URL:en (max 20 s)
-  const pdfUrl = await new Promise(resolve => {
-    const start = Date.now();
-    const check = setInterval(() => {
-      try {
-        const dl = popup.document.querySelector('.msrs-printdialog-downloadlink');
-        if (dl?.href?.includes('.axd')) { clearInterval(check); resolve(dl.href); }
-      } catch { /* popup stängd */ }
-      if (Date.now() - start > 20000) { clearInterval(check); resolve(null); }
-    }, 150);
-  });
-
-  if (!pdfUrl) {
-    alert('Kunde inte hämta PDF:en från dagboksbladet.');
-    return;
-  }
-
-  // Hämta PDF:en som blob med sessionscookies – kringgår Content-Disposition: attachment
-  // som servern sätter på .axd-URL:en. Blob-URL:er öppnas alltid inline i Chrome.
-  let blobUrl;
-  try {
-    const resp = await fetch(pdfUrl, { credentials: 'include' });
-    const blob = await resp.blob();
-    blobUrl = URL.createObjectURL(blob);
-  } catch {
-    alert('Kunde inte ladda PDF:en.');
-    return;
-  }
-
-  popup.close();
-  window.open(blobUrl, '_blank');
 }
 
 /**
@@ -324,9 +300,15 @@ async function växlaStatus() {
 
 // URL till nytt-ärende-formuläret i dialogläge. Laddas som iframe inom befintlig 360°-sida
 // för att säkerställa rätt sessionskontekst – direktnavigering via GET fungerar ej.
+// context-data måste innehålla alla tre parametrar som 360°:s menyknapp skickar:
+//   subtype,Primary,61000  – ärendetyp
+//   IsDlg,Primary,1        – dialog-flagga (context-data-versionen)
+//   name,Primary,DMS.Case.New.61000 – formulärnamn (krävs för att servern ska
+//                                      spara klassificering och övriga fält korrekt)
 const NY_ÄRENDE_URL =
   '/view.aspx?id=cf7c6540-7018-4c8c-9da8-783d6ce5d8cf' +
-  '&dialogmode=true&IsDlg=1&context-data=subtype,Primary,61000';
+  '&dialogmode=true&IsDlg=1' +
+  '&context-data=subtype%2cPrimary%2c61000%3bIsDlg%2cPrimary%2c1%3bname%2cPrimary%2cDMS.Case.New.61000%3b';
 
 /**
  * Väntar på att ett iframe dyker upp (i huvud-dokumentet) vars src eller
@@ -394,6 +376,27 @@ async function sättSelectize(id, value, doc) {
       }
     }, 50);
   });
+}
+
+/**
+ * Sätter ett Selectize-fält tyst – utan att trigga onchange/PostBack.
+ *
+ * De flesta fält i nytt-ärende-formuläret har onchange-attribut som anropar
+ * __doPostBack. ASP.NET ScriptManager kan bara hantera ett UpdatePanel-svar
+ * åt gången; om flera PostBacks skickas tätt inpå varandra skriver svaren
+ * över varandra och återställer fältvärden till default. Enbart
+ * JournalUnitComboControl och AccessCodeComboControl behöver faktiskt trigga
+ * en server-side UpdatePanel. Alla övriga fält sätts via den här funktionen
+ * som tillfälligt tar bort onchange-attributet under setValue.
+ */
+async function sättSelectizeTyst(id, value, doc) {
+  const d = doc || document;
+  const el = d.getElementById(id);
+  if (!el || !value) return;
+  const onchange = el.getAttribute('onchange');
+  el.removeAttribute('onchange');
+  await sättSelectize(id, value, d);
+  if (onchange !== null) el.setAttribute('onchange', onchange);
 }
 
 /**
@@ -590,17 +593,15 @@ async function skapaFrånMall(mall) {
     const iDoc = iframe.contentDocument;
     const iWin = iframe.contentWindow;
 
-    // Patcha __doPostBack i iframe för att logga alla anrop under körningen.
-    // Avslöjar hur många PostBacks som skickas och från vilka fält.
     const _origPB = iWin.__doPostBack;
-    iWin.__doPostBack = function(target, arg) {
-      console.log('[p360] __doPostBack:', target, '| arg:', arg, '| tid:', Date.now());
-      return _origPB.call(iWin, target, arg);
-    };
+    iWin.__doPostBack = function(target, arg) { return _origPB.call(iWin, target, arg); };
 
     // pb: postback i formulärets eget fönster (via patchad version)
     const pb = (t, a) => iWin.__doPostBack(t, a);
+    // sättSel: sätter Selectize-fält MED PostBack (JournalUnit och AccessCode behöver det)
     const sättSel = (id, val) => sättSelectize(id, val, iDoc);
+    // sättSelTyst: sätter Selectize-fält UTAN PostBack (alla övriga fält)
+    const sättSelTyst = (id, val) => sättSelectizeTyst(id, val, iDoc);
 
     const titelFält = await waitForElement(iDoc, '#PlaceHolderMain_MainView_TitleTextBoxControl', 10000);
     if (!titelFält) throw new Error('Formuläret laddades inte korrekt.');
@@ -609,180 +610,344 @@ async function skapaFrånMall(mall) {
       titel: mall.titel, diarieenhet: mall.diarieenhet?.value,
       klassificering: mall.klassificering?.value, skyddskod: mall.skyddskod,
     }));
+
+    // Fixa layout: flikraden täcker formulärinnehållet när formuläret renderas
+    // utanför 360°:s eget dialogsystem. margin-top på wizard-tabellen löser det.
+    const layoutStyle = iDoc.createElement('style');
+    layoutStyle.textContent = `
+      .si-wizard-maintable { margin-top: 50px !important; }
+      #PlaceHolderMain_MainView_WizardFinishButton,
+      #PlaceHolderMain_MainView_WizardCancelButton { display: none !important; }
+    `;
+    iDoc.head.appendChild(layoutStyle);
+
     visaStatus('Fyller i fält…');
 
-    // Klassificering sätts först – fältet kan trigga en UpdatePanel-refresh
-    // som annars skulle nolla övriga fält om det sattes senare.
-    if (mall.klassificering?.value) {
-      console.log('[p360] Sätter klassificering:', mall.klassificering.value, mall.klassificering.display);
-      const vis  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
-      const dolt = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
-      if (vis)  vis.value  = mall.klassificering.display || '';
-      if (dolt) dolt.value = mall.klassificering.value;
-      console.log('[p360] Klassificering satt. vis.value=', vis?.value, 'dolt.value=', dolt?.value);
-      await sleep(600);
-    }
-
     if (mall.diarieenhet?.value) {
-      console.log('[p360] Sätter diarieenhet:', mall.diarieenhet.value);
       await sättSel('PlaceHolderMain_MainView_JournalUnitComboControl', mall.diarieenhet.value);
-      console.log('[p360] Diarieenhet satt. Väntar 800 ms på eventuell UpdatePanel…');
       await sleep(800);
     }
+    if (mall.delarkiv?.value)
+      await sättSelTyst('PlaceHolderMain_MainView_CaseSubArchiveComboControl', mall.delarkiv.value);
+    if (mall.atkomstgrupp?.value)
+      await sättSelTyst('PlaceHolderMain_MainView_AccessGroupComboControl', mall.atkomstgrupp.value);
+    if (mall.ansvarigEnhet?.value)
+      await sättSelTyst('PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl', mall.ansvarigEnhet.value);
+    if (mall.ansvarigPerson?.value)
+      await sättSelTyst('PlaceHolderMain_MainView_ResponsibleUserComboControl', mall.ansvarigPerson.value);
 
-    if (mall.delarkiv?.value) {
-      console.log('[p360] Sätter delarkiv:', mall.delarkiv.value);
-      await sättSel('PlaceHolderMain_MainView_CaseSubArchiveComboControl', mall.delarkiv.value);
-      console.log('[p360] Delarkiv satt.');
-    }
-    if (mall.atkomstgrupp?.value) {
-      console.log('[p360] Sätter åtkomstgrupp:', mall.atkomstgrupp.value);
-      await sättSel('PlaceHolderMain_MainView_AccessGroupComboControl', mall.atkomstgrupp.value);
-      console.log('[p360] Åtkomstgrupp satt.');
-    }
-    if (mall.ansvarigEnhet?.value) {
-      console.log('[p360] Sätter ansvarig enhet:', mall.ansvarigEnhet.value);
-      await sättSel('PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl', mall.ansvarigEnhet.value);
-      console.log('[p360] Ansvarig enhet satt.');
-    }
-    if (mall.ansvarigPerson?.value) {
-      console.log('[p360] Sätter ansvarig person:', mall.ansvarigPerson.value);
-      await sättSel('PlaceHolderMain_MainView_ResponsibleUserComboControl', mall.ansvarigPerson.value);
-      console.log('[p360] Ansvarig person satt.');
-    }
+    await sättSelTyst('PlaceHolderMain_MainView_StatusCaseComboControl', mall.status || '5');
+    await sättSelTyst('PlaceHolderMain_MainView_PaperDocAllowedComboControl', mall.sparatPaPapper || '0');
 
-    console.log('[p360] Sätter status:', mall.status || '5');
-    await sättSel('PlaceHolderMain_MainView_StatusCaseComboControl', mall.status || '5');
-    console.log('[p360] Status satt.');
+    // Hjälpfunktion: vänta på en UpdatePanel-endRequest (används av klassificering och re-registrering)
+    const väntalPåUpdatePanel = (fn) => new Promise(resolve => {
+      let done = false;
+      const finish = () => { if (!done) { done = true; resolve(); } };
+      const prm = iWin.Sys?.WebForms?.PageRequestManager?.getInstance();
+      if (prm) {
+        const handler = () => { prm.remove_endRequest(handler); finish(); };
+        prm.add_endRequest(handler);
+        fn();
+        setTimeout(finish, 5000);
+      } else {
+        fn();
+        finish();
+      }
+    });
 
-    console.log('[p360] Sätter sparat på papper:', mall.sparatPaPapper || '0');
-    await sättSel('PlaceHolderMain_MainView_PaperDocAllowedComboControl', mall.sparatPaPapper || '0');
-    console.log('[p360] Sparat på papper satt.');
+    // Klassificering sätts FÖRE skyddskods-blocket – HiddenButton-PostBacken återställer
+    // annars paragraf-fältet (verifierat 2026-03-22). AccessCode-UpdatePanel återställer
+    // INTE klassificeringen (verifierat i CLAUDE.md), så denna ordning är säker.
+    if (mall.klassificering?.value) {
+      const sättKlassificering = () => {
+        const vis   = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
+        const dolt  = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl');
+        const lista = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_dropDownList');
+        if (vis)  vis.value  = mall.klassificering.display || '';
+        if (dolt) dolt.value = mall.klassificering.value;
+        if (lista) {
+          if (!Array.from(lista.options).some(o => o.value === mall.klassificering.value)) {
+            const opt = iDoc.createElement('option');
+            opt.value = mall.klassificering.value;
+            opt.text  = mall.klassificering.display || mall.klassificering.value;
+            lista.appendChild(opt);
+          }
+          lista.value = mall.klassificering.value;
+        }
+      };
+
+      const visInit = iDoc.getElementById('PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY');
+      if (visInit) {
+        const displayText = mall.klassificering.display || '';
+        visInit.value = displayText.split(' ')[0].trim() || displayText;
+      }
+
+      await väntalPåUpdatePanel(() =>
+        pb('ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControlHiddenButton', ''));
+      sättKlassificering();
+    }
 
     if (mall.skyddskod && mall.skyddskod !== '0') {
-      console.log('[p360] Sätter skyddskod:', mall.skyddskod);
       // Sätt skyddskod och vänta på UpdatePanel-refresh (laddar paragraf-fälten).
       await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', mall.skyddskod);
-      console.log('[p360] Skyddskod satt. Väntar på paragraf-fält i DOM…');
 
       // Vänta tills paragraf-fältet dyker upp (bekräftar att servern svarat).
+      // Selectize är initialiserat synkront med UpdatePanel-svaret – ingen extra sleep behövs.
       const paragrafFält = await waitForElement(
         iDoc, '#PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', 10000
       );
-      console.log('[p360] Paragraf-fält hittades:', !!paragrafFält);
-
-      // Selectize på paragraf-fältet är initialiserat direkt när UpdatePanel-svaret laddats –
-      // ingen extra sleep behövs. Övriga fält (titel, accessCode m.m.) påverkas inte av svaret.
-      if (paragrafFält && mall.sekretessParag) {
-        console.log('[p360] Sätter paragraf:', mall.sekretessParag);
-        await sättSel('PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', mall.sekretessParag);
-        console.log('[p360] Paragraf satt.');
-      }
+      if (paragrafFält && mall.sekretessParag)
+        await sättSelTyst('PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', mall.sekretessParag);
 
       const checkbox = iDoc.getElementById('PlaceHolderMain_MainView_UnofficialContactCheckBoxControl');
-      if (checkbox) {
-        checkbox.checked = !!mall.skyddaKontakter;
-        console.log('[p360] Skydda kontakter satt till:', checkbox.checked);
-      }
+      if (checkbox) checkbox.checked = !!mall.skyddaKontakter;
 
-      // SelectOfficialTitleComboBox har ett PostBack-onchange som laddar offentligTitel-fältet.
-      // Sätt värdet och vänta på eventuell UpdatePanel om val=3.
-      console.log('[p360] Sätter offentligTitelVal:', mall.offentligTitelVal || '1');
-      await sättSel('PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl', mall.offentligTitelVal || '1');
-      if (mall.offentligTitelVal === '3') {
-        console.log('[p360] Väntar på offentlig titel-fält…');
+      // SelectOfficialTitle: sätt tyst och trigga PostBacken explicit för att undvika
+      // race condition med setTimeout i Selectize-onchange.
+      const offTitelVal = mall.offentligTitelVal || '1';
+      await sättSelTyst('PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl', offTitelVal);
+      await väntalPåUpdatePanel(() =>
+        pb('ctl00$PlaceHolderMain$MainView$SelectOfficialTitleComboBoxControl', ''));
+      if (offTitelVal === '3') {
         const offFält = await waitForElement(iDoc, '#PlaceHolderMain_MainView_PublicTitleTextBoxControl', 8000);
         if (offFält) {
           offFält.value = mall.offentligTitel || '';
-          console.log('[p360] Offentlig titel satt:', offFält.value);
         } else {
           console.warn('[p360] Offentlig titel-fält hittades inte inom timeout.');
         }
       }
     } else {
-      console.log('[p360] Skyddskod = offentlig (0), sätter AccessCode till 0.');
       await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', '0');
-      console.log('[p360] AccessCode satt till 0.');
     }
 
+    const bytteFlik = mall.externaKontakter?.length > 0 || !!mall.kommentar;
+
     if (mall.externaKontakter?.length > 0) {
-      console.log('[p360] Lägger till', mall.externaKontakter.length, 'externa kontakter.');
       pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'ContactsStep');
       visaStatus('Lägger till externa kontakter…');
       await sleep(1500);
       for (const kontakt of mall.externaKontakter) {
-        console.log('[p360] Lägger till kontakt:', kontakt.namn);
         // pb skickas med för att postback-anrop ska ske i formulärets iframe-kontext.
         // Kontaktdialogerna hamnar i huvud-dokumentets body (window.top) som syskoniframes.
         await läggTillExternKontakt(kontakt, pb);
-        console.log('[p360] Kontakt tillagd:', kontakt.namn);
         await sleep(500);
       }
     }
 
     if (mall.kommentar) {
-      console.log('[p360] Sätter kommentar.');
       pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'NotesStep');
       await sleep(1000);
       const kFält = await waitForElement(iDoc, '#PlaceHolderMain_MainView_NotesStep_Control', 3000);
       if (kFält) {
         kFält.value = mall.kommentar;
-        console.log('[p360] Kommentar satt.');
       } else {
         console.warn('[p360] Kommentar-fält hittades inte.');
       }
     }
 
+    // Om vi navigerat bort från Generellt måste vi navigera tillbaka – annars
+    // finns inte TitleTextBoxControl i DOM:en (ASP.NET Wizard renderar bara aktiv flik).
+    if (bytteFlik) {
+      visaStatus('Återgår till Generellt…');
+      pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'GeneralStep');
+      await waitForElement(iDoc, '#PlaceHolderMain_MainView_TitleTextBoxControl', 6000);
+    }
+
     // Titel sätts sist, direkt innan submit – undviker att UpdatePanel-svar från
-    // övriga fält (diarieenhet, ansvarig enhet m.m.) hinner ersätta DOM-noder och
-    // nollställa värdet. Hämtar elementet färskt ur aktuell DOM (inte gammal referens).
-    console.log('[p360] Sätter titel (sist, färskt element):', mall.titel);
+    // övriga fält hinner ersätta DOM-noder och nollställa värdet.
     const titelElNu = iDoc.getElementById('PlaceHolderMain_MainView_TitleTextBoxControl');
-    console.log('[p360] titelElNu hittades:', !!titelElNu, '| isConnected:', titelElNu?.isConnected);
     if (titelElNu) {
       titelElNu.value = mall.titel || '';
       titelElNu.dispatchEvent(new Event('input',  { bubbles: true }));
       titelElNu.dispatchEvent(new Event('change', { bubbles: true }));
       titelElNu.dispatchEvent(new Event('blur',   { bubbles: true }));
-      console.log('[p360] Titel satt. titelElNu.value=', titelElNu.value);
     } else {
       console.error('[p360] FEL: titelElNu är null – formuläret kan ha laddats om.');
     }
 
-    // Snapshot av kritiska fält direkt innan submit
-    console.log('[p360] Snapshot innan submit:', {
-      titel:          iDoc.getElementById('PlaceHolderMain_MainView_TitleTextBoxControl')?.value,
-      diarieenhet:    iDoc.getElementById('PlaceHolderMain_MainView_JournalUnitComboControl')?.value,
-      accessCode:     iDoc.getElementById('PlaceHolderMain_MainView_AccessCodeComboControl')?.value,
-      sparatPaPapper: iDoc.getElementById('PlaceHolderMain_MainView_PaperDocAllowedComboControl')?.value,
-      status:         iDoc.getElementById('PlaceHolderMain_MainView_StatusCaseComboControl')?.value,
-    });
+    // 360° kräver att finish-anropet sker via __doPostBack → PageRequestManager (async XHR).
+    // form.submit() kringgår ScriptManager och ger UnhandledError.aspx.
+    //
+    // I IsDlg=1-läge (SharePoint-dialogmönster) kallar 360°:s svarskod
+    // window.frameElement.commitPopup(returnVal) i iframe-kontexten när ärendet
+    // sparas. Utan denna metod på vårt <iframe>-element sker ingen navigering.
+    // Vi lägger till commitPopup innan submit och navigerar därifrån.
+    const topUrlFör = window.location.href;
 
-    visaStatus('Skapar ärende…');
-    await sleep(300);
-    console.log('[p360] Anropar finish-postback.');
-    pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
+    // Resize krävs av ResizeDialogAuto() – utan den kastas TypeError som avbryter startup-kedjan.
+    iframe.Resize = () => {};
+    // IsLoading = true signalerar att dialogen aktivt bearbetar en form-submit.
+    iframe.IsLoading = true;
 
-    // Vänta på att iframen navigeras till det nyskapade ärendet
-    const nyUrl = await new Promise(resolve => {
-      const t = Date.now();
-      const check = setInterval(() => {
-        try {
-          const href = iWin.location.href;
-          if (href.includes('/DMS/Case/Details/') || href.includes('module=Case&subtype=')) {
-            clearInterval(check);
-            resolve(href);
+    // commitPopup/cancelPopup – fallback om 360° ändrar beteende och börjar anropa dessa.
+    iframe.commitPopup = (returnVal) => {
+      overlay.remove();
+      const s = String(returnVal || '');
+      if (s.includes('/DMS/') || s.includes('recno=')) {
+        window.location.href = s;
+      } else if (/^\d{5,}$/.test(s)) {
+        window.location.href =
+          `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${s}`;
+      }
+    };
+    iframe.cancelPopup = () => { overlay.remove(); };
+
+    // Interceptera CloseCallback i top-level-fönstret (fallback om 360° anropar den).
+    const origCloseCallback = window.SI?.UI?.ModalDialog?.CloseCallback;
+    if (window.SI?.UI?.ModalDialog) {
+      window.SI.UI.ModalDialog.CloseCallback = function(returnValue, ...args) {
+        window.SI.UI.ModalDialog.CloseCallback = origCloseCallback;
+        overlay.remove();
+        const s = String(returnValue || '');
+        if (s.includes('/DMS/') || s.includes('recno=')) {
+          window.location.href = s;
+        } else if (/^\d{5,}$/.test(s)) {
+          window.location.href =
+            `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${s}`;
+        } else if (origCloseCallback) {
+          origCloseCallback.call(this, returnValue, ...args);
+        }
+      };
+    }
+
+    // get_childDialog() anropas av ResizeDialogAuto() i iframe-kontexten.
+    // Utan en känd dialog-instans returneras null → TypeError avbryter kedjan.
+    if (iWin.SI?.UI?.ModalDialog) {
+      const iMD = iWin.SI.UI.ModalDialog;
+      const origGetChildDialog = iMD.get_childDialog?.bind(iMD);
+      iMD.get_childDialog = function() { return origGetChildDialog?.() ?? iframe; };
+    }
+
+    // XHR-interceptor: fånga recno från finish-postback och navigera direkt
+    let fångaFinishSvar = false;
+    let recnoFrånXHR = null;
+    const origXHROpen = iWin.XMLHttpRequest.prototype.open;
+    iWin.XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+      if (fångaFinishSvar && String(url).includes('view.aspx')) {
+        this.addEventListener('load', function() {
+          const svar = this.responseText;
+          const m = svar.match(/recno[=:](\d+)/i)
+                 || svar.match(/"recno"\s*:\s*"?(\d+)"?/i);
+          if (m) {
+            console.log('[p360] recno funnet i XHR-svar:', m[1]);
+            recnoFrånXHR = m[1];
           }
-        } catch { /* Under redirect kan location vara tillfälligt otillgänglig */ }
-        if (Date.now() - t > 60000) { clearInterval(check); resolve(null); }
-      }, 400);
-    });
+        });
+      }
+      return origXHROpen.call(this, method, url, ...rest);
+    };
+
+    const submitFn = () => {
+      fångaFinishSvar = true;
+      const slutförBtn = iDoc.querySelector(
+        'input[onclick*="WizardNavigationButton"][onclick*="finish"],' +
+        'a[onclick*="WizardNavigationButton"][onclick*="finish"],' +
+        'button[onclick*="WizardNavigationButton"][onclick*="finish"]'
+      );
+      if (slutförBtn) {
+        console.log('[p360] Klickar fysisk Slutför-knapp:', slutförBtn.tagName, slutförBtn.id);
+        slutförBtn.click();
+      } else {
+        console.warn('[p360] Slutför-knapp ej hittad – faller tillbaka på pb(finish).');
+        pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
+      }
+    };
+
+    if (mall.debugPauseKlassificering) {
+      visaStatus('Granska fälten i formuläret – klicka Skicka nedan när du är redo.');
+
+      const knappRad = document.createElement('div');
+      knappRad.style.cssText = 'display:flex;gap:8px;margin:8px 0 4px;';
+
+      const slutförKnapp = document.createElement('button');
+      slutförKnapp.textContent = 'Skicka (skapa ärende)';
+      slutförKnapp.style.cssText =
+        'padding:7px 18px;background:#1a5276;color:#fff;' +
+        'border:none;border-radius:4px;cursor:pointer;font-size:13px;font-family:sans-serif;';
+
+      const avbrytKnapp = document.createElement('button');
+      avbrytKnapp.textContent = 'Avbryt';
+      avbrytKnapp.style.cssText =
+        'padding:7px 18px;background:#666;color:#fff;' +
+        'border:none;border-radius:4px;cursor:pointer;font-size:13px;font-family:sans-serif;';
+
+      knappRad.appendChild(slutförKnapp);
+      knappRad.appendChild(avbrytKnapp);
+      overlay.insertBefore(knappRad, iframe);
+
+      const fortsätt = await new Promise(resolve => {
+        slutförKnapp.onclick = () => { knappRad.remove(); visaStatus('Skapar ärende…'); submitFn(); resolve(true); };
+        avbrytKnapp.onclick = () => { resolve(false); };
+      });
+
+      if (!fortsätt) { overlay.remove(); return; }
+    } else {
+      visaStatus('Skapar ärende…');
+      submitFn();
+    }
+
+    // Polla top-level URL och iframe-URL (max 30 s).
+    // 360° kan navigera antingen window.top eller enbart iframen (ScriptManager följer 302).
+    let navigerad = false;
+    const deadline = Date.now() + 30000;
+    while (Date.now() < deadline) {
+      await sleep(300);
+
+      // 1. Top-level navigering (window.top.location ändrades)
+      if (window.location.href !== topUrlFör) {
+        navigerad = true;
+        break;
+      }
+
+      // 2. Recno hittades i XHR-svaret – navigera direkt
+      if (recnoFrånXHR) {
+        const målUrl = `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${recnoFrånXHR}`;
+        console.log('[p360] Navigerar till nytt ärende via XHR-recno:', målUrl);
+        overlay.remove();
+        window.location.href = målUrl;
+        return;
+      }
+
+      // 3. Iframe navigerad till ärendesida (ScriptManager följde 302 i iframe-kontexten)
+      try {
+        const iHref = iframe.contentWindow?.location?.href || '';
+        if (iHref.includes('UnhandledError')) {
+          overlay.remove();
+          alert('360° rapporterade ett serverfel vid ärendeskapande. Kontrollera 360° manuellt.');
+          return;
+        }
+        if (iHref.includes('recno=') && !iHref.includes('cf7c6540')) {
+          const recno = new URLSearchParams(iHref.split('?')[1] || '').get('recno');
+          const målUrl = recno
+            ? `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${recno}`
+            : iHref;
+          console.log('[p360] Iframe navigerad till ärende, navigerar top-level:', målUrl);
+          overlay.remove();
+          window.location.href = målUrl;
+          return;
+        }
+      } catch (e) { /* cross-origin */ }
+    }
 
     overlay.remove();
-    if (nyUrl) {
-      window.location.href = nyUrl;
-    } else {
-      alert('Ärendet kan ha skapats. Kontrollera i 360°.');
+
+    if (!navigerad) {
+      // Timeout – kolla valideringsfel i formuläret
+      let valideringsfel = [];
+      try {
+        const nyDoc = iframe.contentDocument;
+        if (nyDoc) {
+          valideringsfel = Array.from(nyDoc.querySelectorAll('span.ms-formvalidation'))
+            .filter(el => !el.id?.includes('mandatory') && el.textContent.trim().length > 2)
+            .map(el => el.textContent.trim());
+        }
+      } catch (e) { /* cross-origin */ }
+      console.warn('[p360] Ingen navigering inom 30 s. Valideringsfel:', valideringsfel);
+      if (valideringsfel.length > 0) {
+        alert('Ärendet kunde inte skapas. Valideringsfel:\n' + valideringsfel.join('\n'));
+      } else {
+        alert('Ärendet skapades troligen inte – ingen navigering detekterades inom 30 s.');
+      }
     }
 
   } catch (err) {
@@ -812,18 +977,29 @@ async function läggTillExternKontakt(kontakt, pb = __doPostBack) {
   if (typSel?.selectize) { typSel.selectize.setValue('0'); } else if (typSel) { typSel.value = '0'; }
   await sleep(200);
 
-  typDoc.getElementById('__EVENTTARGET').value   = 'ctl00$PlaceHolderMain$MainView$DialogButton';
-  typDoc.getElementById('__EVENTARGUMENT').value = 'finish';
-  typDoc.getElementById('form1').submit();
+  typIframe.contentWindow.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish');
 
   // Steg 2: Kontaktformulär
   const kontaktIframe = await waitForNyIframe('JournalCaseContactNew', 10000);
   if (!kontaktIframe) { alert('Kontaktformuläret öppnades inte för kontakt: ' + (kontakt.namn || '')); return; }
 
+  // Hämta alltid contentDocument via iframen (inte via cachad variabel) för att
+  // undvika inaktuell referens efter en eventuell client-side redirect.
+  const namnEl = await waitForElement(kontaktIframe.contentDocument, '#PlaceHolderMain_MainView_ContactNameControl', 5000);
   const kDoc = kontaktIframe.contentDocument;
-  await waitForElement(kDoc, '#PlaceHolderMain_MainView_ContactNameControl', 5000);
 
-  const sättFält = (id, val) => { const el = kDoc.getElementById(id); if (el && val) el.value = val; };
+  console.log('[p360] kontaktIframe href:', kDoc.location?.href);
+  console.log('[p360] kontakt.namn:', kontakt.namn);
+  console.log('[p360] namnEl hittat:', !!namnEl, namnEl?.tagName, namnEl?.id);
+
+  const sättFält = (id, val) => {
+    const el = kDoc.getElementById(id);
+    if (el && val) {
+      el.value = val;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  };
   sättFält('PlaceHolderMain_MainView_ContactNameControl',         kontakt.namn);
   sättFält('PlaceHolderMain_MainView_ContactName2Control',        kontakt.kontaktperson);
   sättFält('PlaceHolderMain_MainView_ContactAddressControl',      kontakt.adress);
@@ -832,11 +1008,12 @@ async function läggTillExternKontakt(kontakt, pb = __doPostBack) {
   sättFält('PlaceHolderMain_MainView_ContactEmailControl',        kontakt.epost);
   sättFält('PlaceHolderMain_MainView_Phone',                      kontakt.telefon);
   sättFält('PlaceHolderMain_MainView_ContactNotesControl',        kontakt.kommentar);
-  await sleep(200);
 
-  kDoc.getElementById('__EVENTTARGET').value   = 'ctl00$PlaceHolderMain$MainView$DialogButton';
-  kDoc.getElementById('__EVENTARGUMENT').value = 'finish';
-  kDoc.getElementById('form1').submit();
+  console.log('[p360] namnEl.value efter sättFält:', kDoc.getElementById('PlaceHolderMain_MainView_ContactNameControl')?.value);
+  await sleep(300);
+  console.log('[p360] namnEl.value precis före submit:', kDoc.getElementById('PlaceHolderMain_MainView_ContactNameControl')?.value);
+
+  kontaktIframe.contentWindow.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish');
 
   // Steg 3 (villkorligt): Dubblettvarning
   await sleep(1500);
@@ -846,9 +1023,7 @@ async function läggTillExternKontakt(kontakt, pb = __doPostBack) {
   });
   if (dubblettIframe) {
     const dDoc = dubblettIframe.contentDocument;
-    dDoc.getElementById('__EVENTTARGET').value   = 'ctl00$PlaceHolderMain$MainView$DialogButton';
-    dDoc.getElementById('__EVENTARGUMENT').value = 'no';
-    dDoc.getElementById('form1').submit();
+    dubblettIframe.contentWindow.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'no');
     await sleep(1000);
   }
 
@@ -869,6 +1044,7 @@ async function läggTillExternKontakt(kontakt, pb = __doPostBack) {
 if (!window.__p360Initierat) {
   window.__p360Initierat = true;
 
+
 // Tar emot anrop från content.js och skickar tillbaka svar
 window.addEventListener('p360-anrop', async (event) => {
   const { id, action, data } = event.detail;
@@ -887,6 +1063,8 @@ window.addEventListener('p360-anrop', async (event) => {
   try {
     if (action === 'sättStatus') {
       await sättStatus(data.statusVärde);
+    } else if (action === 'makulera') {
+      await sättStatus('8');
     } else if (action === 'växlaStatus') {
       await växlaStatus();
     } else if (action === 'dagboksblad') {
@@ -908,3 +1086,5 @@ window.addEventListener('p360-anrop', async (event) => {
   }
 });
 } // slut: window.__p360Initierat
+
+})(); // slut: IIFE-skydd mot dubbel-injektion

@@ -5,6 +5,9 @@ chrome.commands.onCommand.addListener(async (command) => {
   const kommandonTillAction = {
     'dagboksblad-skriv-ut': 'dagboksblad',
     'växla-status':         'växlaStatus',
+    'redigera-egenskaper':  'redigeraEgenskaper',
+    'spara-som-nytt':       'sparaSomNytt',
+    'makulera':             'makulera',
   };
 
   const action = kommandonTillAction[command];

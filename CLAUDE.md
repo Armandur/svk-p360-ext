@@ -265,7 +265,7 @@ serversvaret innan man sätter deras värden. **Verifierat beteende (2026-03-20)
 2. `AccessCodeAuthorizationComboControl.selectize.setValue('Kyrkoordningen 54 kap. 4 §')` ← Selectize är redo direkt, ingen sleep
 3. `UnofficialContactCheckBoxControl.checked = true/false`
 4. `SelectOfficialTitleComboBoxControl.selectize.setValue('1'/'2'/'3')` → om `3`: vänta på UpdatePanel → fyll `PublicTitleTextBoxControl.value`
-5. Anropa `__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish')`
+5. Klicka fysisk Slutför-knapp (`PlaceHolderMain_MainView_WizardFinishButton`) – **inte** `form.submit()`, se avsnittet "Spara-knappen"
 
 **Sparat på papper (PaperDocAllowedComboControl):**
 | Värde | Text |
@@ -294,21 +294,33 @@ sätts till recno-koden.
 > man användaren söka och välja klassificering när mallen skapas, och sparar både
 > visningsvärde och recno i `chrome.storage.local`.
 
+**VIKTIGT – Ordning i tillägget:** Klassificering måste sättas **före** skyddskod-blocket.
+`ClassificationCode1ComboControl_OnClick_PostBack` (HiddenButton) triggar en UpdatePanel
+som vid fel ordning nollställer paragraf-fältet (`AccessCodeAuthorizationComboControl`)
+om skyddskod redan satts. Sätt klassificering via det dolda fältet + dropDownList-elementet
+och kör HiddenButton-postbacken *innan* `AccessCodeComboControl` sätts.
+
 ### Spara-knappen
 
+Knappen "Slutför" har element-ID `PlaceHolderMain_MainView_WizardFinishButton` och
+anropar via `onclick`:
 ```js
-// Knappen "Slutför" anropar:
 __doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish')
-// vilket sätter __EVENTTARGET och __EVENTARGUMENT och submittar form1
 ```
 
-I tillägget – anropa detta i iframe-kontexten:
+**KRITISKT:** Anropa **aldrig** `form.submit()` direkt i IsDlg=1/dialogmode-läge.
+Det kringgår ASP.NET ScriptManager/PageRequestManager och ger `UnhandledError.aspx`.
+Använd istället den fysiska knappen eller `__doPostBack` via PageRequestManager:
+
 ```js
-const doc = iframe.contentDocument;
-doc.getElementById('__EVENTTARGET').value =
-  'ctl00$PlaceHolderMain$MainView$WizardNavigationButton';
-doc.getElementById('__EVENTARGUMENT').value = 'finish';
-doc.getElementById('form1').submit();
+// Rekommenderat – klicka den fysiska Slutför-knappen:
+const slutförBtn = iDoc.querySelector(
+  'input[onclick*="WizardNavigationButton"][onclick*="finish"]'
+);
+slutförBtn?.click();
+
+// Alternativt – anropa __doPostBack direkt (PageRequestManager hanterar det):
+iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
 ```
 
 ### Diarienumret efter skapande
@@ -343,9 +355,66 @@ const recno = new URLSearchParams(window.location.search).get('recno');
 | `BIFViewState` (GUID) | Session-GUID genereras per formulärinstans | Hämta från `[name*="BIFViewState"]` |
 | `keepViewAlive`-pingning | Servern pingar var 30:e sekund – session dör annars | Håll formuläret öppet tills POST skickas |
 | Klassificering | Kräver giltigt recno i hidden-fältet | Hårdkoda kända klassificeringskoder per mall |
+| Klassificering – ordning | HiddenButton-postback nollställer paragraf om skyddskod redan satts | Sätt klassificering **före** skyddskod-blocket – se notering i klassificeringsavsnittet |
+| `form.submit()` i IsDlg=1 | Kringgår ScriptManager → `UnhandledError.aspx` | Klicka fysisk knapp eller anropa `__doPostBack` så PageRequestManager hanterar det |
 | Selectize.js | Native `<select>` är dolt | Anropa `element.selectize.setValue(val)` |
 | `Wizard_CheckSum` | Skickas som `%5Bobject%20HTMLTableElement%5D` | Skicka rakt av – verkar ej strikt validerat |
 | Sekretessfält | Paragraf och offentlig titel laddas via UpdatePanel | Trigga postbacks i rätt ordning – se implementeringsflöde ovan |
+| Dialog close / navigering | 360° anropar `get_childDialog()` → `Resize()` → läser `IsLoading` – hur navigering sker efter finish är ännu ej fullständigt kartlagt | Se avsnittet "Dialog close-mekanism" nedan |
+
+### Dialog close-mekanism efter finish-postback (verifierat 2026-03-23)
+
+När `finish`-postbacken skickas via PageRequestManager anropar 360°:s interna
+`ResizeDialogAuto(t)`-funktion `get_childDialog()` på `iWin.SI.UI.ModalDialog`.
+Returvärdet (`t`) förväntas ha minst dessa egenskaper/metoder:
+
+| Egenskap/metod | Vad 360° gör med den |
+|---|---|
+| `t.Resize()` | Anropas direkt – **måste finnas**, annars TypeError som avbryter sekvensen |
+| `t.IsLoading` | Läses – om `true` väntar 360° ytterligare, om `false` fortsätter det |
+| `t.commitPopup(returnValue)` | Anropas med returnvärde (recno/URL) när ärende är sparat |
+| `t.cancelPopup()` | Anropas vid avbryt |
+
+I tillägget: sätt `iframe.Resize = () => {}` (no-op) och `iframe.IsLoading = true`
+så att 360° inte avbryter på TypeError. `commitPopup` på iframe-elementet anropas när
+360°-dialogen är klar:
+
+```js
+iframe.Resize = () => {};
+iframe.IsLoading = true;
+iframe.commitPopup = (returnVal) => {
+  const s = String(returnVal || '');
+  if (s.includes('recno=') || s.includes('/DMS/')) {
+    window.location.href = s;
+  } else if (/^\d{5,}$/.test(s)) {
+    window.location.href =
+      `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${s}`;
+  }
+};
+```
+
+`get_childDialog()` måste patcas för att returnera iframe-elementet:
+```js
+const origGet = iWin.SI.UI.ModalDialog.get_childDialog?.bind(iWin.SI.UI.ModalDialog);
+iWin.SI.UI.ModalDialog.get_childDialog = function() {
+  return origGet?.() ?? iframe;
+};
+```
+
+**Verifierat beteende (2026-03-23):** UpdatePanel-svaret från `view.aspx` (finish) innehåller
+recno direkt i svarstexten som strängen `recno=<nummer>`. `commitPopup` anropas **inte** i
+praktiken – `get_childDialog()` returnerar `undefined` i 360°:s interna kod och navigeringen
+sker aldrig via det spåret. Tillägget läser recno ur XHR-svaret och navigerar direkt:
+
+```js
+// XHR-interceptor i iframe-fönstret:
+const m = responseText.match(/recno[=:](\d+)/i);
+if (m) window.top.location.href =
+  `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${m[1]}`;
+```
+
+`commitPopup`, `cancelPopup` och `CloseCallback` finns kvar i koden som fallbacks
+om 360° ändrar beteende i framtida versioner.
 
 ---
 
@@ -623,23 +692,11 @@ Dagboksbladet öppnas via PostBack-nyckeln `key_innehallsforteckning`. 360° anr
    returnerar en instans (max 10 s). `$find` är en global ASP.NET-funktion i popup-fönstret.
 
 3. **Visa utskriftsdialogen** – `rv.invokePrintDialog()` renderar MSRS utskriftsdialog
-   i popup-fönstret. Dialogen innehåller:
-   - `.msrs-printdialog-divprintbutton` – den röda Print-knappen
-   - `.msrs-printdialog-downloadlink` – en `<a href="" download="">` med **tom** href
+   i popup-fönstret. Dialogen innehåller bl.a. `.msrs-printdialog-divprintbutton`.
 
 4. **Klicka Print-knappen** – `.msrs-printdialog-divprintbutton` klickas programmatiskt.
-   Därefter populerar MSRS `href` på download-länken med en URL till
-   `/Reserved.ReportViewerWebControl.axd` med dynamiskt `ControlID` och `rc:PrintOnOpen=true`.
-
-5. **Polla tills href finns** – När `.msrs-printdialog-downloadlink` har ett `href`
-   som innehåller `.axd` är PDF:en redo (max 20 s).
-
-6. **Hämta som blob** – `fetch(pdfUrl, { credentials: 'include' })` hämtar PDF:en med
-   sessionscookies. Servern sätter `Content-Disposition: attachment` vilket tvingar
-   nedladdning om URL:en öppnas direkt. Blob-URL saknar detta header.
-
-7. **Öppna i Chrome** – `URL.createObjectURL(blob)` skapar en blob-URL som öppnas med
-   `window.open(blobUrl, '_blank')`. Chrome öppnar blob-URL:er alltid i inbyggd PDF-visare.
+   MSRS utskriftsdialog är nu synlig i popup-fönstret och användaren skriver ut eller
+   sparar som PDF därifrån. Flödet är klart.
 
 ### Kända begränsningar
 
@@ -651,10 +708,13 @@ Dagboksbladet öppnas via PostBack-nyckeln `key_innehallsforteckning`. 360° anr
 
 | Kommando | Standardtangenter | Funktion |
 |----------|------------------|----------|
-| `dagboksblad-skriv-ut` | **Alt+Shift+D** | Hämtar och öppnar dagboksblad som PDF |
+| `dagboksblad-skriv-ut` | **Alt+Shift+D** | Öppnar dagboksblad och visar utskriftsdialog |
 | `växla-status`         | **Alt+Shift+S** | Växlar status mellan Öppet och Avslutat |
+| `redigera-egenskaper`  | **Alt+Shift+E** | Öppnar Redigera egenskaper-dialogen |
+| `makulera`             | **Alt+Shift+M** | Öppnar statusdialogen förinställd på Makulerat |
+| `spara-som-nytt`       | *(ingen standard)* | Spara som nytt ärende – tilldelas manuellt vid behov |
 
-Alla snabbkommandon är konfigurerbara via `chrome://extensions/shortcuts`.
+Chrome tillåter max 4 `suggested_key` per tillägg. Alla kommandon är konfigurerbara via `chrome://extensions/shortcuts`.
 
 ## Projektstruktur
 ```

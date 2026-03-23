@@ -378,6 +378,11 @@
     <!-- Externa kontakter -->
     <div class="sektion">
       <h3>Externa kontakter</h3>
+      <p style="font-size:12px;color:#555;margin:0 0 8px;">
+        Stöder typen <strong>Oregistrerad kontakt</strong>. Kontaktperson och Organisation stöds inte ännu.<br>
+        Om namnet liknar en befintlig kontakt i 360° visas en dubblettvarning – tillägget väljer
+        alltid <em>Spara/Skapa ny</em> och skapar en ny oregistrerad kontakt.
+      </p>
       <div id="kontaktlista"></div>
       <button id="btn-lagg-till-kontakt">＋ Lägg till extern kontakt</button>
     </div>
@@ -386,6 +391,21 @@
     <div class="sektion">
       <h3>Kommentar</h3>
       <textarea id="mall-kommentar" rows="3" placeholder="Kommentar som förfylls i ärendet (valfritt)"></textarea>
+    </div>
+
+    <!-- Felsökning -->
+    <div class="sektion">
+      <h3>Felsökning</h3>
+      <div class="faltrad">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+          <input type="checkbox" id="mall-debug-pause-klass">
+          Pausa inför skapande (granska fält)
+        </label>
+        <span style="font-size:11px;color:#888;display:block;margin-top:4px;">
+          Om ikryssad: tillägget fyller i alla fält automatiskt och stannar sedan. Du kan granska och justera fälten i formuläret, klicka sedan
+          på "Skicka" för att skapa ärendet.
+        </span>
+      </div>
     </div>
   </div>
 
