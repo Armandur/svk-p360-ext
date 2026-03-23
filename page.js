@@ -611,18 +611,11 @@ async function skapaFrånMall(mall) {
       klassificering: mall.klassificering?.value, skyddskod: mall.skyddskod,
     }));
 
-    // Fixa layout: flikrad och formulärinnehåll överlappar när formuläret renderas
-    // utanför 360°:s eget dialogsystem. Mät flikradens faktiska höjd och applicera
-    // motsvarande padding-top på formulärinnehållet som följer efter.
-    iWin.requestAnimationFrame(() => {
-      const tabMenu = iDoc.querySelector('.tab-view-menu');
-      if (!tabMenu) return;
-      const h = tabMenu.getBoundingClientRect().height;
-      const pushH = h > 0 ? h : 42; // fallback 42px om mätning misslyckas
-      Array.from(tabMenu.parentElement.children).forEach(el => {
-        if (el !== tabMenu) el.style.paddingTop = pushH + 'px';
-      });
-    });
+    // Fixa layout: flikraden täcker formulärinnehållet när formuläret renderas
+    // utanför 360°:s eget dialogsystem. margin-top på wizard-tabellen löser det.
+    const layoutStyle = iDoc.createElement('style');
+    layoutStyle.textContent = `.si-wizard-maintable { margin-top: 50px !important; }`;
+    iDoc.head.appendChild(layoutStyle);
 
     visaStatus('Fyller i fält…');
 
