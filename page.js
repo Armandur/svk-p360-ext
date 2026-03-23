@@ -614,7 +614,11 @@ async function skapaFrånMall(mall) {
     // Fixa layout: flikraden täcker formulärinnehållet när formuläret renderas
     // utanför 360°:s eget dialogsystem. margin-top på wizard-tabellen löser det.
     const layoutStyle = iDoc.createElement('style');
-    layoutStyle.textContent = `.si-wizard-maintable { margin-top: 50px !important; }`;
+    layoutStyle.textContent = `
+      .si-wizard-maintable { margin-top: 50px !important; }
+      #PlaceHolderMain_MainView_WizardFinishButton,
+      #PlaceHolderMain_MainView_WizardCancelButton { display: none !important; }
+    `;
     iDoc.head.appendChild(layoutStyle);
 
     visaStatus('Fyller i fält…');
