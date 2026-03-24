@@ -3,6 +3,125 @@
 // sättSelectize, sättSelectizeTyst (page-utils.js)
 
 /**
+ * Kontrollerar vilka obligatoriska fält i dokumentformuläret som är tomma.
+ * Returnerar en lista med etiketter för tomma fält.
+ */
+function kontrolleraObligatoriskaFält(iDoc) {
+  const tomma = [];
+
+  // Titel (alltid obligatorisk)
+  const titel = iDoc.getElementById('PlaceHolderMain_MainView_TitleTextBoxControl');
+  if (titel && !titel.value.trim()) tomma.push('Titel');
+
+  // Handlingstyp – obligatoriskt om fältet finns och är tomt
+  const handlTyp = iDoc.getElementById('PlaceHolderMain_MainView_ProcessRecordTypeControl');
+  if (handlTyp && !handlTyp.value) tomma.push('Handlingstyp');
+
+  // Dokumentkategori – obligatoriskt
+  const kat = iDoc.getElementById('PlaceHolderMain_MainView_TypeJournalDocumentInsertComboControl');
+  if (kat && !kat.value) tomma.push('Dokumentkategori');
+
+  // Skyddskod (har default Offentlig=0, kontrollera att det valts)
+  // Inte obligatoriskt per se men paragraf är det om skyddskod != 0
+  const skyddskod = iDoc.getElementById('PlaceHolderMain_MainView_AccessCodeComboControl');
+  if (skyddskod && skyddskod.value && skyddskod.value !== '0') {
+    const paragraf = iDoc.getElementById('PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl');
+    if (paragraf && !paragraf.value) tomma.push('Paragraf (sekretess)');
+
+    const offTitelVal = iDoc.getElementById('PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl');
+    if (offTitelVal && !offTitelVal.value) tomma.push('Val av offentlig titel');
+  }
+
+  // Åtkomstgrupp – obligatoriskt
+  const atkomst = iDoc.getElementById('PlaceHolderMain_MainView_AccessGroupComboControl');
+  if (atkomst && !atkomst.value) tomma.push('Åtkomstgrupp');
+
+  return tomma;
+}
+
+/**
+ * Visar dokumentformuläret för användaren och väntar på att de klickar Slutför.
+ * Returnerar ett Promise som resolvar när RepeatWizardDialog dyker upp (= sparat)
+ * eller rejectar vid timeout.
+ */
+function väntaPåAnvändarensSlutför(iframe, tommaFält) {
+  return new Promise((resolve, reject) => {
+    // Gör iframen synlig och interaktiv (i overlay-läge)
+    iframe.style.cssText =
+      'position:fixed;top:50px;left:50%;transform:translateX(-50%);' +
+      'width:95%;max-width:980px;height:calc(100vh - 100px);' +
+      'z-index:100000;border:3px solid #e67e22;border-radius:6px;background:#fff;';
+
+    // Skapa infobanner ovanför iframen
+    const banner = document.createElement('div');
+    banner.id = 'p360-manuell-banner';
+    banner.style.cssText =
+      'position:fixed;top:0;left:0;right:0;z-index:100001;' +
+      'background:#e67e22;color:#fff;font-family:sans-serif;font-size:13px;' +
+      'padding:10px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.3);text-align:center;';
+    banner.textContent =
+      `Fyll i: ${tommaFält.join(', ')} – klicka sedan Slutför i formuläret.`;
+    document.body.appendChild(banner);
+
+    // Skapa backdrop bakom iframen
+    const backdrop = document.createElement('div');
+    backdrop.id = 'p360-manuell-backdrop';
+    backdrop.style.cssText =
+      'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.5);';
+    document.body.appendChild(backdrop);
+
+    const TIMEOUT = 300000; // 5 minuter
+    const timer = setTimeout(() => {
+      rensa();
+      reject(new Error('Timeout – användaren fyllde inte i formuläret inom 5 minuter.'));
+    }, TIMEOUT);
+
+    function rensa() {
+      clearTimeout(timer);
+      banner.remove();
+      backdrop.remove();
+      // Återställ iframe-stilen (döljs av den normala cleanup-koden)
+      iframe.style.cssText = '';
+    }
+
+    // Bevaka DOM:en efter RepeatWizardDialog (= dokumentet sparades)
+    const obs = new MutationObserver((mutations) => {
+      for (const mut of mutations) {
+        for (const node of mut.addedNodes) {
+          if (node.nodeType !== 1) continue;
+          const iframes = node.tagName === 'IFRAME' ? [node] : Array.from(node.querySelectorAll?.('iframe') ?? []);
+          for (const f of iframes) {
+            try {
+              const src = f.src || f.contentDocument?.location?.href || '';
+              if (src.includes('RepeatWizardDialog')) {
+                obs.disconnect();
+                rensa();
+                resolve();
+                return;
+              }
+            } catch { /* cross-origin */ }
+          }
+        }
+      }
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+
+    // Kontrollera även redan existerande iframes
+    for (const f of document.querySelectorAll('iframe')) {
+      try {
+        const src = f.src || '';
+        if (src.includes('RepeatWizardDialog')) {
+          obs.disconnect();
+          rensa();
+          resolve();
+          return;
+        }
+      } catch { /* cross-origin */ }
+    }
+  });
+}
+
+/**
  * Skapar ett enskilt ärendedokument via formuläret på ärendesidan.
  * Förutsätter att vi befinner oss på en ärendedetaljsida.
  *
@@ -175,17 +294,23 @@ async function skapaÄrendedokument(dok, visaStatus) {
   titelFält.dispatchEvent(new Event('change', { bubbles: true }));
 
   // ---------------------------------------------------------------
-  // 3. Skicka formuläret (finish)
+  // 3. Kontrollera obligatoriska fält – pausa om något saknas
   // ---------------------------------------------------------------
-  visaStatus('Sparar ärendedokument…');
-
-  const slutförBtn = iDoc.querySelector(
-    'input[onclick*="WizardNavigationButton"][onclick*="finish"]'
-  );
-  if (slutförBtn) {
-    slutförBtn.click();
+  const tommaObl = kontrolleraObligatoriskaFält(iDoc);
+  if (tommaObl.length > 0) {
+    visaStatus(`Fyll i obligatoriska fält: ${tommaObl.join(', ')}`);
+    await väntaPåAnvändarensSlutför(iframe, tommaObl);
   } else {
-    pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
+    // Alla obligatoriska fält ifyllda – skicka automatiskt
+    visaStatus('Sparar ärendedokument…');
+    const slutförBtn = iDoc.querySelector(
+      'input[onclick*="WizardNavigationButton"][onclick*="finish"]'
+    );
+    if (slutförBtn) {
+      slutförBtn.click();
+    } else {
+      pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
+    }
   }
 
   // ---------------------------------------------------------------

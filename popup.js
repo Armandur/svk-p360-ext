@@ -241,10 +241,13 @@ async function laddaDokumentmallar() {
   tomText.style.display = 'none';
 
   dokumentmallar.forEach(dm => {
+    const tomma = tommaObligatoriska(dm);
     const rad = document.createElement('div');
     rad.className = 'mall-rad';
     rad.innerHTML = `
-      <span class="mall-namn" title="${escHtml(dm.namn)}">${escHtml(dm.namn)}</span>
+      <span class="mall-namn" title="${escHtml(dm.namn)}${tomma.length ? '\n⚠ Saknar: ' + tomma.join(', ') : ''}">
+        ${escHtml(dm.namn)}${tomma.length ? ' <span style="color:#b36b00;font-size:11px;">⚠</span>' : ''}
+      </span>
       <div class="mall-knappar">
         <button class="btn-använd" data-dokmall-id="${dm.id}">Använd</button>
         <button data-dokmall-redigera="${dm.id}" title="Redigera">✎</button>
@@ -297,6 +300,19 @@ laddaDokumentmallar();
 // ------------------------------------------------------------------
 // Hjälpfunktion
 // ------------------------------------------------------------------
+/**
+ * Returnerar lista med obligatoriska dokumentfält som saknar värde.
+ */
+function tommaObligatoriska(dm) {
+  const t = [];
+  if (!dm.titel) t.push('Titel');
+  if (!dm.handlingstyp?.value) t.push('Handlingstyp');
+  if (!dm.kategori) t.push('Dokumentkategori');
+  if (!dm.atkomstgrupp?.value) t.push('Åtkomstgrupp');
+  if (dm.skyddskod && dm.skyddskod !== '0' && !dm.sekretessParag) t.push('Paragraf');
+  return t;
+}
+
 function escHtml(str) {
   return String(str ?? '')
     .replace(/&/g, '&amp;')

@@ -478,6 +478,9 @@ function renderaDokument() {
     const handlTypText = dm?.handlingstyp?.text || '';
     const klassMismatch = klassKod && handlTypText && !handlTypText.startsWith(klassKod);
 
+    // Kontrollera tomma obligatoriska fält
+    const tommaObl = dm ? hittaTommaObligatoriskaFältDokMall(dm) : [];
+
     div.innerHTML = `
       <div class="dok-rubrik">${escHtml(namn)}</div>
       <div class="dok-knappar">
@@ -487,6 +490,7 @@ function renderaDokument() {
       ${detaljer.length ? `<div class="dok-detaljer">${escHtml(detaljer.join(' · '))}</div>` : ''}
       ${!dm ? '<div class="dok-detaljer" style="color:#c0392b;">Dokumentmallen hittades inte i lagringen.</div>' : ''}
       ${klassMismatch ? `<div class="dok-detaljer" style="color:#c0392b;">⚠ Handlingstypen (${escHtml(handlTypText.split(' ')[0])}) matchar inte ärendets klassificering (${escHtml(klassKod)})</div>` : ''}
+      ${tommaObl.length ? `<div class="dok-detaljer" style="color:#b36b00;">⚠ Användaren måste fylla i: ${escHtml(tommaObl.join(', '))}</div>` : ''}
     `;
     lista.appendChild(div);
   });
@@ -774,6 +778,19 @@ function visaFel(meddelande) {
   el.textContent = meddelande;
   el.style.display = 'block';
   el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+/**
+ * Returnerar lista med etiketter för obligatoriska dokumentfält som saknar värde.
+ */
+function hittaTommaObligatoriskaFältDokMall(dm) {
+  const tomma = [];
+  if (!dm.titel) tomma.push('Titel');
+  if (!dm.handlingstyp?.value) tomma.push('Handlingstyp');
+  if (!dm.kategori) tomma.push('Dokumentkategori');
+  if (!dm.atkomstgrupp?.value) tomma.push('Åtkomstgrupp');
+  if (dm.skyddskod && dm.skyddskod !== '0' && !dm.sekretessParag) tomma.push('Paragraf');
+  return tomma;
 }
 
 function escHtml(str) {

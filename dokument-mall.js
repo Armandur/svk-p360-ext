@@ -135,6 +135,11 @@ function kopplaHändelser() {
     document.getElementById('dok-ankomstdatum-värde').style.display = typ === 'datum' ? '' : 'none';
   });
 
+  // Återställ bekräftelse vid fältändringar
+  for (const el of document.querySelectorAll('input, select, textarea')) {
+    el.addEventListener('change', () => { sparaMall._bekräftad = false; });
+  }
+
   // Spara
   document.getElementById('btn-spara').addEventListener('click', sparaMall);
   document.getElementById('btn-avbryt').addEventListener('click', () => window.close());
@@ -167,6 +172,8 @@ function fyllParagrafer(kod) {
 async function sparaMall() {
   const felruta = document.getElementById('felruta');
   felruta.style.display = 'none';
+  const varningsruta = document.getElementById('varningsruta');
+  varningsruta.style.display = 'none';
 
   const namn = document.getElementById('dok-namn').value.trim();
   if (!namn) {
@@ -175,7 +182,30 @@ async function sparaMall() {
     return;
   }
 
-  const skyddskod = document.getElementById('dok-skyddskod').value;
+  // Kontrollera obligatoriska fält och varna (men tillåt sparande)
+  const tomma = [];
+  if (!document.getElementById('dok-titel').value.trim()) tomma.push('Titel');
+  if (!document.getElementById('dok-handlingstyp').value) tomma.push('Handlingstyp');
+  if (!document.getElementById('dok-kategori').value) tomma.push('Dokumentkategori');
+  if (!document.getElementById('dok-atkomstgrupp').value) tomma.push('Åtkomstgrupp');
+  const skyddskodVärde = document.getElementById('dok-skyddskod').value;
+  if (skyddskodVärde && skyddskodVärde !== '0' && !document.getElementById('dok-paragraf').value) {
+    tomma.push('Paragraf (sekretess)');
+  }
+
+  if (tomma.length > 0 && !sparaMall._bekräftad) {
+    varningsruta.innerHTML =
+      `<strong>Obligatoriska fält saknas:</strong> ${escHtml(tomma.join(', '))}<br>` +
+      'Användaren kommer att behöva fylla i dessa manuellt vid skapande. ' +
+      '<strong>Klicka Spara igen</strong> för att bekräfta.';
+    varningsruta.style.display = 'block';
+    varningsruta.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    sparaMall._bekräftad = true;
+    return;
+  }
+  sparaMall._bekräftad = false;
+
+  const skyddskod = skyddskodVärde;
 
   const handlingstypSel = document.getElementById('dok-handlingstyp');
   const atkomstgruppSel = document.getElementById('dok-atkomstgrupp');
