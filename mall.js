@@ -125,6 +125,11 @@ function kopplaHändelser() {
     uppdateraSekretessFält();
   });
 
+  // Omvalidera ärendedokument vid klassificeringsändring
+  document.getElementById('mall-klass-select').addEventListener('change', () => renderaDokument());
+  document.getElementById('mall-klass-recno').addEventListener('input', () => renderaDokument());
+  document.getElementById('mall-klass-display').addEventListener('input', () => renderaDokument());
+
   document.getElementById('mall-off-titel-val').addEventListener('change', () => {
     const val = document.getElementById('mall-off-titel-val').value;
     document.getElementById('off-titel-falt').style.display = val === '3' ? '' : 'none';
