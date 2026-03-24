@@ -7,30 +7,40 @@ Flytta en punkt till "Klart" när den är implementerad och testad.
 
 ## Under arbete
 
-_(ingenting just nu)_
+### Ärendedokument – mall och filuppladdning
+
+**Var vi är (2026-03-24):**
+
+- ✅ Ärendedokument-formuläret är fullständigt kartlagt i CLAUDE.md (formulärfält,
+  PostBack-nycklar, Inkommande/Utgående-kontakter, spara-sekvens, RepeatWizardDialog,
+  dokumentnummer-extraktion).
+- ✅ Passiv caching av Handlingstyp-alternativ (`ProcessRecordTypeControl`) implementerad:
+  `page-document-options.js` detekterar automatiskt när dokumentformuläret öppnas och
+  sparar tillgängliga handlingstyper (Selectize-alternativ) i `chrome.storage.local`
+  under nyckeln `cachedHandlingstyper`. Cachen är ackumulerande och dedupliceras på `value`.
+
+**Nästa steg – popup-UI för dokumentmallar:**
+
+Bygg ut mallsystemet i popup/inställningssidan så att en ärendemall kan innehålla
+en lista med ärendedokumentmallar. Fält att stödja per dokumentmall:
+- Handlingstyp (väljs från `cachedHandlingstyper`)
+- Dokumentkategori (Inkommande / Utgående / Upprättat m.fl. – hårdkodad lista)
+- Titel
+- Skyddskod + sekretesslagrum (samma som ärendeformulär)
+- Ansvarig person
+
+**Långsiktigt:**
+
+1. **Automatiskt skapande av ärendedokument** som en del av mallflödet när ett
+   mallärende skapas.
+
+2. **Filuppladdning** – möjlighet att ladda upp en fil (t.ex. PDF) till ett
+   ärendedokument. Kräver kartläggning av hur 360° hanterar fil-upload
+   (troligen multipart/form-data eller en separat dialog).
 
 ---
 
 ## Planerat / Prioriterat
-
-### Ärendedokument – kartläggning, mall och filuppladdning
-
-**Nästa steg:** Dokumentera hur ett ärendedokument skapas när man är inne i ett
-befintligt ärende (element-ID:n, PostBack-nycklar, formulärfält, flöde).
-
-**Långsiktigt mål – tre steg:**
-
-1. **Kartlägg** ärendedokument-formuläret på samma sätt som nytt-ärende-formuläret
-   är kartlagt i CLAUDE.md: URL, formulärfält, Selectize-fält, ViewState-hantering,
-   spara-mekanism och hur dokumentnumret läses ut efter skapande.
-
-2. **Mall för ärendedokument** – utöka mallsystemet så att en ärendemall kan
-   innehålla en eller flera ärendedokumentmallar. När ett mallärende skapas
-   skapas även de ingående ärendedokumenten automatiskt med förifyllda fält.
-
-3. **Filuppladdning** – möjlighet att ladda upp en fil (t.ex. PDF) till ett
-   ärendedokument som en del av mallflödet. Kräver kartläggning av hur 360°
-   hanterar fil-upload (troligen multipart/form-data eller en separat dialog).
 
 ---
 
@@ -164,3 +174,7 @@ Funktioner som diskuterats men ännu inte prioriterats.
 | Redigera egenskaper, utlåning, gallring, spara som nytt, kopiera hyperlänk, ärendesammanfattning, processplan | 2025 |
 | Växla status (Öppet ↔ Avslutat) + snabbkommando Alt+Shift+S | 2026-03-20 |
 | Inbyggd hjälpsida (help.html) | 2026-03-20 |
+| Mall-ärenden: stöd för externa kontakter (oregistrerade) | 2026-03-24 |
+| Buggfix: andra kontakten lades inte till vid flera kontakter i mall | 2026-03-24 |
+| Ärendedokument-formuläret kartlagt i CLAUDE.md | 2026-03-24 |
+| Passiv caching av Handlingstyp-alternativ (page-document-options.js) | 2026-03-24 |

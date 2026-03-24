@@ -46,6 +46,20 @@ if (!window.__p360ContentInitierat) {
     });
   }
 
+  // Tar emot Handlingstyp-alternativ från MAIN world och sparar i chrome.storage.local
+  window.addEventListener('p360-spara-handlingstyper', async (event) => {
+    const { handlingstyper } = event.detail;
+    if (!Array.isArray(handlingstyper) || handlingstyper.length === 0) return;
+    const stored = await chrome.storage.local.get('cachedHandlingstyper');
+    const existing = stored.cachedHandlingstyper || [];
+    const merged = [...existing];
+    for (const h of handlingstyper) {
+      if (!merged.some(e => e.value === h.value)) merged.push(h);
+    }
+    await chrome.storage.local.set({ cachedHandlingstyper: merged });
+    console.log(`[p360] cachedHandlingstyper: ${merged.length} alternativ totalt`);
+  });
+
   // Tar emot meddelanden från popup.js
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (!ÅTGÄRDER_UTAN_SIDKRAV.has(request.action) && !ärPåÄrendesida()) {

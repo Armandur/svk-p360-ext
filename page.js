@@ -46,4 +46,7 @@ window.addEventListener('p360-anrop', async (event) => {
   }
 });
 
+// Starta passiv bevakning av dokument-formulär för caching av Handlingstyp
+initDokumentÖvervakning();
+
 })(); // slut: IIFE-skydd mot dubbel-injektion

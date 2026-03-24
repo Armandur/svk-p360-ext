@@ -735,6 +735,140 @@ Dagboksbladet öppnas via PostBack-nyckeln `key_innehallsforteckning`. 360° anr
 
 Chrome tillåter max 4 `suggested_key` per tillägg. Alla kommandon är konfigurerbara via `chrome://extensions/shortcuts`.
 
+---
+
+## Skapa nytt ärendedokument – teknisk kartläggning
+
+Kartlagt 2026-03-24 via spy.js-loggning (två körningar: Inkommande och Utgående handling).
+Ingen fil bifogad i något av fallen.
+
+### Öppna formuläret
+
+```js
+__doPostBack(
+  'ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu',
+  '61000'
+);
+```
+
+Formuläret laddas som en iframe i DOM:en:
+```
+GET https://p360.svenskakyrkan.se/locator/DMS/Document/New/61000
+  ?subtype=61000&dialogHeight=600px&dialogWidth=960px
+  &dialogTitle=360°&dialog=modal&dialogOpenMode=spdialog&dialogCloseMode=spdialog&IsDlg=1
+```
+
+Underliggande view.aspx-id: `70158b84-a8eb-492a-a546-277ee96e16f9`
+(`name=DMS.Document.New.61000`)
+
+### Formulärfält (kända)
+
+| Element-ID | Typ | Triggar UpdatePanel | Syfte |
+|---|---|---|---|
+| `PlaceHolderMain_MainView_ProcessRecordTypeControl` | SELECT + Selectize | **Ja** | Handlingstyp (t.ex. `101749` = "Annan handlingstyp" – instansspecifikt) |
+| `PlaceHolderMain_MainView_TypeJournalDocumentInsertComboControl` | SELECT + Selectize | **Ja** | Dokumentkategori (Inkommande / Utgående / Upprättat m.fl.) |
+| `PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl` | SELECT + Selectize | **Ja** | Val för offentlig titel (samma som ärendeformulär) |
+| `PlaceHolderMain_MainView_AccessCodeComboControl` | SELECT + Selectize | **Ja** | Skyddskod |
+| `PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl` | SELECT + Selectize | **Ja** | Sekretesslagrum (visas vid KO/OSL) |
+| `PlaceHolderMain_MainView_ReceivedDateControl_si_datepicker` | Datumväljare | **Ja** | Ankomstdatum *(Inkommande)* |
+| `PlaceHolderMain_MainView_DispatchedDateControl_si_datepicker` | Datumväljare | **Ja** | Brevdatum / Expedieringsdatum *(Utgående)* |
+| `PlaceHolderMain_MainView_PaperControl` | SELECT + Selectize | **Ja** | Sparat på papper |
+| `PlaceHolderMain_MainView_ResponsibleUserComboControl` | SELECT + Selectize | **Ja** | Ansvarig person |
+| `PlaceHolderMain_MainView_ProjectQuickSearchControl_DISPLAY` | INPUT text | Nej | Projekt (typeahead, synligt) |
+
+> **`ProcessRecordTypeControl`** = **Handlingstyp** – vilken sorts handling det är (t.ex.
+> "Annan handlingstyp" = `101749`). Tillgängliga handlingstyper varierar per ärende och
+> beror på ärendets klassificering. Värdet är instansspecifikt och måste läsas dynamiskt
+> eller konfigureras per mall.
+>
+> **`TypeJournalDocumentInsertComboControl`** = **Dokumentkategori** – avgör om dokumentet
+> är Inkommande, Utgående, Upprättat m.fl. Värdet triggar UpdatePanel vid ändring.
+>
+> | Värde | Text |
+> |---|---|
+> | `` (tom) | *(ingen vald)* |
+> | `110` | Inkommande |
+> | `111` | Utgående |
+> | `60005` | Upprättat |
+> | `118` | Kallelse |
+> | `60006` | Protokollsutdrag |
+> | `218` | Tjänsteutlåtande |
+> | `101001` | Delegationsbeslut |
+> | `112` | Protokoll |
+
+> **Titelfältet:** `PlaceHolderMain_MainView_TitleTextBoxControl` — TEXTAREA, maxlength 254.
+> Samma element-ID som i ärendeformuläret. Triggar inte UpdatePanel.
+
+### Kontaktfält – Inkommande vs Utgående
+
+| | Inkommande | Utgående |
+|---|---|---|
+| Triggande kontroll | `SenderCaseProjectContactsImgControl` | `RecipientCaseProjectContactsImgControl` |
+| `caseprojectcontactlist` | `SenderCaseProjectContactsList` | `RecipientCaseProjectContactsList` |
+| `showexternalcontacts` | `1` | `2` |
+| `role` | `5` | `6` |
+| Callback i formulär-iframe | `FindSenderCaseProjectContacts_Operation_POSTBACK` | `FindRecipientCaseProjectContacts_Operation_POSTBACK` |
+
+Båda öppnar samma dialog-typ:
+```
+GET /locator/DMS/Dialog/AddCasePartsDialog
+  ?caseRecno={recno}&projectRecno=&showexternalcontacts={1|2}
+  &supervisionobjectRecno={5}&caseprojectcontactlist={...List}
+  &role={5|6}&standalonemode=true&IsDlg=1
+```
+
+Stängs med:
+```js
+iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish');
+```
+
+### Spara dokumentet
+
+```js
+// Steg 1 – Slutför (eller klicka fysisk knapp):
+iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
+
+// Steg 2 – Triggas automatiskt av servern:
+iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$CompleteWizardHiddenEventControl', '');
+// → öppnar RepeatWizardDialog
+```
+
+### RepeatWizardDialog – dokumentnummer och avslut
+
+Efter att dokumentet sparats öppnas en bekräftelsedialog:
+```
+GET /locator/DMS/Dialog/RepeatWizardDialog
+  ?dialogCaption=Dokumentet+KHS+2026-0062%3A1+är+skapad&...&IsDlg=1
+```
+
+**Dokumentnumret** (`KHS 2026-0062:1`) finns URL-kodat i `dialogCaption`-parametern.
+
+```js
+// Extrahera ur iframe-URL:
+const url = new URL(repeatIframe.contentDocument.location.href);
+const caption = decodeURIComponent(url.searchParams.get('dialogCaption') || '');
+const docNr = caption.replace('Dokumentet ', '').replace(' är skapad', '').trim();
+// => "KHS 2026-0062:1"
+```
+
+Stäng dialogen:
+```js
+iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish');
+```
+
+Därefter triggar formulär-iframen automatiskt (i tur och ordning):
+1. `AskToRepeatOperation_POSTBACK` — bekräftar att inga fler dokument ska skapas
+2. `NewDocumentOperation_POSTBACK` — uppdaterar ärendesidan (top-frame)
+3. `NewDocumentCaseBrokerListener` — laddar om ärendets dokumentlista
+
+### Återstår att kartlägga
+
+- ~~Titelfältets element-ID~~ ✓ `TitleTextBoxControl` (TEXTAREA, maxlength 254)
+- ~~Värden för `TypeJournalDocumentInsertComboControl`~~ ✓ kartlagt
+- Filuppladdning (flik "Filer")
+
+---
+
 ## Projektstruktur
 ```
 /
