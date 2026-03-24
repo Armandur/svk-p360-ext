@@ -42,6 +42,15 @@ Flytta en punkt till "Klart" när den är implementerad och testad.
 - ✅ Index-numrering på ärendedokument (:1, :2 …) som motsvarar dokumentnumret i 360°.
 - ✅ Live-validering av handlingstyp mot klassificering vid ändring.
 
+**Nästa steg:**
+
+- **Stöd för Utgående och Upprättat** – dokumentskapandet hanterar just nu bara
+  Inkommande (kategori `110`). Utgående (`111`) har Brevdatum/Expedieringsdatum
+  (`DispatchedDateControl`) istället för Ankomstdatum, samt Mottagare istället för
+  Avsändare. Upprättat (`60005`) har troligen varken datum- eller kontaktfält att
+  fylla i automatiskt. Kartlägg skillnaderna, uppdatera `page-document-create.js`
+  och lägg till datumval per kategori i `dokument-mall.html`.
+
 **Återstår att testa/verifiera:**
 
 - Hela flödet ärendeskapande → ärendedokument i faktisk 360°-miljö
