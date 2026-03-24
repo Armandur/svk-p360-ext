@@ -52,10 +52,6 @@ const DOKUMENTKATEGORIER = [
   { value: '110', label: 'Inkommande' },
   { value: '111', label: 'Utgående' },
   { value: '60005', label: 'Upprättat' },
-  { value: '118', label: 'Kallelse' },
-  { value: '60006', label: 'Protokollsutdrag' },
-  { value: '218', label: 'Tjänsteutlåtande' },
-  { value: '101001', label: 'Delegationsbeslut' },
   { value: '112', label: 'Protokoll' },
 ];
 
