@@ -455,25 +455,61 @@ async function skapaÄrendedokument(dok, visaStatus) {
 
   // Ankomstdatum – sätts EFTER alla UpdatePanel-postbacks (kategori, skyddskod,
   // kontaktknapp) så att det inte nollställs av serversvaren.
-  // Hämta elementet på nytt ifall UpdatePanel ersatte DOM-noden.
+  // SI-datepicker har ett synligt fält (_si_datepicker) och ofta ett dolt fält
+  // (utan suffix) som faktiskt postas. Sätt båda + trigga jQuery-events.
   if (dok.ankomstdatum) {
+    let dd, mm, yyyy;
+    if (dok.ankomstdatum === 'idag') {
+      const idag = new Date();
+      dd = String(idag.getDate()).padStart(2, '0');
+      mm = String(idag.getMonth() + 1).padStart(2, '0');
+      yyyy = idag.getFullYear();
+    } else {
+      const delar = dok.ankomstdatum.split('-');
+      yyyy = delar[0]; mm = delar[1]; dd = delar[2];
+    }
+    const datumStr = `${dd}.${mm}.${yyyy}`;
+
+    // Synligt datepicker-fält
     const datumFält = iDoc.getElementById(
       'PlaceHolderMain_MainView_ReceivedDateControl_si_datepicker'
     );
     if (datumFält) {
-      let dd, mm, yyyy;
-      if (dok.ankomstdatum === 'idag') {
-        const idag = new Date();
-        dd = String(idag.getDate()).padStart(2, '0');
-        mm = String(idag.getMonth() + 1).padStart(2, '0');
-        yyyy = idag.getFullYear();
-      } else {
-        const delar = dok.ankomstdatum.split('-');
-        yyyy = delar[0]; mm = delar[1]; dd = delar[2];
-      }
-      datumFält.value = `${dd}.${mm}.${yyyy}`;
+      datumFält.value = datumStr;
       datumFält.dispatchEvent(new Event('change', { bubbles: true }));
+      datumFält.dispatchEvent(new Event('blur', { bubbles: true }));
     }
+
+    // Dolt fält som postas (utan _si_datepicker-suffix)
+    const doltDatumFält = iDoc.getElementById(
+      'PlaceHolderMain_MainView_ReceivedDateControl'
+    );
+    if (doltDatumFält) {
+      doltDatumFält.value = datumStr;
+      console.log('[p360-dok] Satte dolt datumfält ReceivedDateControl:', datumStr);
+    }
+
+    // Prova även name-baserad sökning för hidden fields
+    const hiddenByName = iDoc.querySelector(
+      'input[name*="ReceivedDateControl"][type="hidden"]'
+    );
+    if (hiddenByName && hiddenByName !== doltDatumFält) {
+      hiddenByName.value = datumStr;
+      console.log('[p360-dok] Satte hidden input:', hiddenByName.name, datumStr);
+    }
+
+    // Trigga jQuery datepicker-event om tillgänglig
+    try {
+      const $ = iWin.jQuery || iWin.$;
+      if ($ && datumFält) {
+        $(datumFält).trigger('change').trigger('blur');
+      }
+    } catch (e) { /* jQuery saknas eller cross-origin */ }
+
+    console.log('[p360-dok] Ankomstdatum satt:', datumStr,
+      'synligt:', datumFält?.value,
+      'dolt:', doltDatumFält?.value,
+      'hidden:', hiddenByName?.value);
   }
 
   // Titel – sätts sist så att eventuella UpdatePanels inte nollställer den.
