@@ -653,6 +653,14 @@ Flödet efter att kontakten sparas:
 4. Ärendeformuläret postar till `view.aspx` och uppdaterar kontaktlistan via UpdatePanel
 5. iframe[1] och iframe[2] (och iframe[3] om den fanns) tas bort ur DOM:en
 
+> **Timing-varning:** iframe[1] (`NewActivityContact`) tas bort ur DOM:en **efter** att
+> UpdatePanel-svaret kommit tillbaka från servern (steg 4), inte direkt när kontaktformuläret
+> stängs. Vid snabb iteration med flera kontakter kan `NewActivityContact` fortfarande ligga
+> kvar i DOM:en när nästa kontakts `waitForNyIframe('NewActivityContact')` anropas – och
+> den gamla iframen hittas då istället för den nya. Lösning: vänta på att **både**
+> `NewActivityContact` och `JournalCaseContactNew` försvinner ur DOM:en innan nästa
+> kontakt påbörjas.
+
 **Nätverksanrop som genereras vid sparning (alla POST, HTTP 200, ingen 302):**
 - `POST view.aspx?id=5A2974B2-...` (sparar kontakten, `name=DMS.Dialog.JournalCaseContactNew`)
 - `POST view.aspx?id=1ce52598-...` (stänger typ-dialogen, `name=DMS.Dialog.NewActivityContact`)
