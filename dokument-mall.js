@@ -188,6 +188,7 @@ async function sparaMall() {
   if (!document.getElementById('dok-handlingstyp').value) tomma.push('Handlingstyp');
   if (!document.getElementById('dok-kategori').value) tomma.push('Dokumentkategori');
   if (!document.getElementById('dok-atkomstgrupp').value) tomma.push('Åtkomstgrupp');
+  if (!document.getElementById('dok-ansvarig-enhet').value) tomma.push('Ansvarig enhet');
   const skyddskodVärde = document.getElementById('dok-skyddskod').value;
   if (skyddskodVärde && skyddskodVärde !== '0' && !document.getElementById('dok-paragraf').value) {
     tomma.push('Paragraf (sekretess)');

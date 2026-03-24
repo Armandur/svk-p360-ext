@@ -309,6 +309,7 @@ function tommaObligatoriska(dm) {
   if (!dm.handlingstyp?.value) t.push('Handlingstyp');
   if (!dm.kategori) t.push('Dokumentkategori');
   if (!dm.atkomstgrupp?.value) t.push('Åtkomstgrupp');
+  if (!dm.ansvarigEnhet?.value) t.push('Ansvarig enhet');
   if (dm.skyddskod && dm.skyddskod !== '0' && !dm.sekretessParag) t.push('Paragraf');
   return t;
 }

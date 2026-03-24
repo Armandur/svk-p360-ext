@@ -36,6 +36,10 @@ function kontrolleraObligatoriskaFält(iDoc) {
   const atkomst = iDoc.getElementById('PlaceHolderMain_MainView_AccessGroupComboControl');
   if (atkomst && !atkomst.value) tomma.push('Åtkomstgrupp');
 
+  // Ansvarig enhet – obligatoriskt
+  const enhet = iDoc.getElementById('PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl');
+  if (enhet && !enhet.value) tomma.push('Ansvarig enhet');
+
   return tomma;
 }
 

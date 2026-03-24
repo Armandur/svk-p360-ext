@@ -789,6 +789,7 @@ function hittaTommaObligatoriskaFältDokMall(dm) {
   if (!dm.handlingstyp?.value) tomma.push('Handlingstyp');
   if (!dm.kategori) tomma.push('Dokumentkategori');
   if (!dm.atkomstgrupp?.value) tomma.push('Åtkomstgrupp');
+  if (!dm.ansvarigEnhet?.value) tomma.push('Ansvarig enhet');
   if (dm.skyddskod && dm.skyddskod !== '0' && !dm.sekretessParag) tomma.push('Paragraf');
   return tomma;
 }
