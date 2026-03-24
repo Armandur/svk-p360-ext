@@ -796,11 +796,8 @@ Underliggande view.aspx-id: `70158b84-a8eb-492a-a546-277ee96e16f9`
 > | `101001` | Delegationsbeslut |
 > | `112` | Protokoll |
 
-> **Titelfältet** triggar inte UpdatePanel och syns därför inte i PostBack-loggen.
-> Hitta element-ID:t genom att öppna formuläret och köra i konsolen:
-> `iframen.contentDocument.querySelector('input[type=text], textarea')` eller
-> inspektera DOM:en direkt. Troligt ID: `PlaceHolderMain_MainView_TitleTextBoxControl`
-> (samma mönster som ärendeformuläret).
+> **Titelfältet:** `PlaceHolderMain_MainView_TitleTextBoxControl` — TEXTAREA, maxlength 254.
+> Samma element-ID som i ärendeformuläret. Triggar inte UpdatePanel.
 
 ### Kontaktfält – Inkommande vs Utgående
 
@@ -866,7 +863,7 @@ Därefter triggar formulär-iframen automatiskt (i tur och ordning):
 
 ### Återstår att kartlägga
 
-- Titelfältets exakta element-ID (se tips ovan – troligen `TitleTextBoxControl`)
+- ~~Titelfältets element-ID~~ ✓ `TitleTextBoxControl` (TEXTAREA, maxlength 254)
 - ~~Värden för `TypeJournalDocumentInsertComboControl`~~ ✓ kartlagt
 - Filuppladdning (flik "Filer")
 
