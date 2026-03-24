@@ -782,8 +782,19 @@ Underliggande view.aspx-id: `70158b84-a8eb-492a-a546-277ee96e16f9`
 > eller konfigureras per mall.
 >
 > **`TypeJournalDocumentInsertComboControl`** = **Dokumentkategori** – avgör om dokumentet
-> är Inkommande, Utgående eller Upprättat. Värdet triggar UpdatePanel vid ändring men
-> fångades inte i loggarna – behöver kartläggas.
+> är Inkommande, Utgående, Upprättat m.fl. Värdet triggar UpdatePanel vid ändring.
+>
+> | Värde | Text |
+> |---|---|
+> | `` (tom) | *(ingen vald)* |
+> | `110` | Inkommande |
+> | `111` | Utgående |
+> | `60005` | Upprättat |
+> | `118` | Kallelse |
+> | `60006` | Protokollsutdrag |
+> | `218` | Tjänsteutlåtande |
+> | `101001` | Delegationsbeslut |
+> | `112` | Protokoll |
 
 > **Titelfältet** triggar inte UpdatePanel och syns därför inte i PostBack-loggen.
 > Hitta element-ID:t genom att öppna formuläret och köra i konsolen:
@@ -856,7 +867,7 @@ Därefter triggar formulär-iframen automatiskt (i tur och ordning):
 ### Återstår att kartlägga
 
 - Titelfältets exakta element-ID (se tips ovan – troligen `TitleTextBoxControl`)
-- Värden för `TypeJournalDocumentInsertComboControl` (Inkommande / Utgående / Upprättat m.fl.)
+- ~~Värden för `TypeJournalDocumentInsertComboControl`~~ ✓ kartlagt
 - Filuppladdning (flik "Filer")
 
 ---
