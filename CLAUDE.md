@@ -735,6 +735,106 @@ Dagboksbladet öppnas via PostBack-nyckeln `key_innehallsforteckning`. 360° anr
 
 Chrome tillåter max 4 `suggested_key` per tillägg. Alla kommandon är konfigurerbara via `chrome://extensions/shortcuts`.
 
+---
+
+## Skapa nytt ärendedokument – teknisk kartläggning
+
+Kartlagt 2026-03-24 via spy.js-loggning. Dokumenttyp: Inkommande handling med
+avsändarkontakt hämtad från ärendet. Ingen fil bifogad.
+
+### Öppna formuläret
+
+```js
+__doPostBack(
+  'ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu',
+  '61000'
+);
+```
+
+Formuläret laddas som en iframe i DOM:en:
+```
+GET https://p360.svenskakyrkan.se/locator/DMS/Document/New/61000
+  ?subtype=61000&dialogHeight=600px&dialogWidth=960px
+  &dialogTitle=360°&dialog=modal&dialogOpenMode=spdialog&dialogCloseMode=spdialog&IsDlg=1
+```
+
+Underliggande view.aspx-id: `70158b84-a8eb-492a-a546-277ee96e16f9`
+(`name=DMS.Document.New.61000`)
+
+### Formulärfält (kända)
+
+| Element-ID | Typ | Triggar UpdatePanel | Syfte |
+|---|---|---|---|
+| `PlaceHolderMain_MainView_ProcessRecordTypeControl` | SELECT + Selectize | **Ja** | Dokumenttyp/processtyp (t.ex. `101749` = Inkommande) |
+| `PlaceHolderMain_MainView_TypeJournalDocumentInsertComboControl` | SELECT + Selectize | **Ja** | Dokumentkategori/riktning |
+| `PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl` | SELECT + Selectize | **Ja** | Val för offentlig titel (samma som ärendeformulär) |
+| `PlaceHolderMain_MainView_AccessCodeComboControl` | SELECT + Selectize | **Ja** | Skyddskod |
+| `PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl` | SELECT + Selectize | **Ja** | Sekretesslagrum (visas vid KO/OSL) |
+| `PlaceHolderMain_MainView_ReceivedDateControl_si_datepicker` | Datumväljare | **Ja** | Ankomstdatum |
+| `PlaceHolderMain_MainView_PaperControl` | SELECT + Selectize | **Ja** | Sparat på papper |
+| `PlaceHolderMain_MainView_ResponsibleUserComboControl` | SELECT + Selectize | **Ja** | Ansvarig person |
+| `PlaceHolderMain_MainView_ProjectQuickSearchControl_DISPLAY` | INPUT text | Nej | Projekt (typeahead, synligt) |
+
+> **Instansspecifikt:** `ProcessRecordTypeControl`-värdet (`101749`) är troligen
+> instansspecifikt och måste läsas dynamiskt eller konfigureras per installation.
+
+### Avsändarkontakt (Inkommande)
+
+Knapp `SenderCaseProjectContactsImgControl` triggar en UpdatePanel och öppnar:
+```
+GET /locator/DMS/Dialog/AddCasePartsDialog
+  ?caseRecno={recno}&projectRecno=&showexternalcontacts=1
+  &supervisionobjectRecno={5}&caseprojectcontactlist=SenderCaseProjectContactsList
+  &role=5&standalonemode=true&IsDlg=1
+```
+
+Dialogen stängs med:
+```js
+iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish');
+```
+
+Efter close triggas `FindSenderCaseProjectContacts_Operation_POSTBACK` i formulär-iframen.
+
+### Spara dokumentet
+
+```js
+// Steg 1 – Slutför-knapp (eller direktanrop):
+iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
+
+// Steg 2 – Triggas automatiskt av servern efter finish:
+// CompleteWizardHiddenEventControl → öppnar RepeatWizardDialog
+```
+
+### RepeatWizardDialog – dokumentnummer och avslut
+
+Efter att dokumentet sparats öppnas en bekräftelsedialog:
+```
+GET /locator/DMS/Dialog/RepeatWizardDialog
+  ?dialogCaption=Dokumentet+KHS+2026-0062%3A1+är+skapad&...&IsDlg=1
+```
+
+**Dokumentnumret** (`KHS 2026-0062:1`) finns i `dialogCaption`-parametern i iframe-URL:en.
+
+Stäng dialogen (välj "Skapa ett nytt dokument" = nej):
+```js
+iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish');
+```
+
+Därefter triggar formulär-iframen automatiskt:
+1. `AskToRepeatOperation_POSTBACK` — hanterar svaret från RepeatWizardDialog
+2. `NewDocumentOperation_POSTBACK` — uppdaterar ärendesidan
+3. `NewDocumentCaseBrokerListener` — signalerar att ärendets dokumentlista ska laddas om
+
+### Återstår att kartlägga
+
+- Exakta element-ID:n för dokumenttitel och brevdatum (`SendDateControl`?)
+- Värden för `ProcessRecordTypeControl` per dokumenttyp (Inkommande, Utgående, Intern m.fl.)
+- Värden för `TypeJournalDocumentInsertComboControl`
+- Hantering av Mottagarkontakt (Utgående handling)
+- Filuppladdning (flik "Filer")
+
+---
+
 ## Projektstruktur
 ```
 /
