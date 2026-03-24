@@ -44,65 +44,40 @@ async function läggTillExternKontakt(kontakt, pb = __doPostBack) {
 
   await sleep(300);
 
-  const iframesVidPostBack = Array.from(document.querySelectorAll('iframe')).map(f => {
-    try { return f.contentDocument?.location?.href || f.src || '(tom)'; } catch { return f.src || '(cross-origin)'; }
-  });
-  console.log('[p360-debug] PostBack skickas. Iframes i DOM:', iframesVidPostBack);
-
   kontaktIframe.contentWindow.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish');
 
   // Parallell detektering av dubblettdialog eller att kontaktformuläret stängs.
+  //
+  // Spår 1 – waitForNyIframe('DuplicateContacts'): väntar tills location.href faktiskt
+  //   matchar (inte bara f.src), hanterar redirectar via load-lyssnare.
+  // Spår 2 – MutationObserver på kontaktformuläret: när JournalCaseContactNew
+  //   försvinner väntar vi 500 ms (grace) för att ge dubblettdialogen tid att dyka upp.
   const dubblettIframe = await new Promise(resolve => {
     let resolved = false;
-    const done = (val, källa) => {
-      if (!resolved) {
-        resolved = true;
-        const iframes = Array.from(document.querySelectorAll('iframe')).map(f => {
-          try { return f.contentDocument?.location?.href || f.src || '(tom)'; } catch { return f.src || '(cross-origin)'; }
-        });
-        console.log(`[p360-debug] dubblettIframe resolved via ${källa}:`, val ? val.src : null, '| Iframes i DOM:', iframes);
-        resolve(val);
-      }
-    };
+    const done = (val) => { if (!resolved) { resolved = true; resolve(val); } };
 
-    // Spår 1 – waitForNyIframe hanterar sen src-sättning och redirectar
-    waitForNyIframe('DuplicateContacts', 12000).then(f => done(f, 'waitForNyIframe'));
+    // Spår 1
+    waitForNyIframe('DuplicateContacts', 12000).then(done);
 
-    // Spår 2 – kontaktformuläret stängs → ingen dubblett (med 500 ms grace)
+    // Spår 2
     function harKontaktIframe() {
       return Array.from(document.querySelectorAll('iframe')).some(f => {
         try { return f.src?.includes('JournalCaseContactNew') || f.contentDocument?.location?.href?.includes('JournalCaseContactNew'); }
         catch { return false; }
       });
     }
-    const signaleraIngenDubblett = () => {
-      console.log('[p360-debug] JournalCaseContactNew försvann – startar 500 ms grace');
-      setTimeout(() => done(null, 'grace-timeout'), 500);
-    };
+    const signaleraIngenDubblett = () => setTimeout(() => done(null), 500);
 
     if (!harKontaktIframe()) { signaleraIngenDubblett(); return; }
 
     const obs = new MutationObserver(() => {
-      const iframes = Array.from(document.querySelectorAll('iframe')).map(f => {
-        try { return f.contentDocument?.location?.href || f.src || '(tom)'; } catch { return f.src || '(cross-origin)'; }
-      });
-      console.log('[p360-debug] DOM-mutation, iframes:', iframes);
       if (!harKontaktIframe()) { obs.disconnect(); signaleraIngenDubblett(); }
     });
     obs.observe(document.body, { childList: true, subtree: true });
   });
 
-  console.log('[p360-debug] Resultat dubblettIframe:', dubblettIframe ? dubblettIframe.src : null);
-
   if (dubblettIframe) {
-    console.log('[p360-debug] Anropar __doPostBack("no"). contentWindow.location:', (() => { try { return dubblettIframe.contentWindow?.location?.href; } catch(e) { return 'FEL: ' + e.message; } })());
-    console.log('[p360-debug] __doPostBack finns:', typeof dubblettIframe.contentWindow?.__doPostBack);
-    try {
-      dubblettIframe.contentWindow.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'no');
-      console.log('[p360-debug] __doPostBack("no") skickades utan fel');
-    } catch (e) {
-      console.error('[p360-debug] FEL vid __doPostBack("no"):', e);
-    }
+    dubblettIframe.contentWindow.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'no');
     // Vänta på att kontaktformuläret stängs efter dubbletthantering
     await new Promise(resolve => {
       const timer = setTimeout(resolve, 8000);
