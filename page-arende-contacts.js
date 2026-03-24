@@ -16,7 +16,6 @@ async function läggTillExternKontakt(kontakt, pb = __doPostBack) {
 
   const typSel = typDoc.getElementById('PlaceHolderMain_MainView_ContactTypeComboBoxControl');
   if (typSel?.selectize) { typSel.selectize.setValue('0'); } else if (typSel) { typSel.value = '0'; }
-  await sleep(200);
 
   typIframe.contentWindow.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish');
 
@@ -46,24 +45,43 @@ async function läggTillExternKontakt(kontakt, pb = __doPostBack) {
   await sleep(300);
   kontaktIframe.contentWindow.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish');
 
-  await sleep(1500);
-  const dubblettIframe = Array.from(document.querySelectorAll('iframe')).find(f => {
-    try { return f.src?.includes('DuplicateContacts') || f.contentDocument?.location?.href?.includes('DuplicateContacts'); }
-    catch { return false; }
-  });
-  if (dubblettIframe) {
-    dubblettIframe.contentWindow.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'no');
-    await sleep(1000);
-  }
-
-  await new Promise(resolve => {
-    const t = Date.now();
-    const check = setInterval(() => {
-      const harKontakt = Array.from(document.querySelectorAll('iframe')).some(f => {
+  // Vänta händelsestyrt på antingen en dubblettvarning eller att kontaktformuläret stängs.
+  // Ersätter sleep(1500) + polling – svarar direkt vid DOM-ändring.
+  const dubblettIframe = await new Promise(resolve => {
+    function harKontaktIframe() {
+      return Array.from(document.querySelectorAll('iframe')).some(f => {
         try { return f.src?.includes('JournalCaseContactNew') || f.contentDocument?.location?.href?.includes('JournalCaseContactNew'); }
         catch { return false; }
       });
-      if (!harKontakt || Date.now() - t > 12000) { clearInterval(check); resolve(); }
-    }, 200);
+    }
+    // Om kontaktformuläret redan försvunnit är vi klara utan dubblett
+    if (!harKontaktIframe()) { resolve(null); return; }
+
+    const timer = setTimeout(() => { obs.disconnect(); resolve(null); }, 12000);
+    const obs = new MutationObserver(() => {
+      const dupl = Array.from(document.querySelectorAll('iframe')).find(f => {
+        try { return f.src?.includes('DuplicateContacts') || f.contentDocument?.location?.href?.includes('DuplicateContacts'); }
+        catch { return false; }
+      });
+      if (dupl) { clearTimeout(timer); obs.disconnect(); resolve(dupl); return; }
+      if (!harKontaktIframe()) { clearTimeout(timer); obs.disconnect(); resolve(null); }
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
   });
+
+  if (dubblettIframe) {
+    dubblettIframe.contentWindow.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'no');
+    // Vänta på att kontaktformuläret stängs efter dubbletthantering
+    await new Promise(resolve => {
+      const timer = setTimeout(resolve, 8000);
+      const obs = new MutationObserver(() => {
+        const harKontakt = Array.from(document.querySelectorAll('iframe')).some(f => {
+          try { return f.src?.includes('JournalCaseContactNew') || f.contentDocument?.location?.href?.includes('JournalCaseContactNew'); }
+          catch { return false; }
+        });
+        if (!harKontakt) { clearTimeout(timer); obs.disconnect(); resolve(); }
+      });
+      obs.observe(document.body, { childList: true, subtree: true });
+    });
+  }
 }
