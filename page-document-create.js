@@ -469,8 +469,8 @@ async function skapaÄrendedokument(dok, visaStatus) {
       const delar = dok.ankomstdatum.split('-');
       yyyy = delar[0]; mm = delar[1]; dd = delar[2];
     }
-    const datumDisplay = `${dd}.${mm}.${yyyy}`;
     const datumISO = `${yyyy}-${mm}-${dd}`;
+    const datumDisplay = `${dd}.${mm}.${yyyy}`;
 
     // Synligt fält (visar datumet för användaren)
     const datumFält = iDoc.getElementById(
@@ -480,13 +480,12 @@ async function skapaÄrendedokument(dok, visaStatus) {
       datumFält.value = datumDisplay;
     }
 
-    // Dolt fält som faktiskt postas – prova både DD.MM.YYYY och YYYY-MM-DD
+    // Dolt fält som faktiskt postas – YYYY-MM-DD (ISO-format)
     const doltFält = iDoc.getElementById(
       'PlaceHolderMain_MainView_ReceivedDateControl_si_datepicker_hidden'
     );
     if (doltFält) {
-      doltFält.value = datumDisplay;
-      console.log('[p360-dok] Satte dolt datumfält (_hidden):', datumDisplay);
+      doltFält.value = datumISO;
     }
 
     console.log('[p360-dok] Ankomstdatum satt: synligt=', datumFält?.value,
