@@ -50,6 +50,7 @@
         "page-arende-options.js",
         "page-arende-contacts.js",
         "page-arende-create.js",
+        "page-document-options.js",
         "page.js",
         "spy.js"
       ],
