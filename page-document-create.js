@@ -231,9 +231,26 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
       // ExecCancel stänger formuläret men lämnar kvar dialogskal och loader.
       // Rensa bort alla öppna 360°-dialoger efter en kort fördröjning.
       setTimeout(() => {
-        document.querySelectorAll('dialog.old-ms-Dialog.is-open').forEach(d => {
-          d.close?.();
-          d.remove();
+        // Logga alla dialoger i DOM:en för felsökning
+        const allaDialoger = document.querySelectorAll('dialog');
+        console.log(`[p360-avbryt] Hittade ${allaDialoger.length} <dialog>-element i DOM:en:`);
+        allaDialoger.forEach((d, i) => {
+          console.log(`  [${i}] id=${d.id}, open=${d.hasAttribute('open')}, classes="${d.className}", title="${d.querySelector('.old-ms-Dialog-title')?.textContent || ''}", parentTag=${d.parentElement?.tagName}`);
+        });
+
+        // Ta bort alla öppna dialog-element (och deras wrapper-div om den är tom)
+        allaDialoger.forEach(d => {
+          if (d.hasAttribute('open') || d.classList.contains('is-open')) {
+            console.log(`[p360-avbryt] Tar bort dialog: id=${d.id}`);
+            const parent = d.parentElement;
+            d.close?.();
+            d.remove();
+            // Om parent är en tom div-wrapper, ta bort den också
+            if (parent && parent.tagName === 'DIV' && parent.children.length === 0 && !parent.id) {
+              console.log(`[p360-avbryt] Tar bort tom wrapper-div`);
+              parent.remove();
+            }
+          }
         });
       }, 1500);
       resolve({ cancelled: true });
