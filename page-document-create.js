@@ -72,35 +72,61 @@ function kontrolleraObligatoriskaFält(iDoc) {
  */
 function väntaPåAnvändarensSlutför(iframe, tommaFält) {
   return new Promise((resolve, reject) => {
-    // Neutralisera eventuella 360°-overlays som blockerar klick
-    // 360° skapar divs med höga z-index för sina modala dialoger
-    const p360Overlays = document.querySelectorAll(
-      'div[class*="ms-dlgOverlay"], div[class*="si-overlay"], div[class*="modalOverlay"]'
-    );
-    for (const ol of p360Overlays) {
-      ol.dataset.origZIndex = ol.style.zIndex;
-      ol.style.zIndex = '1';
+    // Tagga iframen så vi kan nå den med CSS !important via <style>
+    iframe.setAttribute('data-p360-manual', 'true');
+
+    // Hitta ALLA fasta/absoluta element med hög z-index som kan blockera klick.
+    // 360° skapar overlay-divs som inte har igenkännliga CSS-klasser.
+    const blockerare = [];
+    for (const el of document.body.children) {
+      if (el.tagName === 'SCRIPT' || el.tagName === 'LINK') continue;
+      if (el === iframe) continue;
+      const cs = window.getComputedStyle(el);
+      const z = parseInt(cs.zIndex) || 0;
+      if ((cs.position === 'fixed' || cs.position === 'absolute') && z > 500) {
+        blockerare.push({ el, origPE: el.style.pointerEvents, origZ: el.style.zIndex });
+        el.style.pointerEvents = 'none';
+      }
     }
 
-    // Gör iframen synlig direkt under bannern
-    iframe.style.cssText =
-      'position:fixed;top:42px;left:50%;transform:translateX(-50%);' +
-      'width:95%;max-width:980px;height:calc(100vh - 52px);' +
-      'z-index:2000000;border:3px solid #e67e22;border-radius:6px;background:#fff;';
+    // Lägg till en <style> i huvuddokumentet med !important –
+    // Förhindrar att 360° skriver över iframens position via inline-stilar
+    const styleTag = document.createElement('style');
+    styleTag.id = 'p360-manuell-style';
+    styleTag.textContent = `
+      iframe[data-p360-manual="true"] {
+        position: fixed !important;
+        top: 42px !important;
+        left: 2.5% !important;
+        width: 95% !important;
+        max-width: 980px !important;
+        height: calc(100vh - 52px) !important;
+        z-index: 2000000 !important;
+        border: 3px solid #e67e22 !important;
+        border-radius: 6px !important;
+        background: #fff !important;
+      }
+    `;
+    document.head.appendChild(styleTag);
 
     // Injicera CSS i iframen för att flytta dialoginnehållet till toppen
     try {
       const iDoc = iframe.contentDocument;
       if (iDoc) {
         const layoutFix = iDoc.createElement('style');
+        layoutFix.id = 'p360-layout-fix';
         layoutFix.textContent = `
-          .ms-dlgContent, .si-dialog, .ms-dlgBorder { top: 0 !important; margin-top: 0 !important; }
-          body { overflow: auto !important; }
+          html, body { margin: 0 !important; padding: 0 !important; overflow: auto !important; }
+          .ms-dlgContent, .si-dialog, .ms-dlgBorder,
+          div[id*="dialogTitleBar"], .ms-dlgFrameContainer {
+            position: static !important;
+            top: auto !important;
+            left: auto !important;
+            margin: 0 !important;
+            transform: none !important;
+          }
         `;
         iDoc.head.appendChild(layoutFix);
-        // Scrolla till formuläret
-        const form = iDoc.querySelector('.si-wizard-maintable, form, [id*="WizardView"]');
-        if (form) form.scrollIntoView({ block: 'start' });
       }
     } catch { /* cross-origin */ }
 
@@ -123,8 +149,7 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
     avbrytBtn.textContent = 'Avbryt';
     avbrytBtn.style.cssText =
       'padding:5px 14px;background:#c0392b;color:#fff;border:none;border-radius:4px;' +
-      'cursor:pointer;font-size:12px;font-family:sans-serif;white-space:nowrap;' +
-      'pointer-events:auto;position:relative;z-index:2000002;';
+      'cursor:pointer;font-size:12px;font-family:sans-serif;white-space:nowrap;';
     banner.appendChild(avbrytBtn);
     document.body.appendChild(banner);
 
@@ -132,7 +157,8 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
     const backdrop = document.createElement('div');
     backdrop.id = 'p360-manuell-backdrop';
     backdrop.style.cssText =
-      'position:fixed;inset:0;z-index:1999999;background:rgba(0,0,0,0.5);';
+      'position:fixed;inset:0;z-index:1999999;background:rgba(0,0,0,0.5);' +
+      'pointer-events:none;';
     document.body.appendChild(backdrop);
 
     const TIMEOUT = 300000; // 5 minuter
@@ -148,14 +174,13 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
       if (obs) obs.disconnect();
       banner.remove();
       backdrop.remove();
-      // Återställ iframe-stilen (döljs av den normala cleanup-koden)
+      styleTag.remove();
+      iframe.removeAttribute('data-p360-manual');
       iframe.style.cssText = '';
-      // Återställ eventuella 360°-overlays
-      for (const ol of p360Overlays) {
-        if (ol.dataset.origZIndex !== undefined) {
-          ol.style.zIndex = ol.dataset.origZIndex;
-          delete ol.dataset.origZIndex;
-        }
+      // Återställ 360°-element som vi satte pointer-events:none på
+      for (const b of blockerare) {
+        b.el.style.pointerEvents = b.origPE;
+        b.el.style.zIndex = b.origZ;
       }
     }
 
