@@ -40,6 +40,27 @@ function kontrolleraObligatoriskaFält(iDoc) {
   const enhet = iDoc.getElementById('PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl');
   if (enhet && !enhet.value) tomma.push('Ansvarig enhet');
 
+  // Avsändare/mottagare – obligatoriskt beroende på dokumentkategori
+  const katVärde = kat?.value;
+  if (katVärde === '110') {
+    // Inkommande – kräver avsändare (oregistrerad eller registrerad)
+    const oregAvsändare = iDoc.getElementById('PlaceHolderMain_MainView_UnregisteredSenderTextBoxControl');
+    const harOregAvsändare = oregAvsändare && oregAvsändare.value.trim();
+    // Kontrollera om registrerade avsändare lagts till (kontaktlista med rader)
+    const avsändarLista = iDoc.getElementById('PlaceHolderMain_MainView_SenderCaseProjectContactsList');
+    const harRegAvsändare = avsändarLista && avsändarLista.querySelectorAll('tr[id]').length > 0;
+    if (!harOregAvsändare && !harRegAvsändare) {
+      tomma.push('Avsändare');
+    }
+  } else if (katVärde === '111') {
+    // Utgående – kräver mottagare
+    const mottagarLista = iDoc.getElementById('PlaceHolderMain_MainView_RecipientCaseProjectContactsList');
+    const harMottagare = mottagarLista && mottagarLista.querySelectorAll('tr[id]').length > 0;
+    if (!harMottagare) {
+      tomma.push('Mottagare');
+    }
+  }
+
   return tomma;
 }
 
