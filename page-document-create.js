@@ -271,31 +271,52 @@ async function skapaÄrendedokument(dok, visaStatus) {
       );
     }
 
+    // Vänta på att SelectOfficialTitleComboBoxControl dyker upp i DOM
+    const offTitelValFält = await waitForElement(
+      iDoc,
+      '#PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl',
+      5000
+    );
+
     // Val av offentlig titel
-    if (dok.offentligTitelVal) {
-      await sättSel(
-        'PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl',
-        dok.offentligTitelVal
-      );
-      // Om manuell titel vald, vänta på UpdatePanel och fyll i
-      if (dok.offentligTitelVal === '3' && dok.offentligTitel) {
-        const offTitelFält = await waitForElement(
-          iDoc,
-          '#PlaceHolderMain_MainView_PublicTitleTextBoxControl',
-          5000
+    if (offTitelValFält && dok.offentligTitelVal) {
+      if (dok.offentligTitelVal === '3') {
+        // Manuell titel – behöver postback för att visa det manuella fältet
+        await sättSel(
+          'PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl',
+          dok.offentligTitelVal
         );
-        if (offTitelFält) {
-          offTitelFält.value = dok.offentligTitel;
-          offTitelFält.dispatchEvent(new Event('change', { bubbles: true }));
+        // Vänta på UpdatePanel-svar (PublicTitleTextBoxControl laddas)
+        await sleep(1500);
+        if (dok.offentligTitel) {
+          const offTitelFält = await waitForElement(
+            iDoc,
+            '#PlaceHolderMain_MainView_PublicTitleTextBoxControl',
+            5000
+          );
+          if (offTitelFält) {
+            offTitelFält.value = dok.offentligTitel;
+            offTitelFält.dispatchEvent(new Event('change', { bubbles: true }));
+          }
         }
+      } else {
+        // Val 1 eller 2 – inget extra fält behövs, sätt tyst utan postback
+        await sättSelTyst(
+          'PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl',
+          dok.offentligTitelVal
+        );
       }
     }
   }
 
-  // Titel – sätts sist så att eventuella UpdatePanels inte nollställer den
-  titelFält.value = dok.titel || '';
-  titelFält.dispatchEvent(new Event('input', { bubbles: true }));
-  titelFält.dispatchEvent(new Event('change', { bubbles: true }));
+  // Titel – sätts sist så att eventuella UpdatePanels inte nollställer den.
+  // Hämta elementet på nytt ifall en UpdatePanel ersatte DOM-noden.
+  const aktuellTitel = iDoc.getElementById('PlaceHolderMain_MainView_TitleTextBoxControl');
+  if (aktuellTitel) {
+    aktuellTitel.value = dok.titel || '';
+    aktuellTitel.dispatchEvent(new Event('input', { bubbles: true }));
+    aktuellTitel.dispatchEvent(new Event('change', { bubbles: true }));
+  }
 
   // ---------------------------------------------------------------
   // 3. Kontrollera obligatoriska fält – pausa om något saknas
