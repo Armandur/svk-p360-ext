@@ -61,8 +61,10 @@ const DOKUMENTKATEGORIER = [
 
 // Kontaktlista för mallen
 let kontakter = [];
-// Ärendedokument-lista för mallen
+// Ärendedokument-lista för mallen – referenser till dokumentmallar: [{ dokumentmallId, namn }]
 let ärendedokument = [];
+// Alla sparade dokumentmallar (laddas vid init)
+let sparadeDokumentmallar = [];
 // Cachade handlingstyper (från chrome.storage.local)
 let cachedHandlingstyper = [];
 // Cachade ansvariga personer (från chrome.storage.local)
@@ -82,15 +84,17 @@ let inlästaAlternativ = null;
 document.addEventListener('DOMContentLoaded', async () => {
   fyllParagrafer('0');
 
-  // Ladda cachade handlingstyper och ansvariga personer
+  // Ladda cachade alternativ och sparade dokumentmallar
   const stored = await chrome.storage.local.get([
     'cachedHandlingstyper', 'cachedAnsvarigaPersoner',
-    'cachedAtkomstgrupper', 'cachedAnsvarigaEnheter'
+    'cachedAtkomstgrupper', 'cachedAnsvarigaEnheter',
+    'dokumentmallar'
   ]);
   cachedHandlingstyper = stored.cachedHandlingstyper || [];
   cachedAnsvarigaPersoner = stored.cachedAnsvarigaPersoner || [];
   cachedAtkomstgrupper = stored.cachedAtkomstgrupper || [];
   cachedAnsvarigaEnheter = stored.cachedAnsvarigaEnheter || [];
+  sparadeDokumentmallar = stored.dokumentmallar || [];
   visaDokCacheStatus();
 
   // Kolla om vi redigerar en befintlig mall (URL: ?id=xxx)
@@ -115,8 +119,11 @@ function kopplaHändelser() {
     visaKontaktFormulär(null)
   );
   document.getElementById('btn-lagg-till-dokument').addEventListener('click', () =>
-    visaDokumentFormulär(null)
+    visaDokumentväljare()
   );
+  document.getElementById('btn-ny-dokumentmall').addEventListener('click', () => {
+    chrome.tabs.create({ url: chrome.runtime.getURL('dokument-mall.html') });
+  });
 
   document.getElementById('mall-skyddskod').addEventListener('change', () => {
     uppdateraSekretessFält();
@@ -444,16 +451,11 @@ function visaKontaktFormulär(idx) {
 function visaDokCacheStatus() {
   const el = document.getElementById('dok-cache-status');
   if (!el) return;
-  const delar = [];
-  if (cachedHandlingstyper.length > 0) delar.push(`${cachedHandlingstyper.length} handlingstyper`);
-  if (cachedAnsvarigaPersoner.length > 0) delar.push(`${cachedAnsvarigaPersoner.length} personer`);
-  if (cachedAtkomstgrupper.length > 0) delar.push(`${cachedAtkomstgrupper.length} åtkomstgrupper`);
-  if (cachedAnsvarigaEnheter.length > 0) delar.push(`${cachedAnsvarigaEnheter.length} enheter`);
-  if (delar.length > 0) {
-    el.textContent = `(${delar.join(', ')} cachade)`;
+  if (sparadeDokumentmallar.length > 0) {
+    el.textContent = `(${sparadeDokumentmallar.length} dokumentmallar sparade)`;
     el.style.color = '#2e7d32';
   } else {
-    el.textContent = '(Inga data cachade – klicka "Läs in" och öppna "Nytt dokument" i 360°)';
+    el.textContent = '(Inga dokumentmallar – skapa via popupen eller knappen nedan)';
     el.style.color = '#b71c1c';
   }
 }
@@ -461,20 +463,30 @@ function visaDokCacheStatus() {
 function renderaDokument() {
   const lista = document.getElementById('dokumentlista');
   lista.innerHTML = '';
-  ärendedokument.forEach((d, idx) => {
+  ärendedokument.forEach((ref, idx) => {
+    // Slå upp dokumentmallen för att visa detaljer
+    const dm = sparadeDokumentmallar.find(m => m.id === ref.dokumentmallId);
     const div = document.createElement('div');
     div.className = 'dokument-kort';
-    const kategori = DOKUMENTKATEGORIER.find(k => k.value === d.kategori)?.label || d.kategori || '(ingen kategori)';
-    const handlingstyp = d.handlingstyp?.text || '(ingen handlingstyp)';
-    const detaljer = [kategori, handlingstyp];
-    if (d.oregistreradKontakt) detaljer.push(`Kontakt: ${d.oregistreradKontakt}`);
+    const namn = dm?.namn || ref.namn || '(okänd mall)';
+    const kategori = dm ? (DOKUMENTKATEGORIER.find(k => k.value === dm.kategori)?.label || '') : '';
+    const handlingstyp = dm?.handlingstyp?.text || '';
+    const detaljer = [kategori, handlingstyp].filter(Boolean);
+
+    // Kontrollera om handlingstypen matchar ärendets klassificering
+    const klassKod = hämtaKlassificeringskod();
+    const handlTypText = dm?.handlingstyp?.text || '';
+    const klassMismatch = klassKod && handlTypText && !handlTypText.startsWith(klassKod);
+
     div.innerHTML = `
-      <div class="dok-rubrik">${escHtml(d.titel || '(Ingen titel)')}</div>
+      <div class="dok-rubrik">${escHtml(namn)}</div>
       <div class="dok-knappar">
-        <button data-idx="${idx}" data-action="redigera-dok">Redigera</button>
-        <button data-idx="${idx}" data-action="ta-bort-dok">✕</button>
+        ${dm ? `<button data-idx="${idx}" data-action="redigera-dok" title="Redigera dokumentmall">✎</button>` : ''}
+        <button data-idx="${idx}" data-action="ta-bort-dok" title="Ta bort från ärendemall">✕</button>
       </div>
-      <div class="dok-detaljer">${escHtml(detaljer.join(' · '))}</div>
+      ${detaljer.length ? `<div class="dok-detaljer">${escHtml(detaljer.join(' · '))}</div>` : ''}
+      ${!dm ? '<div class="dok-detaljer" style="color:#c0392b;">Dokumentmallen hittades inte i lagringen.</div>' : ''}
+      ${klassMismatch ? `<div class="dok-detaljer" style="color:#c0392b;">⚠ Handlingstypen (${escHtml(handlTypText.split(' ')[0])}) matchar inte ärendets klassificering (${escHtml(klassKod)})</div>` : ''}
     `;
     lista.appendChild(div);
   });
@@ -483,7 +495,10 @@ function renderaDokument() {
     btn.addEventListener('click', () => {
       const idx = parseInt(btn.dataset.idx, 10);
       if (btn.dataset.action === 'redigera-dok') {
-        visaDokumentFormulär(idx);
+        const ref = ärendedokument[idx];
+        chrome.tabs.create({
+          url: chrome.runtime.getURL('dokument-mall.html') + '?id=' + ref.dokumentmallId,
+        });
       } else if (btn.dataset.action === 'ta-bort-dok') {
         ärendedokument.splice(idx, 1);
         renderaDokument();
@@ -492,244 +507,67 @@ function renderaDokument() {
   });
 }
 
-function visaDokumentFormulär(idx) {
-  // Ta bort eventuellt öppet dokumentformulär
+/**
+ * Visar en väljare för att lägga till sparade dokumentmallar i ärendemallen.
+ */
+function visaDokumentväljare() {
   document.querySelectorAll('.dokument-formulär').forEach(el => el.remove());
 
-  const d = idx !== null ? ärendedokument[idx] : {};
+  if (sparadeDokumentmallar.length === 0) {
+    // Öppna dokumentmall-redigeraren direkt
+    chrome.tabs.create({ url: chrome.runtime.getURL('dokument-mall.html') });
+    return;
+  }
+
+  // Filtrera bort redan tillagda
+  const tillagdaIds = new Set(ärendedokument.map(d => d.dokumentmallId));
+  const tillgängliga = sparadeDokumentmallar.filter(m => !tillagdaIds.has(m.id));
+
+  if (tillgängliga.length === 0) {
+    const info = document.createElement('div');
+    info.className = 'dokument-formulär';
+    info.innerHTML = '<p style="margin:0;font-size:13px;color:#555;">Alla dokumentmallar är redan tillagda.</p>';
+    document.getElementById('dokumentlista').after(info);
+    setTimeout(() => info.remove(), 3000);
+    return;
+  }
+
+  const klassKod = hämtaKlassificeringskod();
+
   const formulär = document.createElement('div');
   formulär.className = 'dokument-formulär';
-
-  // Handlingstyp-options – filtrera på mallens klassificeringskod
-  const klassKod = hämtaKlassificeringskod();
-  let filtreradeHandlingstyper = cachedHandlingstyper;
-  if (klassKod && cachedHandlingstyper.length > 0) {
-    const matchande = cachedHandlingstyper.filter(h => h.text.startsWith(klassKod));
-    if (matchande.length > 0) filtreradeHandlingstyper = matchande;
-  }
-  let handlingstypOptions;
-  if (filtreradeHandlingstyper.length > 0) {
-    handlingstypOptions = '<option value="">(Ingen)</option>' + filtreradeHandlingstyper.map(h =>
-      `<option value="${escHtml(h.value)}" ${d.handlingstyp?.value === h.value ? 'selected' : ''}>${escHtml(h.text)}</option>`
-    ).join('');
-  } else if (cachedHandlingstyper.length > 0 && klassKod) {
-    handlingstypOptions = `<option value="">(Inga handlingstyper för ${escHtml(klassKod)} – öppna "Nytt dokument" på ett ärende med rätt klassificering)</option>`;
-  } else {
-    handlingstypOptions = '<option value="">(Inga cachade – öppna "Nytt dokument" i 360°)</option>';
-  }
-
-  // Dokumentkategori-options
-  const kategoriOptions = '<option value="">(Ingen)</option>' + DOKUMENTKATEGORIER.map(k =>
-    `<option value="${k.value}" ${d.kategori === k.value ? 'selected' : ''}>${escHtml(k.label)}</option>`
-  ).join('');
-
-  // Skyddskod-options
-  const skyddskodVal = d.skyddskod || '0';
-
-  // Ansvarig person – använd inlästa alternativ, cache, eller sparat värde
-  const personLista = inlästaAlternativ?.ansvarigaPersoner?.length > 0
-    ? inlästaAlternativ.ansvarigaPersoner
-    : cachedAnsvarigaPersoner;
-  let ansvarigPersonOptions = '<option value="">(Ingen)</option>';
-  if (personLista.length > 0) {
-    ansvarigPersonOptions += personLista.map(p =>
-      `<option value="${escHtml(p.value)}" ${d.ansvarigPerson?.value === p.value ? 'selected' : ''}>${escHtml(p.label)}</option>`
-    ).join('');
-  } else if (d.ansvarigPerson?.value) {
-    ansvarigPersonOptions += `<option value="${escHtml(d.ansvarigPerson.value)}" selected>${escHtml(d.ansvarigPerson.label)}</option>`;
-  }
-
-  // Åtkomstgrupp – använd inlästa alternativ, cache, eller sparat värde
-  const atkomstgruppLista = inlästaAlternativ?.atkomstgrupper?.length > 0
-    ? inlästaAlternativ.atkomstgrupper
-    : cachedAtkomstgrupper;
-  let atkomstgruppOptions = '<option value="">(Ingen)</option>';
-  if (atkomstgruppLista.length > 0) {
-    atkomstgruppOptions += atkomstgruppLista.map(a =>
-      `<option value="${escHtml(a.value)}" ${d.atkomstgrupp?.value === a.value ? 'selected' : ''}>${escHtml(a.label)}</option>`
-    ).join('');
-  } else if (d.atkomstgrupp?.value) {
-    atkomstgruppOptions += `<option value="${escHtml(d.atkomstgrupp.value)}" selected>${escHtml(d.atkomstgrupp.label)}</option>`;
-  }
-
-  // Ansvarig enhet – använd inlästa alternativ, cache, eller sparat värde
-  const enhetLista = inlästaAlternativ?.ansvarigaEnheter?.length > 0
-    ? inlästaAlternativ.ansvarigaEnheter
-    : cachedAnsvarigaEnheter;
-  let ansvarigEnhetOptions = '<option value="">(Ingen)</option>';
-  if (enhetLista.length > 0) {
-    ansvarigEnhetOptions += enhetLista.map(e =>
-      `<option value="${escHtml(e.value)}" ${d.ansvarigEnhet?.value === e.value ? 'selected' : ''}>${escHtml(e.label)}</option>`
-    ).join('');
-  } else if (d.ansvarigEnhet?.value) {
-    ansvarigEnhetOptions += `<option value="${escHtml(d.ansvarigEnhet.value)}" selected>${escHtml(d.ansvarigEnhet.label)}</option>`;
-  }
-
-  // Val av offentlig titel
-  const offTitelVal = d.offentligTitelVal || '1';
-
   formulär.innerHTML = `
-    <h4>${idx !== null ? 'Redigera ärendedokument' : 'Nytt ärendedokument'}</h4>
+    <h4>Välj dokumentmall</h4>
     <div class="faltrad">
-      <label>Titel</label>
-      <input type="text" name="dok-titel" value="${escHtml(d.titel || '')}">
+      <select name="dok-mall-val">
+        ${tillgängliga.map(m => {
+          const kat = DOKUMENTKATEGORIER.find(k => k.value === m.kategori)?.label || '';
+          const detalj = [kat, m.handlingstyp?.text].filter(Boolean).join(' · ');
+          const htText = m.handlingstyp?.text || '';
+          const varning = klassKod && htText && !htText.startsWith(klassKod) ? ' ⚠' : '';
+          return `<option value="${escHtml(m.id)}">${escHtml(m.namn)}${detalj ? ' (' + escHtml(detalj) + ')' : ''}${varning}</option>`;
+        }).join('')}
+      </select>
     </div>
-    <div class="tvakol">
-      <div class="faltrad">
-        <label>Handlingstyp</label>
-        <select name="dok-handlingstyp">${handlingstypOptions}</select>
-      </div>
-      <div class="faltrad">
-        <label>Dokumentkategori</label>
-        <select name="dok-kategori">${kategoriOptions}</select>
-      </div>
-    </div>
-    <div class="tvakol">
-      <div class="faltrad">
-        <label>Skyddskod</label>
-        <select name="dok-skyddskod">
-          <option value="0" ${skyddskodVal === '0' ? 'selected' : ''}>Offentlig</option>
-          <option value="100031" ${skyddskodVal === '100031' ? 'selected' : ''}>Sekretess KO</option>
-          <option value="100032" ${skyddskodVal === '100032' ? 'selected' : ''}>Sekretess OSL</option>
-        </select>
-      </div>
-      <div class="faltrad">
-        <label>Åtkomstgrupp</label>
-        <select name="dok-atkomstgrupp">${atkomstgruppOptions}</select>
-      </div>
-    </div>
-    <div class="dok-sekretess" style="display:${skyddskodVal !== '0' ? '' : 'none'};">
-      <div class="tvakol">
-        <div class="faltrad">
-          <label>Paragraf</label>
-          <select name="dok-paragraf"></select>
-        </div>
-        <div class="faltrad">
-          <label>Val av offentlig titel</label>
-          <select name="dok-off-titel-val">
-            <option value="1" ${offTitelVal === '1' ? 'selected' : ''}>Sätt offentlig titel lika med titel</option>
-            <option value="2" ${offTitelVal === '2' ? 'selected' : ''}>Skydda hela offentliga titeln</option>
-            <option value="3" ${offTitelVal === '3' ? 'selected' : ''}>Skriv in offentlig titel manuellt</option>
-          </select>
-        </div>
-      </div>
-      <div class="faltrad dok-off-titel-manuell" style="display:${offTitelVal === '3' ? '' : 'none'};">
-        <label>Offentlig titel</label>
-        <input type="text" name="dok-off-titel" value="${escHtml(d.offentligTitel || '')}">
-      </div>
-    </div>
-    <div class="faltrad">
-      <label>Oregistrerad kontakt (avsändare/mottagare)</label>
-      <input type="text" name="dok-oregistrerad-kontakt" value="${escHtml(d.oregistreradKontakt || '')}"
-        placeholder="Namn på oregistrerad kontakt">
-    </div>
-    <div class="tvakol">
-      <div class="faltrad">
-        <label>Ankomstdatum</label>
-        <select name="dok-ankomstdatum">
-          <option value="" ${!d.ankomstdatum ? 'selected' : ''}>(Inget)</option>
-          <option value="idag" ${d.ankomstdatum === 'idag' ? 'selected' : ''}>Dagens datum</option>
-        </select>
-      </div>
-      <div class="faltrad">
-        <label>Ansvarig enhet</label>
-        <select name="dok-ansvarig-enhet">${ansvarigEnhetOptions}</select>
-      </div>
-    </div>
-    <div class="tvakol">
-      <div class="faltrad">
-        <label>Ansvarig person</label>
-        <select name="dok-ansvarig-person">${ansvarigPersonOptions}</select>
-      </div>
-      <div class="faltrad"></div>
-    </div>
+    ${klassKod ? '<p style="font-size:11px;color:#888;margin:0 0 8px;">⚠ = handlingstypen matchar inte klassificeringen ' + escHtml(klassKod) + '</p>' : ''}
     <div class="knappar">
-      <button class="ok" data-action="ok">OK</button>
+      <button class="ok" data-action="ok">Lägg till</button>
       <button data-action="avbryt">Avbryt</button>
     </div>
   `;
 
-  // Infoga efter dokumentlistan
-  const lista = document.getElementById('dokumentlista');
-  lista.after(formulär);
-
-  // Fyll i paragraf-dropdown
-  const paragrafSel = formulär.querySelector('[name="dok-paragraf"]');
-  fyllDokParagrafer(paragrafSel, skyddskodVal);
-  if (d.sekretessParag) paragrafSel.value = d.sekretessParag;
-
-  // Visa/dölj sekretessblock vid skyddskod-byte
-  const skyddskodSel = formulär.querySelector('[name="dok-skyddskod"]');
-  const sekretessDiv = formulär.querySelector('.dok-sekretess');
-  skyddskodSel.addEventListener('change', () => {
-    const kod = skyddskodSel.value;
-    sekretessDiv.style.display = kod !== '0' ? '' : 'none';
-    if (kod !== '0') fyllDokParagrafer(paragrafSel, kod);
-  });
-
-  // Visa/dölj offentlig titel manuell vid val-byte
-  const offTitelValSel = formulär.querySelector('[name="dok-off-titel-val"]');
-  const offTitelManuellDiv = formulär.querySelector('.dok-off-titel-manuell');
-  if (offTitelValSel) {
-    offTitelValSel.addEventListener('change', () => {
-      offTitelManuellDiv.style.display = offTitelValSel.value === '3' ? '' : 'none';
-    });
-  }
+  document.getElementById('dokumentlista').after(formulär);
 
   formulär.querySelector('[data-action="avbryt"]').addEventListener('click', () => formulär.remove());
   formulär.querySelector('[data-action="ok"]').addEventListener('click', () => {
-    const handlingstypSel = formulär.querySelector('[name="dok-handlingstyp"]');
-    const ansvarigPersonSel = formulär.querySelector('[name="dok-ansvarig-person"]');
-    const atkomstgruppSel = formulär.querySelector('[name="dok-atkomstgrupp"]');
-    const ansvarigEnhetSel = formulär.querySelector('[name="dok-ansvarig-enhet"]');
-    const kod = skyddskodSel.value;
-
-    const nyttDok = {
-      titel: formulär.querySelector('[name="dok-titel"]').value.trim(),
-      handlingstyp: handlingstypSel.value
-        ? { value: handlingstypSel.value, text: handlingstypSel.options[handlingstypSel.selectedIndex]?.text || '' }
-        : null,
-      kategori: formulär.querySelector('[name="dok-kategori"]').value,
-      skyddskod: kod,
-      sekretessParag: kod !== '0' ? paragrafSel.value : '',
-      offentligTitelVal: kod !== '0' ? (offTitelValSel?.value || '1') : '1',
-      offentligTitel: kod !== '0' && offTitelValSel?.value === '3'
-        ? (formulär.querySelector('[name="dok-off-titel"]')?.value.trim() || '')
-        : '',
-      atkomstgrupp: atkomstgruppSel.value
-        ? { value: atkomstgruppSel.value, label: atkomstgruppSel.options[atkomstgruppSel.selectedIndex]?.text || '' }
-        : null,
-      oregistreradKontakt: formulär.querySelector('[name="dok-oregistrerad-kontakt"]').value.trim(),
-      ankomstdatum: formulär.querySelector('[name="dok-ankomstdatum"]').value,
-      ansvarigEnhet: ansvarigEnhetSel.value
-        ? { value: ansvarigEnhetSel.value, label: ansvarigEnhetSel.options[ansvarigEnhetSel.selectedIndex]?.text || '' }
-        : null,
-      ansvarigPerson: ansvarigPersonSel.value
-        ? { value: ansvarigPersonSel.value, label: ansvarigPersonSel.options[ansvarigPersonSel.selectedIndex]?.text || '' }
-        : null,
-    };
-
-    if (idx !== null) {
-      ärendedokument[idx] = nyttDok;
-    } else {
-      ärendedokument.push(nyttDok);
+    const valt = formulär.querySelector('[name="dok-mall-val"]').value;
+    const dm = sparadeDokumentmallar.find(m => m.id === valt);
+    if (dm) {
+      ärendedokument.push({ dokumentmallId: dm.id, namn: dm.namn });
+      formulär.remove();
+      renderaDokument();
     }
-    formulär.remove();
-    renderaDokument();
   });
-}
-
-function fyllDokParagrafer(sel, kod) {
-  const valt = sel.value;
-  sel.innerHTML = '<option value="">– välj paragraf –</option>';
-  const lista = kod === '100032' ? OSL_PARAGRAFER : KO_PARAGRAFER;
-  lista.forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = p;
-    opt.textContent = p;
-    sel.appendChild(opt);
-  });
-  if (valt) sel.value = valt;
 }
 
 // ------------------------------------------------------------------
@@ -889,7 +727,30 @@ async function laddaMall(id) {
   kontakter = mall.externaKontakter || [];
   renderaKontakter();
 
-  ärendedokument = mall.ärendedokument || [];
+  // Migrera gamla inline-dokument till dokumentmallar (bakåtkompatibilitet)
+  const råDokument = mall.ärendedokument || [];
+  ärendedokument = [];
+  for (const d of råDokument) {
+    if (d.dokumentmallId) {
+      // Redan en referens
+      ärendedokument.push(d);
+    } else if (d.titel || d.handlingstyp) {
+      // Gammalt inline-format – skapa en dokumentmall automatiskt
+      const nyMall = {
+        id: 'dokmall_migr_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        namn: d.titel || '(Migrerad dokumentmall)',
+        skapad: Date.now(),
+        ändrad: Date.now(),
+        ...d,
+      };
+      sparadeDokumentmallar.push(nyMall);
+      ärendedokument.push({ dokumentmallId: nyMall.id, namn: nyMall.namn });
+    }
+  }
+  // Spara eventuellt migrerade dokumentmallar
+  if (råDokument.some(d => !d.dokumentmallId && (d.titel || d.handlingstyp))) {
+    await chrome.storage.local.set({ dokumentmallar: sparadeDokumentmallar });
+  }
   renderaDokument();
 }
 

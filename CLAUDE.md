@@ -888,6 +888,8 @@ Därefter triggar formulär-iframen automatiskt (i tur och ordning):
 ├── page-arende-create.js  # Skapa ärende från mall (skapaFrånMall)
 ├── page-document-options.js # Passiv caching av Handlingstyp-alternativ
 ├── page-document-create.js  # Skapa ärendedokument från mall (skapaÄrendedokument)
+├── dokument-mall.html     # Redigeringssida för dokumentmallar (fristående)
+├── dokument-mall.js       # Logik för dokumentmallredigeraren
 ├── page.js                # Router i MAIN world (lyssnar på p360-anrop och dispatchar)
 ├── background.js          # Service worker – hanterar tangentbordskommandon
 ├── help.html              # Inbyggd hjälpsida (öppnas via "? Hjälp" i popup)

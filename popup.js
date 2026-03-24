@@ -220,8 +220,79 @@ document.getElementById('btn-ny-mall').addEventListener('click', () => {
   window.close();
 });
 
+// ------------------------------------------------------------------
+// Dokumentmallhantering
+// ------------------------------------------------------------------
+
+/**
+ * Laddar och renderar listan med sparade dokumentmallar.
+ */
+async function laddaDokumentmallar() {
+  const { dokumentmallar = [] } = await chrome.storage.local.get('dokumentmallar');
+  const lista = document.getElementById('dokumentmalllista');
+  const tomText = document.getElementById('tom-dokumentmalllista');
+
+  lista.querySelectorAll('.mall-rad').forEach(el => el.remove());
+
+  if (dokumentmallar.length === 0) {
+    tomText.style.display = '';
+    return;
+  }
+  tomText.style.display = 'none';
+
+  dokumentmallar.forEach(dm => {
+    const rad = document.createElement('div');
+    rad.className = 'mall-rad';
+    rad.innerHTML = `
+      <span class="mall-namn" title="${escHtml(dm.namn)}">${escHtml(dm.namn)}</span>
+      <div class="mall-knappar">
+        <button class="btn-använd" data-dokmall-id="${dm.id}">Använd</button>
+        <button data-dokmall-redigera="${dm.id}" title="Redigera">✎</button>
+        <button data-dokmall-ta-bort="${dm.id}" title="Ta bort">✕</button>
+      </div>
+    `;
+    lista.appendChild(rad);
+  });
+
+  // Använd – skapa dokument på aktuellt ärende
+  lista.querySelectorAll('.btn-använd[data-dokmall-id]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      döljFelmeddelande();
+      const dm = dokumentmallar.find(m => m.id === btn.dataset.dokmallId);
+      if (!dm) return;
+      // Skicka dokumentmallen som ett dokument att skapa
+      await skicka({ action: 'skapaÄrendedokument', dokument: [dm] });
+    });
+  });
+
+  lista.querySelectorAll('[data-dokmall-redigera]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      chrome.tabs.create({
+        url: chrome.runtime.getURL('dokument-mall.html') + '?id=' + btn.dataset.dokmallRedigera,
+      });
+      window.close();
+    });
+  });
+
+  lista.querySelectorAll('[data-dokmall-ta-bort]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const { dokumentmallar: lista = [] } = await chrome.storage.local.get('dokumentmallar');
+      const nya = lista.filter(m => m.id !== btn.dataset.dokmallTaBort);
+      await chrome.storage.local.set({ dokumentmallar: nya });
+      laddaDokumentmallar();
+    });
+  });
+}
+
+// Ny dokumentmall-knappen
+document.getElementById('btn-ny-dokumentmall').addEventListener('click', () => {
+  chrome.tabs.create({ url: chrome.runtime.getURL('dokument-mall.html') });
+  window.close();
+});
+
 // Ladda mallar direkt vid start
 laddaMallar();
+laddaDokumentmallar();
 
 // ------------------------------------------------------------------
 // Hjälpfunktion

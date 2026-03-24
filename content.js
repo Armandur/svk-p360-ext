@@ -15,7 +15,7 @@ if (!window.__p360ContentInitierat) {
   }
 
   // Åtgärder som inte kräver att vi är på en ärendesida (fungerar på hela p360-domänen)
-  const ÅTGÄRDER_UTAN_SIDKRAV = new Set(['skapaFrånMall', 'läsInAlternativ', 'skapaÄrendedokument']);
+  const ÅTGÄRDER_UTAN_SIDKRAV = new Set(['skapaFrånMall', 'läsInAlternativ']);
 
   /**
    * Skickar ett anrop till page.js (MAIN world) och väntar på svar via CustomEvent.
@@ -55,6 +55,22 @@ if (!window.__p360ContentInitierat) {
     console.log(`[p360] ${dokument.length} ärendedokument sparade som pending`);
   });
 
+  /**
+   * Löser dokumentmallreferenser ({ dokumentmallId }) till fullständiga dokumentobjekt.
+   */
+  async function lösaDokumentreferenser(dokument) {
+    const harReferenser = dokument.some(d => d.dokumentmallId && !d.handlingstyp && !d.kategori);
+    if (!harReferenser) return dokument;
+    const { dokumentmallar = [] } = await chrome.storage.local.get('dokumentmallar');
+    return dokument.map(d => {
+      if (d.dokumentmallId && !d.handlingstyp && !d.kategori) {
+        const dm = dokumentmallar.find(m => m.id === d.dokumentmallId);
+        return dm || d;
+      }
+      return d;
+    }).filter(d => d.titel || d.handlingstyp || d.kategori);
+  }
+
   // Kontrollera om det finns pending ärendedokument att skapa (efter navigering till ärendesida)
   setTimeout(async () => {
     if (!window.location.href.includes('/DMS/Case/Details/')) return;
@@ -62,8 +78,11 @@ if (!window.__p360ContentInitierat) {
     if (!pendingÄrendedokument?.dokument?.length) return;
     // Rensa direkt så vi inte kör om vid nästa laddning
     await chrome.storage.local.remove('pendingÄrendedokument');
+    // Lös eventuella dokumentmallreferenser
+    const löstaDokument = await lösaDokumentreferenser(pendingÄrendedokument.dokument);
+    if (!löstaDokument.length) return;
     // Skicka till page.js via befintligt meddelandeflöde
-    anropaSidan('skapaÄrendedokument', { dokument: pendingÄrendedokument.dokument })
+    anropaSidan('skapaÄrendedokument', { dokument: löstaDokument })
       .then(svar => {
         if (!svar.success) console.error('[p360] Ärendedokument misslyckades:', svar.fel);
       })
@@ -94,6 +113,7 @@ if (!window.__p360ContentInitierat) {
     const data = {};
     if (request.action === 'sättStatus') data.statusVärde = request.statusVärde;
     if (request.action === 'skapaFrånMall') data.mall = request.mall;
+    if (request.action === 'skapaÄrendedokument') data.dokument = request.dokument;
 
     anropaSidan(request.action, data)
       .then(svar => sendResponse(svar))
