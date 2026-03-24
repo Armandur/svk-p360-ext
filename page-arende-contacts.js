@@ -95,7 +95,14 @@ async function läggTillExternKontakt(kontakt, pb = __doPostBack) {
   console.log('[p360-debug] Resultat dubblettIframe:', dubblettIframe ? dubblettIframe.src : null);
 
   if (dubblettIframe) {
-    dubblettIframe.contentWindow.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'no');
+    console.log('[p360-debug] Anropar __doPostBack("no"). contentWindow.location:', (() => { try { return dubblettIframe.contentWindow?.location?.href; } catch(e) { return 'FEL: ' + e.message; } })());
+    console.log('[p360-debug] __doPostBack finns:', typeof dubblettIframe.contentWindow?.__doPostBack);
+    try {
+      dubblettIframe.contentWindow.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'no');
+      console.log('[p360-debug] __doPostBack("no") skickades utan fel');
+    } catch (e) {
+      console.error('[p360-debug] FEL vid __doPostBack("no"):', e);
+    }
     // Vänta på att kontaktformuläret stängs efter dubbletthantering
     await new Promise(resolve => {
       const timer = setTimeout(resolve, 8000);

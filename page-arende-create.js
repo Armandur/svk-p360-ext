@@ -348,6 +348,7 @@ async function skapaFrånMall(mall) {
       }
     }
   } catch (err) {
+    console.error('[p360-debug] skapaFrånMall catch:', err);
     overlay.remove();
     throw err;
   }
