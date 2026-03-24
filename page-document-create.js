@@ -228,17 +228,12 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
           if (stängBtn) stängBtn.click();
         }
       }
-      // ExecCancel visar en "Vänligen vänta"-dialog som 360° sedan stänger.
-      // Rensa bort eventuella kvarvarande dialoger efter en kort fördröjning.
+      // ExecCancel stänger formuläret men lämnar kvar dialogskal och loader.
+      // Rensa bort alla öppna 360°-dialoger efter en kort fördröjning.
       setTimeout(() => {
         document.querySelectorAll('dialog.old-ms-Dialog.is-open').forEach(d => {
-          // Ta bort tomma/loader-dialoger som hänger kvar
-          const title = d.querySelector('.old-ms-Dialog-title');
-          const loader = d.querySelector('.si-bif-loader');
-          if (loader || (title && !title.textContent.trim())) {
-            d.close?.();
-            d.remove();
-          }
+          d.close?.();
+          d.remove();
         });
       }, 1500);
       resolve({ cancelled: true });
