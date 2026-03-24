@@ -72,37 +72,101 @@ function kontrolleraObligatoriskaFält(iDoc) {
  */
 function väntaPåAnvändarensSlutför(iframe, tommaFält) {
   return new Promise((resolve, reject) => {
-    // 360° använder native <dialog> (HTML5) för modala dialoger.
+    // 360° använder native <dialog> (HTML5) via showModal().
     // showModal() gör allt utanför dialogen INERT – inga klick går igenom.
     // Därför MÅSTE vår banner placeras INUTI dialog-elementet.
+    //
+    // 360°:s CSS (och ev. JS) sätter stilar med hög specificitet som slår
+    // inline-styles. Lösning: en <style>-tag med !important och ett
+    // data-attribut som selektor.
     const dialog = iframe.closest('dialog');
 
-    // Spara dialogens ursprungliga stil så vi kan återställa
-    const origDialogStyle = dialog ? dialog.style.cssText : '';
-
-    // Spara originalstil för alla element vi ändrar
-    const origStyles = new Map();
-    const sparaOrig = (el) => { if (el) origStyles.set(el, el.style.cssText); };
-
     if (dialog) {
-      sparaOrig(dialog);
-      // Gör dialogen till en fullskärms-container med absolut positionering inuti.
-      // Undvik flex/grid – native <dialog> hanterar det opålitligt.
-      dialog.style.cssText =
-        'position:fixed;inset:0;margin:0;padding:0;border:none;' +
-        'width:100vw;height:100vh;max-width:none;max-height:none;' +
-        'background:rgba(0,0,0,0.5);transform:none;overflow:hidden;';
+      dialog.setAttribute('data-p360-manual-dialog', '');
     }
 
-    // Skapa infobanner – placeras INUTI dialogen med absolut positionering
+    // Injicera en <style>-tag med !important – slår 360°:s inline-styles
+    const styleTag = document.createElement('style');
+    styleTag.id = 'p360-manuell-style';
+    styleTag.textContent = `
+      dialog[data-p360-manual-dialog] {
+        position: fixed !important;
+        inset: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: none !important;
+        max-height: none !important;
+        background: rgba(0,0,0,0.5) !important;
+        transform: none !important;
+        overflow: hidden !important;
+      }
+      dialog[data-p360-manual-dialog] > .old-ms-Dialog-header,
+      dialog[data-p360-manual-dialog] > .old-ms-Dialog-HorizontalLine,
+      dialog[data-p360-manual-dialog] .old-ms-Dialog-buttonOther {
+        display: none !important;
+      }
+      dialog[data-p360-manual-dialog] > .old-ms-Dialog-main {
+        position: absolute !important;
+        top: 42px !important;
+        bottom: 10px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: 95% !important;
+        max-width: 980px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+        border: 3px solid #e67e22 !important;
+        border-radius: 6px !important;
+        overflow: hidden !important;
+      }
+      dialog[data-p360-manual-dialog] .old-ms-Dialog-inner {
+        width: 100% !important;
+        height: 100% !important;
+        overflow: hidden !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      dialog[data-p360-manual-dialog] .old-ms-Dialog-content {
+        width: 100% !important;
+        height: 100% !important;
+        overflow: hidden !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      dialog[data-p360-manual-dialog] .old-ms-Dialog-content iframe {
+        width: 100% !important;
+        height: 100% !important;
+        border: none !important;
+      }
+      #p360-manuell-banner {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        height: 42px !important;
+        background: #e67e22 !important;
+        color: #fff !important;
+        font-family: sans-serif !important;
+        font-size: 13px !important;
+        padding: 0 16px !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 12px !important;
+        box-sizing: border-box !important;
+        z-index: 1 !important;
+      }
+    `;
+    document.head.appendChild(styleTag);
+
+    // Skapa infobanner – placeras INUTI dialogen
     const banner = document.createElement('div');
     banner.id = 'p360-manuell-banner';
-    banner.style.cssText =
-      'position:absolute;top:0;left:0;right:0;height:42px;' +
-      'background:#e67e22;color:#fff;font-family:sans-serif;font-size:13px;' +
-      'padding:0 16px;box-shadow:0 2px 8px rgba(0,0,0,0.3);' +
-      'display:flex;align-items:center;justify-content:center;gap:12px;' +
-      'box-sizing:border-box;z-index:1;';
 
     const bannerText = document.createElement('span');
     bannerText.textContent =
@@ -117,57 +181,13 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
     banner.appendChild(avbrytBtn);
 
     if (dialog) {
-      // Lägg bannern först i dialogen
       dialog.insertBefore(banner, dialog.firstChild);
-
-      // Dölj 360°:s titelrad
-      const dialogHeader = dialog.querySelector('.old-ms-Dialog-header');
-      sparaOrig(dialogHeader);
-      if (dialogHeader) dialogHeader.style.display = 'none';
-
-      // Horisontallinjen
-      const hLine = dialog.querySelector('.old-ms-Dialog-HorizontalLine');
-      sparaOrig(hLine);
-      if (hLine) hLine.style.display = 'none';
-
-      // Huvudcontainern – absolut positionerad under bannern, centrerad
-      const dialogMain = dialog.querySelector('.old-ms-Dialog-main');
-      sparaOrig(dialogMain);
-      if (dialogMain) {
-        dialogMain.style.cssText =
-          'position:absolute;top:42px;bottom:10px;' +
-          'left:50%;transform:translateX(-50%);' +
-          'width:95%;max-width:980px;' +
-          'background:#fff;border:3px solid #e67e22;border-radius:6px;' +
-          'overflow:hidden;';
-      }
-
-      // Inre container – fyll hela utrymmet
-      const dialogInner = dialog.querySelector('.old-ms-Dialog-inner');
-      sparaOrig(dialogInner);
-      if (dialogInner) {
-        dialogInner.style.cssText = 'width:100%;height:100%;overflow:hidden;';
-      }
-
-      const dialogContent = dialog.querySelector('.old-ms-Dialog-content');
-      sparaOrig(dialogContent);
-      if (dialogContent) {
-        dialogContent.style.cssText = 'width:100%;height:100%;overflow:hidden;';
-      }
-
-      // Dölj hjälp/maximera/stäng-knappar
-      for (const btn of dialog.querySelectorAll('.old-ms-Dialog-buttonOther')) {
-        sparaOrig(btn);
-        btn.style.display = 'none';
-      }
-
-      // Iframen ska fylla hela innehållsytan
-      sparaOrig(iframe);
-      iframe.style.cssText = 'width:100%;height:100%;border:none;';
     } else {
-      // Fallback: dialog hittades inte, placera på body
-      banner.style.position = 'fixed';
-      banner.style.zIndex = '2000001';
+      // Fallback om dialog inte hittas
+      banner.style.cssText =
+        'position:fixed;top:0;left:0;right:0;z-index:2000001;height:42px;' +
+        'background:#e67e22;color:#fff;font-family:sans-serif;font-size:13px;' +
+        'padding:0 16px;display:flex;align-items:center;justify-content:center;gap:12px;';
       document.body.appendChild(banner);
     }
 
@@ -183,10 +203,8 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
       clearTimeout(timer);
       if (obs) obs.disconnect();
       banner.remove();
-      // Återställ alla element till sina originalstiler
-      for (const [el, orig] of origStyles) {
-        el.style.cssText = orig;
-      }
+      styleTag.remove();
+      if (dialog) dialog.removeAttribute('data-p360-manual-dialog');
     }
 
     // Avbryt-knapp
