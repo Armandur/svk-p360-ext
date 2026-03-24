@@ -207,13 +207,28 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
       if (dialog) dialog.removeAttribute('data-p360-manual-dialog');
     }
 
-    // Avbryt-knapp – stäng även 360°:s dialog ordentligt
+    // Avbryt-knapp – klicka formulärets egen Avbryt så 360° stänger dialogen korrekt
     avbrytBtn.addEventListener('click', () => {
       rensa();
-      // Klicka 360°:s egen stäng-knapp så dialogen stängs korrekt
+      // Hitta formulär-iframen och klicka dess WizardCancelButton (kör ExecCancel)
       if (dialog) {
-        const stängBtn = dialog.querySelector('.js-DialogAction--close');
-        if (stängBtn) stängBtn.click();
+        const iframe = dialog.querySelector('iframe');
+        try {
+          const cancelBtn = iframe?.contentDocument?.getElementById(
+            'PlaceHolderMain_MainView_WizardCancelButton'
+          );
+          if (cancelBtn) {
+            cancelBtn.click();
+          } else {
+            // Fallback: stäng via dialogens X-knapp
+            const stängBtn = dialog.querySelector('.js-DialogAction--close');
+            if (stängBtn) stängBtn.click();
+          }
+        } catch (e) {
+          // Cross-origin eller annat fel – prova X-knappen
+          const stängBtn = dialog.querySelector('.js-DialogAction--close');
+          if (stängBtn) stängBtn.click();
+        }
       }
       resolve({ cancelled: true });
     });
