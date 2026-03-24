@@ -207,9 +207,14 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
       if (dialog) dialog.removeAttribute('data-p360-manual-dialog');
     }
 
-    // Avbryt-knapp
+    // Avbryt-knapp – stäng även 360°:s dialog ordentligt
     avbrytBtn.addEventListener('click', () => {
       rensa();
+      // Klicka 360°:s egen stäng-knapp så dialogen stängs korrekt
+      if (dialog) {
+        const stängBtn = dialog.querySelector('.js-DialogAction--close');
+        if (stängBtn) stängBtn.click();
+      }
       resolve({ cancelled: true });
     });
 
