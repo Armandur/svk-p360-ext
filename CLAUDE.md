@@ -16,6 +16,17 @@ med Claude när nya idéer uppstår eller prioriteringar förändras.
 Eftersom Claude har tillgång till hela kontextfilen (CLAUDE.md) och ROADMAP.md behöver
 du inte förklara projektstrukturen eller tekniska detaljer – de finns dokumenterade här.
 
+### Agentvänlig arbetsmodell (filstorlek och refaktorering)
+
+För att hålla AI-arbete stabilt och undvika långa/tröga sessioner gäller följande:
+
+- Håll filer fokuserade och tematiskt avgränsade.
+- När en fil närmar sig **~400–500 rader** eller innehåller flera oberoende ansvar:
+  föreslå och genomför uppdelning i mindre filer.
+- Prioritera en tunn **router/entrypoint** och flytta domänlogik till separata filer.
+- Uppdatera alltid `manifest.json` körordning och `CLAUDE.md` när filstruktur ändras.
+- Undvik "mega-filer" där all MAIN-world-logik samlas i en enda `page.js`.
+
 ---
 
 ## Vad är det här projektet?
@@ -683,7 +694,7 @@ Dagboksbladet öppnas via PostBack-nyckeln `key_innehallsforteckning`. 360° anr
 `window.open()` med en URL till en rapport-sida som innehåller Microsoft Report Services
 (MSRS) Report Viewer.
 
-### Flöde i `triggerDagboksblad()` (page.js)
+### Flöde i `triggerDagboksblad()` (`page-dagboksblad.js`)
 
 1. **Fånga popup-referensen** – `window.open` patchas tillfälligt för att fånga
    fönsterobjektet som 360° skapar. Återställs direkt efter första anropet.
@@ -723,8 +734,11 @@ Chrome tillåter max 4 `suggested_key` per tillägg. Alla kommandon är konfigur
 ├── popup.html             # Tilläggets popup-UI
 ├── popup.js               # Logik för popup-knappar
 ├── content.js             # Injiceras på p360.svenskakyrkan.se (ISOLATED world)
-├── page.js                # Injiceras i sidans eget scope (MAIN world) – har tillgång
-│                          # till sidans globala JS-funktioner (t.ex. __doPostBack)
+├── page-utils.js          # Delade hjälpfunktioner för MAIN-world-filer
+├── page-dagboksblad.js    # Dagboksblad + utskriftsdialog
+├── page-status.js         # Sätt/växla status
+├── page-arende.js         # Skapa ärende från mall + externa kontakter
+├── page.js                # Router i MAIN world (lyssnar på p360-anrop och dispatchar)
 ├── background.js          # Service worker – hanterar tangentbordskommandon
 ├── help.html              # Inbyggd hjälpsida (öppnas via "? Hjälp" i popup)
 ├── icons/
@@ -734,6 +748,16 @@ Chrome tillåter max 4 `suggested_key` per tillägg. Alla kommandon är konfigur
 ├── CLAUDE.md              # Den här filen – projektkontextfil för Claude Code
 └── ROADMAP.md             # Planerade och föreslagna funktioner
 ```
+
+### MAIN-world körordning (manifest)
+
+Filerna injiceras i denna ordning:
+
+1. `page-utils.js`
+2. `page-dagboksblad.js`
+3. `page-status.js`
+4. `page-arende.js`
+5. `page.js` (router)
 
 ## Kodstil och konventioner
 
