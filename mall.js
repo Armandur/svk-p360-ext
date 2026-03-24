@@ -102,6 +102,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   kopplaHändelser();
+
+  // Lyssna på uppdateringar från dokument-mall.html (instansredigering)
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== 'local' || !changes.tempDokInstans) return;
+    const nytt = changes.tempDokInstans.newValue;
+    if (!nytt?.data || nytt.idx == null) return;
+    const idx = nytt.idx;
+    if (idx >= 0 && idx < ärendedokument.length) {
+      ärendedokument[idx] = nytt.data;
+      renderaDokument();
+    }
+  });
 });
 
 // ------------------------------------------------------------------
@@ -468,35 +480,39 @@ function visaDokCacheStatus() {
 function renderaDokument() {
   const lista = document.getElementById('dokumentlista');
   lista.innerHTML = '';
-  ärendedokument.forEach((ref, idx) => {
-    // Slå upp dokumentmallen för att visa detaljer
-    const dm = sparadeDokumentmallar.find(m => m.id === ref.dokumentmallId);
+  ärendedokument.forEach((inst, idx) => {
     const div = document.createElement('div');
     div.className = 'dokument-kort';
     div.draggable = true;
     div.dataset.idx = idx;
-    const namn = dm?.namn || ref.namn || '(okänd mall)';
-    const kategori = dm ? (DOKUMENTKATEGORIER.find(k => k.value === dm.kategori)?.label || '') : '';
-    const handlingstyp = dm?.handlingstyp?.text || '';
+    const namn = inst.namn || '(okänd mall)';
+    const kategori = DOKUMENTKATEGORIER.find(k => k.value === inst.kategori)?.label || '';
+    const handlingstyp = inst.handlingstyp?.text || '';
     const detaljer = [kategori, handlingstyp].filter(Boolean);
     const nummer = idx + 1; // :1, :2, :3 …
 
     // Kontrollera om handlingstypen matchar ärendets klassificering
     const klassKod = hämtaKlassificeringskod();
-    const handlTypText = dm?.handlingstyp?.text || '';
+    const handlTypText = inst.handlingstyp?.text || '';
     const klassMismatch = klassKod && handlTypText && !handlTypText.startsWith(klassKod);
 
     // Kontrollera tomma obligatoriska fält
-    const tommaObl = dm ? hittaTommaObligatoriskaFältDokMall(dm) : [];
+    const tommaObl = hittaTommaObligatoriskaFältDokMall(inst);
+
+    // Visa ursprungsmall-info om instansen avviker
+    const ursprung = inst.dokumentmallId
+      ? sparadeDokumentmallar.find(m => m.id === inst.dokumentmallId)
+      : null;
+    const ursprungInfo = ursprung ? `Bas: ${escHtml(ursprung.namn)}` : '';
 
     div.innerHTML = `
       <div class="dok-rubrik"><span class="drag-handle">⠿</span><span style="color:#0078d4;font-weight:700;margin-right:6px;">:${nummer}</span>${escHtml(namn)}</div>
       <div class="dok-knappar">
-        ${dm ? `<button data-idx="${idx}" data-action="redigera-dok" title="Redigera dokumentmall">✎</button>` : ''}
+        <button data-idx="${idx}" data-action="redigera-dok" title="Redigera denna instans">✎</button>
         <button data-idx="${idx}" data-action="ta-bort-dok" title="Ta bort från ärendemall">✕</button>
       </div>
       ${detaljer.length ? `<div class="dok-detaljer">${escHtml(detaljer.join(' · '))}</div>` : ''}
-      ${!dm ? '<div class="dok-detaljer" style="color:#c0392b;">Dokumentmallen hittades inte i lagringen.</div>' : ''}
+      ${ursprungInfo ? `<div class="dok-detaljer" style="color:#888;font-style:italic;">${ursprungInfo}</div>` : ''}
       ${klassMismatch ? `<div class="dok-detaljer" style="color:#c0392b;">⚠ Handlingstypen (${escHtml(handlTypText.split(' ')[0])}) matchar inte ärendets klassificering (${escHtml(klassKod)})</div>` : ''}
       ${tommaObl.length ? `<div class="dok-detaljer" style="color:#b36b00;">⚠ Användaren måste fylla i: ${escHtml(tommaObl.join(', '))}</div>` : ''}
     `;
@@ -506,12 +522,16 @@ function renderaDokument() {
   kopplaDragDrop(lista, ärendedokument, renderaDokument);
 
   lista.querySelectorAll('button[data-action]').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       const idx = parseInt(btn.dataset.idx, 10);
       if (btn.dataset.action === 'redigera-dok') {
-        const ref = ärendedokument[idx];
+        // Spara instansen till temp-storage och öppna redigeraren i instansläge
+        const instans = ärendedokument[idx];
+        await chrome.storage.local.set({
+          tempDokInstans: { data: instans, idx }
+        });
         chrome.tabs.create({
-          url: chrome.runtime.getURL('dokument-mall.html') + '?id=' + ref.dokumentmallId,
+          url: chrome.runtime.getURL('dokument-mall.html') + '?instans=1',
         });
       } else if (btn.dataset.action === 'ta-bort-dok') {
         ärendedokument.splice(idx, 1);
@@ -567,7 +587,13 @@ function visaDokumentväljare() {
     const valt = formulär.querySelector('[name="dok-mall-val"]').value;
     const dm = sparadeDokumentmallar.find(m => m.id === valt);
     if (dm) {
-      ärendedokument.push({ dokumentmallId: dm.id, namn: dm.namn });
+      // Djupkopiera dokumentmallen som instans – oberoende av originalet
+      const instans = JSON.parse(JSON.stringify(dm));
+      instans.dokumentmallId = dm.id; // Referens till ursprunget
+      delete instans.id;               // Instansen är inte en egen mall
+      delete instans.skapad;
+      instans.ändrad = Date.now();
+      ärendedokument.push(instans);
       formulär.remove();
       renderaDokument();
     }
@@ -731,15 +757,31 @@ async function laddaMall(id) {
   kontakter = mall.externaKontakter || [];
   renderaKontakter();
 
-  // Migrera gamla inline-dokument till dokumentmallar (bakåtkompatibilitet)
+  // Migrera ärendedokument till instansformat (bakåtkompatibilitet)
   const råDokument = mall.ärendedokument || [];
   ärendedokument = [];
+  let behöverSpara = false;
   for (const d of råDokument) {
-    if (d.dokumentmallId) {
-      // Redan en referens
+    if (d.dokumentmallId && (d.titel || d.kategori || d.handlingstyp)) {
+      // Redan en instans med egna data – behåll
       ärendedokument.push(d);
+    } else if (d.dokumentmallId) {
+      // Gammal ren referens – expandera till instans genom att kopiera från originalet
+      const dm = sparadeDokumentmallar.find(m => m.id === d.dokumentmallId);
+      if (dm) {
+        const instans = JSON.parse(JSON.stringify(dm));
+        instans.dokumentmallId = dm.id;
+        delete instans.id;
+        delete instans.skapad;
+        instans.ändrad = Date.now();
+        ärendedokument.push(instans);
+        behöverSpara = true;
+      } else {
+        // Originalet hittades inte – behåll referensen som den är
+        ärendedokument.push(d);
+      }
     } else if (d.titel || d.handlingstyp) {
-      // Gammalt inline-format – skapa en dokumentmall automatiskt
+      // Gammalt inline-format – skapa en dokumentmall + instans
       const nyMall = {
         id: 'dokmall_migr_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
         namn: d.titel || '(Migrerad dokumentmall)',
@@ -748,11 +790,15 @@ async function laddaMall(id) {
         ...d,
       };
       sparadeDokumentmallar.push(nyMall);
-      ärendedokument.push({ dokumentmallId: nyMall.id, namn: nyMall.namn });
+      const instans = JSON.parse(JSON.stringify(nyMall));
+      instans.dokumentmallId = nyMall.id;
+      delete instans.id;
+      delete instans.skapad;
+      ärendedokument.push(instans);
+      behöverSpara = true;
     }
   }
-  // Spara eventuellt migrerade dokumentmallar
-  if (råDokument.some(d => !d.dokumentmallId && (d.titel || d.handlingstyp))) {
+  if (behöverSpara) {
     await chrome.storage.local.set({ dokumentmallar: sparadeDokumentmallar });
   }
   renderaDokument();

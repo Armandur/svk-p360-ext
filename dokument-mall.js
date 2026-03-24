@@ -47,6 +47,9 @@ let cachedAnsvarigaEnheter = [];
 
 // Aktuellt mall-ID (null = ny mall)
 let mallId = null;
+// Instansläge – redigerar en kopia kopplad till en ärendemall
+let instansLäge = false;
+let instansIdx = null;
 
 // ------------------------------------------------------------------
 // Init
@@ -65,12 +68,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   visaCacheStatus();
   fyllDropdowns();
 
-  // Kolla om vi redigerar en befintlig mall
+  // Kolla om vi redigerar en instans (kopplad till ärendemall) eller en befintlig mall
   const params = new URLSearchParams(location.search);
-  mallId = params.get('id');
-  if (mallId) {
-    document.getElementById('sidrubrik').textContent = 'Redigera dokumentmall';
-    await laddaMall(mallId);
+  if (params.get('instans') === '1') {
+    instansLäge = true;
+    document.getElementById('sidrubrik').textContent = 'Redigera dokumentinstans';
+    const { tempDokInstans } = await chrome.storage.local.get('tempDokInstans');
+    if (tempDokInstans?.data) {
+      instansIdx = tempDokInstans.idx;
+      await laddaInstansData(tempDokInstans.data);
+    }
+  } else {
+    mallId = params.get('id');
+    if (mallId) {
+      document.getElementById('sidrubrik').textContent = 'Redigera dokumentmall';
+      await laddaMall(mallId);
+    }
   }
 
   kopplaHändelser();
@@ -206,17 +219,54 @@ async function sparaMall() {
   }
   sparaMall._bekräftad = false;
 
-  const skyddskod = skyddskodVärde;
+  const data = hämtaFormulärData(namn);
 
+  if (instansLäge) {
+    // Bevara ursprungsreferensen
+    const { tempDokInstans: orig } = await chrome.storage.local.get('tempDokInstans');
+    if (orig?.data?.dokumentmallId) {
+      data.dokumentmallId = orig.data.dokumentmallId;
+    }
+    // Spara tillbaka till temp-storage – mall.js:s onChanged-lyssnare fångar upp
+    await chrome.storage.local.set({
+      tempDokInstans: { data, idx: instansIdx }
+    });
+    window.close();
+    return;
+  }
+
+  // Vanligt mallsparande
+  const mall = {
+    id: mallId || 'dokmall_' + Date.now(),
+    skapad: mallId ? undefined : Date.now(),
+    ...data,
+  };
+
+  const { dokumentmallar: befintliga = [] } = await chrome.storage.local.get('dokumentmallar');
+  const index = befintliga.findIndex(m => m.id === mall.id);
+  if (index >= 0) {
+    mall.skapad = befintliga[index].skapad;
+    befintliga[index] = mall;
+  } else {
+    befintliga.push(mall);
+  }
+
+  await chrome.storage.local.set({ dokumentmallar: befintliga });
+  window.close();
+}
+
+/**
+ * Läser ut alla formulärfält som ett dataobjekt.
+ */
+function hämtaFormulärData(namn) {
+  const skyddskod = document.getElementById('dok-skyddskod').value;
   const handlingstypSel = document.getElementById('dok-handlingstyp');
   const atkomstgruppSel = document.getElementById('dok-atkomstgrupp');
   const ansvarigEnhetSel = document.getElementById('dok-ansvarig-enhet');
   const ansvarigPersonSel = document.getElementById('dok-ansvarig-person');
 
-  const mall = {
-    id: mallId || 'dokmall_' + Date.now(),
+  return {
     namn,
-    skapad: mallId ? undefined : Date.now(),
     ändrad: Date.now(),
     titel: document.getElementById('dok-titel').value.trim(),
     handlingstyp: handlingstypSel.value
@@ -245,19 +295,6 @@ async function sparaMall() {
       ? { value: ansvarigPersonSel.value, label: ansvarigPersonSel.options[ansvarigPersonSel.selectedIndex]?.text || '' }
       : null,
   };
-
-  // Hämta befintliga dokumentmallar och uppdatera/lägg till
-  const { dokumentmallar: befintliga = [] } = await chrome.storage.local.get('dokumentmallar');
-  const index = befintliga.findIndex(m => m.id === mall.id);
-  if (index >= 0) {
-    mall.skapad = befintliga[index].skapad;
-    befintliga[index] = mall;
-  } else {
-    befintliga.push(mall);
-  }
-
-  await chrome.storage.local.set({ dokumentmallar: befintliga });
-  window.close();
 }
 
 // ------------------------------------------------------------------
@@ -267,14 +304,27 @@ async function laddaMall(id) {
   const { dokumentmallar = [] } = await chrome.storage.local.get('dokumentmallar');
   const mall = dokumentmallar.find(m => m.id === id);
   if (!mall) return;
+  fyllFormulärFrånData(mall);
+}
 
-  document.getElementById('dok-namn').value = mall.namn || '';
-  document.getElementById('dok-titel').value = mall.titel || '';
-  document.getElementById('dok-kategori').value = mall.kategori || '';
-  document.getElementById('dok-skyddskod').value = mall.skyddskod || '0';
-  document.getElementById('dok-oregistrerad-kontakt').value = mall.oregistreradKontakt || '';
+/**
+ * Laddar instansdata (kopia kopplad till ärendemall) i formuläret.
+ */
+async function laddaInstansData(data) {
+  fyllFormulärFrånData(data);
+}
+
+/**
+ * Fyller formuläret med data från en dokumentmall eller instans.
+ */
+function fyllFormulärFrånData(d) {
+  document.getElementById('dok-namn').value = d.namn || '';
+  document.getElementById('dok-titel').value = d.titel || '';
+  document.getElementById('dok-kategori').value = d.kategori || '';
+  document.getElementById('dok-skyddskod').value = d.skyddskod || '0';
+  document.getElementById('dok-oregistrerad-kontakt').value = d.oregistreradKontakt || '';
   // Ankomstdatum – "idag", "YYYY-MM-DD" eller ""
-  const ankomst = mall.ankomstdatum || '';
+  const ankomst = d.ankomstdatum || '';
   if (ankomst === 'idag') {
     document.getElementById('dok-ankomstdatum-typ').value = 'idag';
   } else if (/^\d{4}-\d{2}-\d{2}$/.test(ankomst)) {
@@ -285,26 +335,26 @@ async function laddaMall(id) {
     document.getElementById('dok-ankomstdatum-typ').value = '';
   }
 
-  if (mall.handlingstyp?.value) {
-    säkertVälj('dok-handlingstyp', mall.handlingstyp.value, mall.handlingstyp.text);
+  if (d.handlingstyp?.value) {
+    säkertVälj('dok-handlingstyp', d.handlingstyp.value, d.handlingstyp.text);
   }
-  if (mall.atkomstgrupp?.value) {
-    säkertVälj('dok-atkomstgrupp', mall.atkomstgrupp.value, mall.atkomstgrupp.label);
+  if (d.atkomstgrupp?.value) {
+    säkertVälj('dok-atkomstgrupp', d.atkomstgrupp.value, d.atkomstgrupp.label);
   }
-  if (mall.ansvarigEnhet?.value) {
-    säkertVälj('dok-ansvarig-enhet', mall.ansvarigEnhet.value, mall.ansvarigEnhet.label);
+  if (d.ansvarigEnhet?.value) {
+    säkertVälj('dok-ansvarig-enhet', d.ansvarigEnhet.value, d.ansvarigEnhet.label);
   }
-  if (mall.ansvarigPerson?.value) {
-    säkertVälj('dok-ansvarig-person', mall.ansvarigPerson.value, mall.ansvarigPerson.label);
+  if (d.ansvarigPerson?.value) {
+    säkertVälj('dok-ansvarig-person', d.ansvarigPerson.value, d.ansvarigPerson.label);
   }
 
   uppdateraSekretessFält();
-  if (mall.skyddskod !== '0') {
-    document.getElementById('dok-paragraf').value = mall.sekretessParag || '';
-    document.getElementById('dok-off-titel-val').value = mall.offentligTitelVal || '1';
-    if (mall.offentligTitelVal === '3') {
+  if (d.skyddskod !== '0') {
+    document.getElementById('dok-paragraf').value = d.sekretessParag || '';
+    document.getElementById('dok-off-titel-val').value = d.offentligTitelVal || '1';
+    if (d.offentligTitelVal === '3') {
       document.getElementById('off-titel-falt').style.display = '';
-      document.getElementById('dok-off-titel').value = mall.offentligTitel || '';
+      document.getElementById('dok-off-titel').value = d.offentligTitel || '';
     }
   }
 }
