@@ -191,17 +191,29 @@ async function skapaFrånMall(mall) {
 
     const topUrlFör = window.location.href;
 
+    // Hjälpfunktion: spara pending ärendedokument innan navigering
+    const sparaPendingOchNavigera = (url) => {
+      if (mall.ärendedokument?.length > 0) {
+        window.dispatchEvent(new CustomEvent('p360-spara-pending-dokument', {
+          detail: { dokument: mall.ärendedokument }
+        }));
+      }
+      overlay.remove();
+      window.location.href = url;
+    };
+
+    const ärendeUrl = (recno) =>
+      `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${recno}`;
+
     iframe.Resize = () => {};
     iframe.IsLoading = true;
 
     iframe.commitPopup = (returnVal) => {
-      overlay.remove();
       const s = String(returnVal || '');
       if (s.includes('/DMS/') || s.includes('recno=')) {
-        window.location.href = s;
+        sparaPendingOchNavigera(s);
       } else if (/^\d{5,}$/.test(s)) {
-        window.location.href =
-          `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${s}`;
+        sparaPendingOchNavigera(ärendeUrl(s));
       }
     };
     iframe.cancelPopup = () => { overlay.remove(); };
@@ -210,13 +222,11 @@ async function skapaFrånMall(mall) {
     if (window.SI?.UI?.ModalDialog) {
       window.SI.UI.ModalDialog.CloseCallback = function(returnValue, ...args) {
         window.SI.UI.ModalDialog.CloseCallback = origCloseCallback;
-        overlay.remove();
         const s = String(returnValue || '');
         if (s.includes('/DMS/') || s.includes('recno=')) {
-          window.location.href = s;
+          sparaPendingOchNavigera(s);
         } else if (/^\d{5,}$/.test(s)) {
-          window.location.href =
-            `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${s}`;
+          sparaPendingOchNavigera(ärendeUrl(s));
         } else if (origCloseCallback) {
           origCloseCallback.call(this, returnValue, ...args);
         }
@@ -304,9 +314,7 @@ async function skapaFrånMall(mall) {
       }
 
       if (recnoFrånXHR) {
-        const målUrl = `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${recnoFrånXHR}`;
-        overlay.remove();
-        window.location.href = målUrl;
+        sparaPendingOchNavigera(ärendeUrl(recnoFrånXHR));
         return;
       }
 
@@ -319,11 +327,7 @@ async function skapaFrånMall(mall) {
         }
         if (iHref.includes('recno=') && !iHref.includes('cf7c6540')) {
           const recno = new URLSearchParams(iHref.split('?')[1] || '').get('recno');
-          const målUrl = recno
-            ? `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${recno}`
-            : iHref;
-          overlay.remove();
-          window.location.href = målUrl;
+          sparaPendingOchNavigera(recno ? ärendeUrl(recno) : iHref);
           return;
         }
       } catch { /* cross-origin */ }

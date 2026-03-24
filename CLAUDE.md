@@ -882,6 +882,8 @@ Därefter triggar formulär-iframen automatiskt (i tur och ordning):
 ├── page-arende-options.js # Inläsning av formuläralternativ (NY_ÄRENDE_URL, läsInAlternativ)
 ├── page-arende-contacts.js # Lägg till oregistrerade externa kontakter
 ├── page-arende-create.js  # Skapa ärende från mall (skapaFrånMall)
+├── page-document-options.js # Passiv caching av Handlingstyp-alternativ
+├── page-document-create.js  # Skapa ärendedokument från mall (skapaÄrendedokument)
 ├── page.js                # Router i MAIN world (lyssnar på p360-anrop och dispatchar)
 ├── background.js          # Service worker – hanterar tangentbordskommandon
 ├── help.html              # Inbyggd hjälpsida (öppnas via "? Hjälp" i popup)
@@ -903,7 +905,9 @@ Filerna injiceras i denna ordning:
 4. `page-arende-options.js`
 5. `page-arende-contacts.js`
 6. `page-arende-create.js`
-7. `page.js` (router)
+7. `page-document-options.js`
+8. `page-document-create.js`
+9. `page.js` (router)
 
 ## Kodstil och konventioner
 

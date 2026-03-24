@@ -19,24 +19,29 @@ Flytta en punkt till "Klart" när den är implementerad och testad.
   sparar tillgängliga handlingstyper (Selectize-alternativ) i `chrome.storage.local`
   under nyckeln `cachedHandlingstyper`. Cachen är ackumulerande och dedupliceras på `value`.
 
-**Nästa steg – popup-UI för dokumentmallar:**
+**Implementerat:**
 
-Bygg ut mallsystemet i popup/inställningssidan så att en ärendemall kan innehålla
-en lista med ärendedokumentmallar. Fält att stödja per dokumentmall:
-- Handlingstyp (väljs från `cachedHandlingstyper`)
-- Dokumentkategori (Inkommande / Utgående / Upprättat m.fl. – hårdkodad lista)
-- Titel
-- Skyddskod + sekretesslagrum (samma som ärendeformulär)
-- Ansvarig person
+- ✅ Ärendedokument-sektion i mallredigeraren (mall.html/mall.js) med fält per
+  dokument: handlingstyp, dokumentkategori, titel, ansvarig person, skyddskod/paragraf.
+- ✅ Automatiskt skapande av ärendedokument (`page-document-create.js`) som del av
+  mallflödet – efter att ärendet skapats sparas pending-dokument i
+  `chrome.storage.local`, och efter navigering till ärendesidan skapas dokumenten
+  ett i taget med statusfält.
+
+**Återstår att testa/verifiera:**
+
+- Hela flödet ärendeskapande → ärendedokument i faktisk 360°-miljö
+- Att UpdatePanel-ordningen för handlingstyp/kategori fungerar korrekt
+- Felhantering vid valideringsfel i dokumentformuläret
 
 **Långsiktigt:**
 
-1. **Automatiskt skapande av ärendedokument** som en del av mallflödet när ett
-   mallärende skapas.
-
-2. **Filuppladdning** – möjlighet att ladda upp en fil (t.ex. PDF) till ett
+1. **Filuppladdning** – möjlighet att ladda upp en fil (t.ex. PDF) till ett
    ärendedokument. Kräver kartläggning av hur 360° hanterar fil-upload
    (troligen multipart/form-data eller en separat dialog).
+
+2. **Arbetsdokument och Avtalsdokument** – utöka stödet till fler dokumenttyper
+   (andra subtype-värden än 61000).
 
 ---
 

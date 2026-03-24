@@ -35,6 +35,12 @@ window.addEventListener('p360-anrop', async (event) => {
       return;
     } else if (action === 'skapaFrånMall') {
       await skapaFrånMall(data.mall);
+    } else if (action === 'skapaÄrendedokument') {
+      const resultat = await skapaAllaÄrendedokument(data.dokument);
+      window.dispatchEvent(new CustomEvent('p360-svar', {
+        detail: { id, success: true, data: resultat }
+      }));
+      return;
     } else if (postbackNycklar[action]) {
       anropaPostBack(postbackNycklar[action]);
     } else {

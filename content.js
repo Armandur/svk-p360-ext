@@ -15,7 +15,7 @@ if (!window.__p360ContentInitierat) {
   }
 
   // Åtgärder som inte kräver att vi är på en ärendesida (fungerar på hela p360-domänen)
-  const ÅTGÄRDER_UTAN_SIDKRAV = new Set(['skapaFrånMall', 'läsInAlternativ']);
+  const ÅTGÄRDER_UTAN_SIDKRAV = new Set(['skapaFrånMall', 'läsInAlternativ', 'skapaÄrendedokument']);
 
   /**
    * Skickar ett anrop till page.js (MAIN world) och väntar på svar via CustomEvent.
@@ -23,6 +23,7 @@ if (!window.__p360ContentInitierat) {
    */
   function anropaSidan(action, data = {}) {
     const timeout = action === 'skapaFrånMall' ? 120000
+                  : action === 'skapaÄrendedokument' ? 300000
                   : action === 'läsInAlternativ' ? 45000
                   : 12000;
     return new Promise((resolve, reject) => {
@@ -45,6 +46,29 @@ if (!window.__p360ContentInitierat) {
       window.dispatchEvent(new CustomEvent('p360-anrop', { detail: { id, action, data } }));
     });
   }
+
+  // Sparar pending ärendedokument (anropas från page-arende-create.js innan navigering)
+  window.addEventListener('p360-spara-pending-dokument', async (event) => {
+    const { dokument } = event.detail;
+    if (!Array.isArray(dokument) || dokument.length === 0) return;
+    await chrome.storage.local.set({ pendingÄrendedokument: { dokument, sparad: Date.now() } });
+    console.log(`[p360] ${dokument.length} ärendedokument sparade som pending`);
+  });
+
+  // Kontrollera om det finns pending ärendedokument att skapa (efter navigering till ärendesida)
+  setTimeout(async () => {
+    if (!window.location.href.includes('/DMS/Case/Details/')) return;
+    const { pendingÄrendedokument } = await chrome.storage.local.get('pendingÄrendedokument');
+    if (!pendingÄrendedokument?.dokument?.length) return;
+    // Rensa direkt så vi inte kör om vid nästa laddning
+    await chrome.storage.local.remove('pendingÄrendedokument');
+    // Skicka till page.js via befintligt meddelandeflöde
+    anropaSidan('skapaÄrendedokument', { dokument: pendingÄrendedokument.dokument })
+      .then(svar => {
+        if (!svar.success) console.error('[p360] Ärendedokument misslyckades:', svar.fel);
+      })
+      .catch(err => console.error('[p360] Ärendedokument fel:', err.message));
+  }, 3000);
 
   // Tar emot Handlingstyp-alternativ från MAIN world och sparar i chrome.storage.local
   window.addEventListener('p360-spara-handlingstyper', async (event) => {
