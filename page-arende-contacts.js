@@ -78,17 +78,26 @@ async function läggTillExternKontakt(kontakt, pb = __doPostBack) {
 
   if (dubblettIframe) {
     dubblettIframe.contentWindow.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'no');
-    // Vänta på att kontaktformuläret stängs efter dubbletthantering
-    await new Promise(resolve => {
-      const timer = setTimeout(resolve, 8000);
-      const obs = new MutationObserver(() => {
-        const harKontakt = Array.from(document.querySelectorAll('iframe')).some(f => {
-          try { return f.src?.includes('JournalCaseContactNew') || f.contentDocument?.location?.href?.includes('JournalCaseContactNew'); }
-          catch { return false; }
-        });
-        if (!harKontakt) { clearTimeout(timer); obs.disconnect(); resolve(); }
-      });
-      obs.observe(document.body, { childList: true, subtree: true });
-    });
   }
+
+  // Vänta på att alla kontaktdialog-iframes stängs innan vi returnerar,
+  // så att nästa kontakt inte hittar en gammal NewActivityContact i DOM:en.
+  await new Promise(resolve => {
+    function harKontaktDialoger() {
+      return Array.from(document.querySelectorAll('iframe')).some(f => {
+        try {
+          const src = f.src || '';
+          const href = f.contentDocument?.location?.href || '';
+          return src.includes('NewActivityContact') || href.includes('NewActivityContact') ||
+                 src.includes('JournalCaseContactNew') || href.includes('JournalCaseContactNew');
+        } catch { return false; }
+      });
+    }
+    if (!harKontaktDialoger()) { resolve(); return; }
+    const timer = setTimeout(resolve, 8000);
+    const obs = new MutationObserver(() => {
+      if (!harKontaktDialoger()) { clearTimeout(timer); obs.disconnect(); resolve(); }
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+  });
 }
