@@ -67,6 +67,10 @@ let ärendedokument = [];
 let cachedHandlingstyper = [];
 // Cachade ansvariga personer (från chrome.storage.local)
 let cachedAnsvarigaPersoner = [];
+// Cachade åtkomstgrupper (från chrome.storage.local)
+let cachedAtkomstgrupper = [];
+// Cachade ansvariga enheter (från chrome.storage.local)
+let cachedAnsvarigaEnheter = [];
 // Redigerar vi en befintlig mall? Håll ID:t.
 let mallId = null;
 // Inlästa alternativ från 360°
@@ -79,9 +83,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   fyllParagrafer('0');
 
   // Ladda cachade handlingstyper och ansvariga personer
-  const stored = await chrome.storage.local.get(['cachedHandlingstyper', 'cachedAnsvarigaPersoner']);
+  const stored = await chrome.storage.local.get([
+    'cachedHandlingstyper', 'cachedAnsvarigaPersoner',
+    'cachedAtkomstgrupper', 'cachedAnsvarigaEnheter'
+  ]);
   cachedHandlingstyper = stored.cachedHandlingstyper || [];
   cachedAnsvarigaPersoner = stored.cachedAnsvarigaPersoner || [];
+  cachedAtkomstgrupper = stored.cachedAtkomstgrupper || [];
+  cachedAnsvarigaEnheter = stored.cachedAnsvarigaEnheter || [];
   visaDokCacheStatus();
 
   // Kolla om vi redigerar en befintlig mall (URL: ?id=xxx)
@@ -197,10 +206,22 @@ async function läsIn() {
   fyllSelectFrånAlternativ('mall-ansvarig-enhet', inlästaAlternativ.ansvarigaEnheter, true);
   fyllSelectFrånAlternativ('mall-ansvarig-person', inlästaAlternativ.ansvarigaPersoner, true);
 
-  // Cacha ansvariga personer för ärendedokument-formuläret
+  // Cacha instansspecifika alternativ för ärendedokument-formuläret
+  const cacheUppdatering = {};
   if (inlästaAlternativ.ansvarigaPersoner?.length > 0) {
     cachedAnsvarigaPersoner = inlästaAlternativ.ansvarigaPersoner;
-    await chrome.storage.local.set({ cachedAnsvarigaPersoner });
+    cacheUppdatering.cachedAnsvarigaPersoner = cachedAnsvarigaPersoner;
+  }
+  if (inlästaAlternativ.atkomstgrupper?.length > 0) {
+    cachedAtkomstgrupper = inlästaAlternativ.atkomstgrupper;
+    cacheUppdatering.cachedAtkomstgrupper = cachedAtkomstgrupper;
+  }
+  if (inlästaAlternativ.ansvarigaEnheter?.length > 0) {
+    cachedAnsvarigaEnheter = inlästaAlternativ.ansvarigaEnheter;
+    cacheUppdatering.cachedAnsvarigaEnheter = cachedAnsvarigaEnheter;
+  }
+  if (Object.keys(cacheUppdatering).length > 0) {
+    await chrome.storage.local.set(cacheUppdatering);
   }
 
   // Klassificeringar – visa dropdown om vi fick in data, annars behåll manuella fält
@@ -424,12 +445,10 @@ function visaDokCacheStatus() {
   const el = document.getElementById('dok-cache-status');
   if (!el) return;
   const delar = [];
-  if (cachedHandlingstyper.length > 0) {
-    delar.push(`${cachedHandlingstyper.length} handlingstyper`);
-  }
-  if (cachedAnsvarigaPersoner.length > 0) {
-    delar.push(`${cachedAnsvarigaPersoner.length} ansvariga personer`);
-  }
+  if (cachedHandlingstyper.length > 0) delar.push(`${cachedHandlingstyper.length} handlingstyper`);
+  if (cachedAnsvarigaPersoner.length > 0) delar.push(`${cachedAnsvarigaPersoner.length} personer`);
+  if (cachedAtkomstgrupper.length > 0) delar.push(`${cachedAtkomstgrupper.length} åtkomstgrupper`);
+  if (cachedAnsvarigaEnheter.length > 0) delar.push(`${cachedAnsvarigaEnheter.length} enheter`);
   if (delar.length > 0) {
     el.textContent = `(${delar.join(', ')} cachade)`;
     el.style.color = '#2e7d32';
@@ -447,13 +466,15 @@ function renderaDokument() {
     div.className = 'dokument-kort';
     const kategori = DOKUMENTKATEGORIER.find(k => k.value === d.kategori)?.label || d.kategori || '(ingen kategori)';
     const handlingstyp = d.handlingstyp?.text || '(ingen handlingstyp)';
+    const detaljer = [kategori, handlingstyp];
+    if (d.oregistreradKontakt) detaljer.push(`Kontakt: ${d.oregistreradKontakt}`);
     div.innerHTML = `
       <div class="dok-rubrik">${escHtml(d.titel || '(Ingen titel)')}</div>
       <div class="dok-knappar">
         <button data-idx="${idx}" data-action="redigera-dok">Redigera</button>
         <button data-idx="${idx}" data-action="ta-bort-dok">✕</button>
       </div>
-      <div class="dok-detaljer">${escHtml(kategori)} · ${escHtml(handlingstyp)}</div>
+      <div class="dok-detaljer">${escHtml(detaljer.join(' · '))}</div>
     `;
     lista.appendChild(div);
   });
@@ -518,6 +539,35 @@ function visaDokumentFormulär(idx) {
     ansvarigPersonOptions += `<option value="${escHtml(d.ansvarigPerson.value)}" selected>${escHtml(d.ansvarigPerson.label)}</option>`;
   }
 
+  // Åtkomstgrupp – använd inlästa alternativ, cache, eller sparat värde
+  const atkomstgruppLista = inlästaAlternativ?.atkomstgrupper?.length > 0
+    ? inlästaAlternativ.atkomstgrupper
+    : cachedAtkomstgrupper;
+  let atkomstgruppOptions = '<option value="">(Ingen)</option>';
+  if (atkomstgruppLista.length > 0) {
+    atkomstgruppOptions += atkomstgruppLista.map(a =>
+      `<option value="${escHtml(a.value)}" ${d.atkomstgrupp?.value === a.value ? 'selected' : ''}>${escHtml(a.label)}</option>`
+    ).join('');
+  } else if (d.atkomstgrupp?.value) {
+    atkomstgruppOptions += `<option value="${escHtml(d.atkomstgrupp.value)}" selected>${escHtml(d.atkomstgrupp.label)}</option>`;
+  }
+
+  // Ansvarig enhet – använd inlästa alternativ, cache, eller sparat värde
+  const enhetLista = inlästaAlternativ?.ansvarigaEnheter?.length > 0
+    ? inlästaAlternativ.ansvarigaEnheter
+    : cachedAnsvarigaEnheter;
+  let ansvarigEnhetOptions = '<option value="">(Ingen)</option>';
+  if (enhetLista.length > 0) {
+    ansvarigEnhetOptions += enhetLista.map(e =>
+      `<option value="${escHtml(e.value)}" ${d.ansvarigEnhet?.value === e.value ? 'selected' : ''}>${escHtml(e.label)}</option>`
+    ).join('');
+  } else if (d.ansvarigEnhet?.value) {
+    ansvarigEnhetOptions += `<option value="${escHtml(d.ansvarigEnhet.value)}" selected>${escHtml(d.ansvarigEnhet.label)}</option>`;
+  }
+
+  // Val av offentlig titel
+  const offTitelVal = d.offentligTitelVal || '1';
+
   formulär.innerHTML = `
     <h4>${idx !== null ? 'Redigera ärendedokument' : 'Nytt ärendedokument'}</h4>
     <div class="faltrad">
@@ -536,10 +586,6 @@ function visaDokumentFormulär(idx) {
     </div>
     <div class="tvakol">
       <div class="faltrad">
-        <label>Ansvarig person</label>
-        <select name="dok-ansvarig-person">${ansvarigPersonOptions}</select>
-      </div>
-      <div class="faltrad">
         <label>Skyddskod</label>
         <select name="dok-skyddskod">
           <option value="0" ${skyddskodVal === '0' ? 'selected' : ''}>Offentlig</option>
@@ -547,12 +593,55 @@ function visaDokumentFormulär(idx) {
           <option value="100032" ${skyddskodVal === '100032' ? 'selected' : ''}>Sekretess OSL</option>
         </select>
       </div>
+      <div class="faltrad">
+        <label>Åtkomstgrupp</label>
+        <select name="dok-atkomstgrupp">${atkomstgruppOptions}</select>
+      </div>
     </div>
     <div class="dok-sekretess" style="display:${skyddskodVal !== '0' ? '' : 'none'};">
-      <div class="faltrad">
-        <label>Paragraf</label>
-        <select name="dok-paragraf"></select>
+      <div class="tvakol">
+        <div class="faltrad">
+          <label>Paragraf</label>
+          <select name="dok-paragraf"></select>
+        </div>
+        <div class="faltrad">
+          <label>Val av offentlig titel</label>
+          <select name="dok-off-titel-val">
+            <option value="1" ${offTitelVal === '1' ? 'selected' : ''}>Sätt offentlig titel lika med titel</option>
+            <option value="2" ${offTitelVal === '2' ? 'selected' : ''}>Skydda hela offentliga titeln</option>
+            <option value="3" ${offTitelVal === '3' ? 'selected' : ''}>Skriv in offentlig titel manuellt</option>
+          </select>
+        </div>
       </div>
+      <div class="faltrad dok-off-titel-manuell" style="display:${offTitelVal === '3' ? '' : 'none'};">
+        <label>Offentlig titel</label>
+        <input type="text" name="dok-off-titel" value="${escHtml(d.offentligTitel || '')}">
+      </div>
+    </div>
+    <div class="faltrad">
+      <label>Oregistrerad kontakt (avsändare/mottagare)</label>
+      <input type="text" name="dok-oregistrerad-kontakt" value="${escHtml(d.oregistreradKontakt || '')}"
+        placeholder="Namn på oregistrerad kontakt">
+    </div>
+    <div class="tvakol">
+      <div class="faltrad">
+        <label>Ankomstdatum</label>
+        <select name="dok-ankomstdatum">
+          <option value="" ${!d.ankomstdatum ? 'selected' : ''}>(Inget)</option>
+          <option value="idag" ${d.ankomstdatum === 'idag' ? 'selected' : ''}>Dagens datum</option>
+        </select>
+      </div>
+      <div class="faltrad">
+        <label>Ansvarig enhet</label>
+        <select name="dok-ansvarig-enhet">${ansvarigEnhetOptions}</select>
+      </div>
+    </div>
+    <div class="tvakol">
+      <div class="faltrad">
+        <label>Ansvarig person</label>
+        <select name="dok-ansvarig-person">${ansvarigPersonOptions}</select>
+      </div>
+      <div class="faltrad"></div>
     </div>
     <div class="knappar">
       <button class="ok" data-action="ok">OK</button>
@@ -578,10 +667,21 @@ function visaDokumentFormulär(idx) {
     if (kod !== '0') fyllDokParagrafer(paragrafSel, kod);
   });
 
+  // Visa/dölj offentlig titel manuell vid val-byte
+  const offTitelValSel = formulär.querySelector('[name="dok-off-titel-val"]');
+  const offTitelManuellDiv = formulär.querySelector('.dok-off-titel-manuell');
+  if (offTitelValSel) {
+    offTitelValSel.addEventListener('change', () => {
+      offTitelManuellDiv.style.display = offTitelValSel.value === '3' ? '' : 'none';
+    });
+  }
+
   formulär.querySelector('[data-action="avbryt"]').addEventListener('click', () => formulär.remove());
   formulär.querySelector('[data-action="ok"]').addEventListener('click', () => {
     const handlingstypSel = formulär.querySelector('[name="dok-handlingstyp"]');
-    const ansvarigSel = formulär.querySelector('[name="dok-ansvarig-person"]');
+    const ansvarigPersonSel = formulär.querySelector('[name="dok-ansvarig-person"]');
+    const atkomstgruppSel = formulär.querySelector('[name="dok-atkomstgrupp"]');
+    const ansvarigEnhetSel = formulär.querySelector('[name="dok-ansvarig-enhet"]');
     const kod = skyddskodSel.value;
 
     const nyttDok = {
@@ -590,11 +690,23 @@ function visaDokumentFormulär(idx) {
         ? { value: handlingstypSel.value, text: handlingstypSel.options[handlingstypSel.selectedIndex]?.text || '' }
         : null,
       kategori: formulär.querySelector('[name="dok-kategori"]').value,
-      ansvarigPerson: ansvarigSel.value
-        ? { value: ansvarigSel.value, label: ansvarigSel.options[ansvarigSel.selectedIndex]?.text || '' }
-        : null,
       skyddskod: kod,
       sekretessParag: kod !== '0' ? paragrafSel.value : '',
+      offentligTitelVal: kod !== '0' ? (offTitelValSel?.value || '1') : '1',
+      offentligTitel: kod !== '0' && offTitelValSel?.value === '3'
+        ? (formulär.querySelector('[name="dok-off-titel"]')?.value.trim() || '')
+        : '',
+      atkomstgrupp: atkomstgruppSel.value
+        ? { value: atkomstgruppSel.value, label: atkomstgruppSel.options[atkomstgruppSel.selectedIndex]?.text || '' }
+        : null,
+      oregistreradKontakt: formulär.querySelector('[name="dok-oregistrerad-kontakt"]').value.trim(),
+      ankomstdatum: formulär.querySelector('[name="dok-ankomstdatum"]').value,
+      ansvarigEnhet: ansvarigEnhetSel.value
+        ? { value: ansvarigEnhetSel.value, label: ansvarigEnhetSel.options[ansvarigEnhetSel.selectedIndex]?.text || '' }
+        : null,
+      ansvarigPerson: ansvarigPersonSel.value
+        ? { value: ansvarigPersonSel.value, label: ansvarigPersonSel.options[ansvarigPersonSel.selectedIndex]?.text || '' }
+        : null,
     };
 
     if (idx !== null) {

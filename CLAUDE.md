@@ -772,8 +772,12 @@ Underliggande view.aspx-id: `70158b84-a8eb-492a-a546-277ee96e16f9`
 | `PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl` | SELECT + Selectize | **Ja** | Sekretesslagrum (visas vid KO/OSL) |
 | `PlaceHolderMain_MainView_ReceivedDateControl_si_datepicker` | Datumväljare | **Ja** | Ankomstdatum *(Inkommande)* |
 | `PlaceHolderMain_MainView_DispatchedDateControl_si_datepicker` | Datumväljare | **Ja** | Brevdatum / Expedieringsdatum *(Utgående)* |
+| `PlaceHolderMain_MainView_AccessGroupComboControl` | SELECT + Selectize | Nej | Åtkomstgrupp (instansspecifikt) |
+| `PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl` | SELECT + Selectize | Nej | Ansvarig enhet (instansspecifikt) |
 | `PlaceHolderMain_MainView_PaperControl` | SELECT + Selectize | **Ja** | Sparat på papper |
 | `PlaceHolderMain_MainView_ResponsibleUserComboControl` | SELECT + Selectize | **Ja** | Ansvarig person |
+| `PlaceHolderMain_MainView_UnregisteredSenderTextBoxControl` | INPUT text | Nej | Oregistrerad kontakt (avsändare) |
+| `PlaceHolderMain_MainView_AddUnregisteredSenderButtonControl` | Knapp (bock) | Nej | Bekräfta oregistrerad avsändare |
 | `PlaceHolderMain_MainView_ProjectQuickSearchControl_DISPLAY` | INPUT text | Nej | Projekt (typeahead, synligt) |
 
 > **`ProcessRecordTypeControl`** = **Handlingstyp** – vilken sorts handling det är (t.ex.

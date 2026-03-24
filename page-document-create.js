@@ -6,8 +6,10 @@
  * Skapar ett enskilt ärendedokument via formuläret på ärendesidan.
  * Förutsätter att vi befinner oss på en ärendedetaljsida.
  *
- * @param {Object} dok  – Dokumentmall: { titel, handlingstyp, kategori,
- *                        ansvarigPerson, skyddskod, sekretessParag }
+ * @param {Object} dok  – Dokumentmall med fält:
+ *   titel, handlingstyp, kategori, skyddskod, sekretessParag,
+ *   offentligTitelVal, offentligTitel, atkomstgrupp, oregistreradKontakt,
+ *   ankomstdatum, ansvarigEnhet, ansvarigPerson
  * @param {Function} visaStatus – Callback för statustext
  * @returns {string|null} Dokumentnumret (t.ex. "KHS 2026-0062:1") eller null
  */
@@ -46,7 +48,7 @@ async function skapaÄrendedokument(dok, visaStatus) {
   // ---------------------------------------------------------------
   visaStatus('Fyller i dokumentfält…');
 
-  // Handlingstyp (sätts tyst – UpdatePanel behövs ej för att visa andra fält)
+  // Handlingstyp
   if (dok.handlingstyp?.value) {
     await sättSelTyst(
       'PlaceHolderMain_MainView_ProcessRecordTypeControl',
@@ -54,20 +56,73 @@ async function skapaÄrendedokument(dok, visaStatus) {
     );
   }
 
-  // Dokumentkategori (sätts tyst)
+  // Dokumentkategori – triggar UpdatePanel (visar datumfält m.m.)
   if (dok.kategori) {
-    await sättSelTyst(
+    await sättSel(
       'PlaceHolderMain_MainView_TypeJournalDocumentInsertComboControl',
       dok.kategori
     );
+    // Vänta på UpdatePanel-svar (datumfält, kontaktfält m.m. laddas)
+    await sleep(1500);
   }
 
-  // Ansvarig person (sätts tyst)
+  // Åtkomstgrupp
+  if (dok.atkomstgrupp?.value) {
+    await sättSelTyst(
+      'PlaceHolderMain_MainView_AccessGroupComboControl',
+      dok.atkomstgrupp.value
+    );
+  }
+
+  // Ansvarig enhet
+  if (dok.ansvarigEnhet?.value) {
+    await sättSelTyst(
+      'PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl',
+      dok.ansvarigEnhet.value
+    );
+  }
+
+  // Ansvarig person
   if (dok.ansvarigPerson?.value) {
     await sättSelTyst(
       'PlaceHolderMain_MainView_ResponsibleUserComboControl',
       dok.ansvarigPerson.value
     );
+  }
+
+  // Ankomstdatum (för inkommande dokument)
+  if (dok.ankomstdatum === 'idag') {
+    const datumFält = iDoc.getElementById(
+      'PlaceHolderMain_MainView_ReceivedDateControl_si_datepicker'
+    );
+    if (datumFält) {
+      const idag = new Date();
+      const dd = String(idag.getDate()).padStart(2, '0');
+      const mm = String(idag.getMonth() + 1).padStart(2, '0');
+      const yyyy = idag.getFullYear();
+      datumFält.value = `${dd}.${mm}.${yyyy}`;
+      datumFält.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  }
+
+  // Oregistrerad kontakt (avsändare/mottagare)
+  if (dok.oregistreradKontakt) {
+    // Fältet för oregistrerad kontakt och dess bekräfta-knapp
+    const kontaktFält = iDoc.getElementById(
+      'PlaceHolderMain_MainView_UnregisteredSenderTextBoxControl'
+    );
+    if (kontaktFält) {
+      kontaktFält.value = dok.oregistreradKontakt;
+      kontaktFält.dispatchEvent(new Event('change', { bubbles: true }));
+      // Klicka på bekräfta-knappen (bock-ikonen bredvid fältet)
+      const bekräftaBtn = iDoc.getElementById(
+        'PlaceHolderMain_MainView_AddUnregisteredSenderButtonControl'
+      );
+      if (bekräftaBtn) {
+        bekräftaBtn.click();
+        await sleep(1000);
+      }
+    }
   }
 
   // Skyddskod – triggar UpdatePanel om KO/OSL (paragraf-fältet dyker upp)
@@ -84,6 +139,26 @@ async function skapaÄrendedokument(dok, visaStatus) {
         'PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl',
         dok.sekretessParag
       );
+    }
+
+    // Val av offentlig titel
+    if (dok.offentligTitelVal) {
+      await sättSel(
+        'PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl',
+        dok.offentligTitelVal
+      );
+      // Om manuell titel vald, vänta på UpdatePanel och fyll i
+      if (dok.offentligTitelVal === '3' && dok.offentligTitel) {
+        const offTitelFält = await waitForElement(
+          iDoc,
+          '#PlaceHolderMain_MainView_PublicTitleTextBoxControl',
+          5000
+        );
+        if (offTitelFält) {
+          offTitelFält.value = dok.offentligTitel;
+          offTitelFält.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      }
     }
   }
 
