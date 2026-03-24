@@ -765,8 +765,8 @@ Underliggande view.aspx-id: `70158b84-a8eb-492a-a546-277ee96e16f9`
 
 | Element-ID | Typ | Triggar UpdatePanel | Syfte |
 |---|---|---|---|
-| `PlaceHolderMain_MainView_ProcessRecordTypeControl` | SELECT + Selectize | **Ja** | Processtyp (t.ex. `101749` – instansspecifikt) |
-| `PlaceHolderMain_MainView_TypeJournalDocumentInsertComboControl` | SELECT + Selectize | **Ja** | Dokumentriktning (Inkommande / Utgående / Intern m.fl.) |
+| `PlaceHolderMain_MainView_ProcessRecordTypeControl` | SELECT + Selectize | **Ja** | Handlingstyp (t.ex. `101749` = "Annan handlingstyp" – instansspecifikt) |
+| `PlaceHolderMain_MainView_TypeJournalDocumentInsertComboControl` | SELECT + Selectize | **Ja** | Dokumentkategori (Inkommande / Utgående / Upprättat m.fl.) |
 | `PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl` | SELECT + Selectize | **Ja** | Val för offentlig titel (samma som ärendeformulär) |
 | `PlaceHolderMain_MainView_AccessCodeComboControl` | SELECT + Selectize | **Ja** | Skyddskod |
 | `PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl` | SELECT + Selectize | **Ja** | Sekretesslagrum (visas vid KO/OSL) |
@@ -776,11 +776,14 @@ Underliggande view.aspx-id: `70158b84-a8eb-492a-a546-277ee96e16f9`
 | `PlaceHolderMain_MainView_ResponsibleUserComboControl` | SELECT + Selectize | **Ja** | Ansvarig person |
 | `PlaceHolderMain_MainView_ProjectQuickSearchControl_DISPLAY` | INPUT text | Nej | Projekt (typeahead, synligt) |
 
-> **`ProcessRecordTypeControl`** styr processtypen (t.ex. "Ärendehandläggning" = `101749`).
-> **`TypeJournalDocumentInsertComboControl`** styr riktningen (Inkommande/Utgående/Intern).
-> Båda hade värdet `101749` i båda testkörningarna – `TypeJournalDocumentInsert`-värdet
-> fångades inte i loggarna men triggar UpdatePanel vid ändring.
-> `ProcessRecordTypeControl`-värdet är troligen instansspecifikt.
+> **`ProcessRecordTypeControl`** = **Handlingstyp** – vilken sorts handling det är (t.ex.
+> "Annan handlingstyp" = `101749`). Tillgängliga handlingstyper varierar per ärende och
+> beror på ärendets klassificering. Värdet är instansspecifikt och måste läsas dynamiskt
+> eller konfigureras per mall.
+>
+> **`TypeJournalDocumentInsertComboControl`** = **Dokumentkategori** – avgör om dokumentet
+> är Inkommande, Utgående eller Upprättat. Värdet triggar UpdatePanel vid ändring men
+> fångades inte i loggarna – behöver kartläggas.
 
 > **Titelfältet** triggar inte UpdatePanel och syns därför inte i PostBack-loggen.
 > Hitta element-ID:t genom att öppna formuläret och köra i konsolen:
@@ -853,7 +856,7 @@ Därefter triggar formulär-iframen automatiskt (i tur och ordning):
 ### Återstår att kartlägga
 
 - Titelfältets exakta element-ID (se tips ovan – troligen `TitleTextBoxControl`)
-- Värden för `TypeJournalDocumentInsertComboControl` (Inkommande / Utgående / Intern)
+- Värden för `TypeJournalDocumentInsertComboControl` (Inkommande / Utgående / Upprättat m.fl.)
 - Filuppladdning (flik "Filer")
 
 ---
