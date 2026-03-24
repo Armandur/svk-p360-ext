@@ -387,10 +387,29 @@ async function skapaÄrendedokument(dok, visaStatus) {
       10000
     );
     if (paragrafFält && dok.sekretessParag) {
+      // Vänta kort så att Selectize hinner initialiseras med options
+      await sleep(500);
       await sättSelTyst(
         'PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl',
         dok.sekretessParag
       );
+      // Verifiera att värdet faktiskt sattes – om inte, försök igen
+      const paragrafEl = iDoc.getElementById(
+        'PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl'
+      );
+      if (paragrafEl && paragrafEl.value !== dok.sekretessParag) {
+        console.warn('[p360-dok] Paragraf-värde sattes inte korrekt, försöker igen…',
+          'Förväntat:', dok.sekretessParag, 'Fick:', paragrafEl.value);
+        await sleep(1000);
+        await sättSelTyst(
+          'PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl',
+          dok.sekretessParag
+        );
+        if (paragrafEl.value !== dok.sekretessParag) {
+          console.error('[p360-dok] Paragraf-värde kunde inte sättas.',
+            'Tillgängliga options:', Array.from(paragrafEl.options).map(o => o.value));
+        }
+      }
     }
 
     // Vänta på att SelectOfficialTitleComboBoxControl dyker upp i DOM

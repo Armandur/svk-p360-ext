@@ -128,8 +128,23 @@ async function skapaFrånMall(mall) {
       const paragrafFält = await waitForElement(
         iDoc, '#PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', 10000
       );
-      if (paragrafFält && mall.sekretessParag)
+      if (paragrafFält && mall.sekretessParag) {
+        // Vänta kort så att Selectize hinner initialiseras med options
+        await sleep(500);
         await sättSelTyst('PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', mall.sekretessParag);
+        // Verifiera att värdet faktiskt sattes – om inte, försök igen
+        const paragrafEl = iDoc.getElementById('PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl');
+        if (paragrafEl && paragrafEl.value !== mall.sekretessParag) {
+          console.warn('[p360] Paragraf-värde sattes inte korrekt, försöker igen…',
+            'Förväntat:', mall.sekretessParag, 'Fick:', paragrafEl.value);
+          await sleep(1000);
+          await sättSelTyst('PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', mall.sekretessParag);
+          if (paragrafEl.value !== mall.sekretessParag) {
+            console.error('[p360] Paragraf-värde kunde inte sättas.',
+              'Tillgängliga options:', Array.from(paragrafEl.options).map(o => o.value));
+          }
+        }
+      }
 
       const checkbox = iDoc.getElementById('PlaceHolderMain_MainView_UnofficialContactCheckBoxControl');
       if (checkbox) checkbox.checked = !!mall.skyddaKontakter;
