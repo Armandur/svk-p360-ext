@@ -739,8 +739,8 @@ Chrome tillåter max 4 `suggested_key` per tillägg. Alla kommandon är konfigur
 
 ## Skapa nytt ärendedokument – teknisk kartläggning
 
-Kartlagt 2026-03-24 via spy.js-loggning. Dokumenttyp: Inkommande handling med
-avsändarkontakt hämtad från ärendet. Ingen fil bifogad.
+Kartlagt 2026-03-24 via spy.js-loggning (två körningar: Inkommande och Utgående handling).
+Ingen fil bifogad i något av fallen.
 
 ### Öppna formuläret
 
@@ -765,44 +765,61 @@ Underliggande view.aspx-id: `70158b84-a8eb-492a-a546-277ee96e16f9`
 
 | Element-ID | Typ | Triggar UpdatePanel | Syfte |
 |---|---|---|---|
-| `PlaceHolderMain_MainView_ProcessRecordTypeControl` | SELECT + Selectize | **Ja** | Dokumenttyp/processtyp (t.ex. `101749` = Inkommande) |
-| `PlaceHolderMain_MainView_TypeJournalDocumentInsertComboControl` | SELECT + Selectize | **Ja** | Dokumentkategori/riktning |
+| `PlaceHolderMain_MainView_ProcessRecordTypeControl` | SELECT + Selectize | **Ja** | Processtyp (t.ex. `101749` – instansspecifikt) |
+| `PlaceHolderMain_MainView_TypeJournalDocumentInsertComboControl` | SELECT + Selectize | **Ja** | Dokumentriktning (Inkommande / Utgående / Intern m.fl.) |
 | `PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl` | SELECT + Selectize | **Ja** | Val för offentlig titel (samma som ärendeformulär) |
 | `PlaceHolderMain_MainView_AccessCodeComboControl` | SELECT + Selectize | **Ja** | Skyddskod |
 | `PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl` | SELECT + Selectize | **Ja** | Sekretesslagrum (visas vid KO/OSL) |
-| `PlaceHolderMain_MainView_ReceivedDateControl_si_datepicker` | Datumväljare | **Ja** | Ankomstdatum |
+| `PlaceHolderMain_MainView_ReceivedDateControl_si_datepicker` | Datumväljare | **Ja** | Ankomstdatum *(Inkommande)* |
+| `PlaceHolderMain_MainView_DispatchedDateControl_si_datepicker` | Datumväljare | **Ja** | Brevdatum / Expedieringsdatum *(Utgående)* |
 | `PlaceHolderMain_MainView_PaperControl` | SELECT + Selectize | **Ja** | Sparat på papper |
 | `PlaceHolderMain_MainView_ResponsibleUserComboControl` | SELECT + Selectize | **Ja** | Ansvarig person |
 | `PlaceHolderMain_MainView_ProjectQuickSearchControl_DISPLAY` | INPUT text | Nej | Projekt (typeahead, synligt) |
 
-> **Instansspecifikt:** `ProcessRecordTypeControl`-värdet (`101749`) är troligen
-> instansspecifikt och måste läsas dynamiskt eller konfigureras per installation.
+> **`ProcessRecordTypeControl`** styr processtypen (t.ex. "Ärendehandläggning" = `101749`).
+> **`TypeJournalDocumentInsertComboControl`** styr riktningen (Inkommande/Utgående/Intern).
+> Båda hade värdet `101749` i båda testkörningarna – `TypeJournalDocumentInsert`-värdet
+> fångades inte i loggarna men triggar UpdatePanel vid ändring.
+> `ProcessRecordTypeControl`-värdet är troligen instansspecifikt.
 
-### Avsändarkontakt (Inkommande)
+> **Titelfältet** triggar inte UpdatePanel och syns därför inte i PostBack-loggen.
+> Hitta element-ID:t genom att öppna formuläret och köra i konsolen:
+> `iframen.contentDocument.querySelector('input[type=text], textarea')` eller
+> inspektera DOM:en direkt. Troligt ID: `PlaceHolderMain_MainView_TitleTextBoxControl`
+> (samma mönster som ärendeformuläret).
 
-Knapp `SenderCaseProjectContactsImgControl` triggar en UpdatePanel och öppnar:
+### Kontaktfält – Inkommande vs Utgående
+
+| | Inkommande | Utgående |
+|---|---|---|
+| Triggande kontroll | `SenderCaseProjectContactsImgControl` | `RecipientCaseProjectContactsImgControl` |
+| `caseprojectcontactlist` | `SenderCaseProjectContactsList` | `RecipientCaseProjectContactsList` |
+| `showexternalcontacts` | `1` | `2` |
+| `role` | `5` | `6` |
+| Callback i formulär-iframe | `FindSenderCaseProjectContacts_Operation_POSTBACK` | `FindRecipientCaseProjectContacts_Operation_POSTBACK` |
+
+Båda öppnar samma dialog-typ:
 ```
 GET /locator/DMS/Dialog/AddCasePartsDialog
-  ?caseRecno={recno}&projectRecno=&showexternalcontacts=1
-  &supervisionobjectRecno={5}&caseprojectcontactlist=SenderCaseProjectContactsList
-  &role=5&standalonemode=true&IsDlg=1
+  ?caseRecno={recno}&projectRecno=&showexternalcontacts={1|2}
+  &supervisionobjectRecno={5}&caseprojectcontactlist={...List}
+  &role={5|6}&standalonemode=true&IsDlg=1
 ```
 
-Dialogen stängs med:
+Stängs med:
 ```js
 iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish');
 ```
 
-Efter close triggas `FindSenderCaseProjectContacts_Operation_POSTBACK` i formulär-iframen.
-
 ### Spara dokumentet
 
 ```js
-// Steg 1 – Slutför-knapp (eller direktanrop):
+// Steg 1 – Slutför (eller klicka fysisk knapp):
 iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
 
-// Steg 2 – Triggas automatiskt av servern efter finish:
-// CompleteWizardHiddenEventControl → öppnar RepeatWizardDialog
+// Steg 2 – Triggas automatiskt av servern:
+iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$CompleteWizardHiddenEventControl', '');
+// → öppnar RepeatWizardDialog
 ```
 
 ### RepeatWizardDialog – dokumentnummer och avslut
@@ -813,24 +830,30 @@ GET /locator/DMS/Dialog/RepeatWizardDialog
   ?dialogCaption=Dokumentet+KHS+2026-0062%3A1+är+skapad&...&IsDlg=1
 ```
 
-**Dokumentnumret** (`KHS 2026-0062:1`) finns i `dialogCaption`-parametern i iframe-URL:en.
+**Dokumentnumret** (`KHS 2026-0062:1`) finns URL-kodat i `dialogCaption`-parametern.
 
-Stäng dialogen (välj "Skapa ett nytt dokument" = nej):
+```js
+// Extrahera ur iframe-URL:
+const url = new URL(repeatIframe.contentDocument.location.href);
+const caption = decodeURIComponent(url.searchParams.get('dialogCaption') || '');
+const docNr = caption.replace('Dokumentet ', '').replace(' är skapad', '').trim();
+// => "KHS 2026-0062:1"
+```
+
+Stäng dialogen:
 ```js
 iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish');
 ```
 
-Därefter triggar formulär-iframen automatiskt:
-1. `AskToRepeatOperation_POSTBACK` — hanterar svaret från RepeatWizardDialog
-2. `NewDocumentOperation_POSTBACK` — uppdaterar ärendesidan
-3. `NewDocumentCaseBrokerListener` — signalerar att ärendets dokumentlista ska laddas om
+Därefter triggar formulär-iframen automatiskt (i tur och ordning):
+1. `AskToRepeatOperation_POSTBACK` — bekräftar att inga fler dokument ska skapas
+2. `NewDocumentOperation_POSTBACK` — uppdaterar ärendesidan (top-frame)
+3. `NewDocumentCaseBrokerListener` — laddar om ärendets dokumentlista
 
 ### Återstår att kartlägga
 
-- Exakta element-ID:n för dokumenttitel och brevdatum (`SendDateControl`?)
-- Värden för `ProcessRecordTypeControl` per dokumenttyp (Inkommande, Utgående, Intern m.fl.)
-- Värden för `TypeJournalDocumentInsertComboControl`
-- Hantering av Mottagarkontakt (Utgående handling)
+- Titelfältets exakta element-ID (se tips ovan – troligen `TitleTextBoxControl`)
+- Värden för `TypeJournalDocumentInsertComboControl` (Inkommande / Utgående / Intern)
 - Filuppladdning (flik "Filer")
 
 ---
