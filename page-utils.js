@@ -80,12 +80,17 @@ function waitForNyIframe(urlFragment, timeout = 10000) {
 
     // Bind load-lyssnare på iframen. Vid JS-redirect kan load triggas mer än en
     // gång – återbind rekursivt tills URL matchar eller försök tar slut.
+    //
+    // Viktigt: använd ENBART contentDocument.location.href för URL-kontroll, aldrig
+    // f.src som fallback. f.src sätts av 360° redan innan sidan laddats – om vi
+    // accepterar f.src som bevis resolvar vi för tidigt och contentWindow är
+    // fortfarande about:blank utan __doPostBack.
     function bindLoad(f, försök = 0) {
       if (försök > 5 || resolved) return;
       f.addEventListener('load', function() {
         if (resolved) return;
         try {
-          const href = f.contentDocument?.location?.href || f.src || '';
+          const href = f.contentDocument?.location?.href || '';
           if (href.includes(urlFragment) && f.contentDocument?.readyState === 'complete') {
             done(f);
           } else {
@@ -97,12 +102,12 @@ function waitForNyIframe(urlFragment, timeout = 10000) {
 
     function kolla(f) {
       try {
-        const src = f.src || '';
         const href = f.contentDocument?.location?.href || '';
-        if ((src.includes(urlFragment) || href.includes(urlFragment)) &&
-            f.contentDocument?.readyState === 'complete') {
+        if (href.includes(urlFragment) && f.contentDocument?.readyState === 'complete') {
           done(f);
         } else {
+          // Iframen finns men rätt URL är inte laddad än – lyssna på load-event.
+          // (f.src kan redan ha rätt URL men dokumentet är inte klart.)
           bindLoad(f);
         }
       } catch { /* cross-origin eller ej laddad */ }
