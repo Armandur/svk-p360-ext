@@ -4,9 +4,12 @@
 
 /**
  * Kontrollerar vilka obligatoriska fält i dokumentformuläret som är tomma.
- * Returnerar en lista med etiketter för tomma fält.
+ * @param {Document} iDoc - iframe-dokumentet
+ * @param {Object} [options] - Extra info om vad som redan fyllts i automatiskt
+ * @param {boolean} [options.kontaktLagdTill] - Om oregistrerad kontakt redan lagts till via postback
+ * @returns {string[]} Lista med etiketter för tomma fält.
  */
-function kontrolleraObligatoriskaFält(iDoc) {
+function kontrolleraObligatoriskaFält(iDoc, options = {}) {
   const tomma = [];
 
   // Titel (alltid obligatorisk)
@@ -41,38 +44,13 @@ function kontrolleraObligatoriskaFält(iDoc) {
   if (enhet && !enhet.value) tomma.push('Ansvarig enhet');
 
   // Oregistrerad kontakt – obligatoriskt för Inkommande/Utgående
+  // Om kontakten redan lagts till via QuickUnregContactButton-postback, hoppa över.
   const katVärde = kat?.value;
-  if (katVärde === '110' || katVärde === '111') {
+  if ((katVärde === '110' || katVärde === '111') && !options.kontaktLagdTill) {
     const oregKontakt = iDoc.getElementById('PlaceHolderMain_MainView_Custom_QuickUnregContactText');
-    // Kontrollera om kontakter lagts till: sök kontaktrader i tabellen
-    // eller om det finns text i quick-fältet (ännu ej bekräftad).
-    // Kontaktlistan kan finnas i flera format – sök brett efter rader med kontaktdata.
-    const kontaktTabell = iDoc.querySelector(
-      '[id*="SenderCaseProjectContactsList"], [id*="RecipientCaseProjectContactsList"]'
-    );
-    const kontaktRader = kontaktTabell
-      ? kontaktTabell.querySelectorAll('tr[id], tr.ms-vb2')
-      : [];
-    const harKontaktRader = kontaktRader.length > 0;
     const harOregText = oregKontakt && oregKontakt.value.trim();
 
-    // Kontrollera även om det finns en redan ifylld kontakt-display (span/div med text)
-    const kontaktDisplay = iDoc.querySelector(
-      '[id*="QuickUnregContact"] .si-contact-name, [id*="SenderContactList"] td, [id*="RecipientContactList"] td'
-    );
-    const harKontaktDisplay = kontaktDisplay && kontaktDisplay.textContent.trim().length > 0;
-
-    console.log('[p360-dok] Kontaktvalidering:', {
-      katVärde,
-      oregText: oregKontakt?.value,
-      harKontaktRader,
-      harOregText: !!harOregText,
-      harKontaktDisplay,
-      kontaktTabellId: kontaktTabell?.id,
-      kontaktRaderAntal: kontaktRader.length
-    });
-
-    if (!harKontaktRader && !harOregText && !harKontaktDisplay) {
+    if (!harOregText) {
       tomma.push(katVärde === '110' ? 'Avsändare (oregistrerad kontakt)' : 'Mottagare (oregistrerad kontakt)');
     }
   }
@@ -477,6 +455,7 @@ async function skapaÄrendedokument(dok, visaStatus) {
 
   // Oregistrerad kontakt – sätts EFTER alla UpdatePanel-postbacks så att
   // kontaktraden inte försvinner ur listan.
+  let kontaktLagdTill = false;
   if (dok.oregistreradKontakt) {
     const kontaktFält = iDoc.getElementById(
       'PlaceHolderMain_MainView_Custom_QuickUnregContactText'
@@ -490,6 +469,7 @@ async function skapaÄrendedokument(dok, visaStatus) {
       if (bekräftaBtn) {
         bekräftaBtn.click();
         await sleep(1500);
+        kontaktLagdTill = true;
       }
     }
   }
@@ -506,7 +486,7 @@ async function skapaÄrendedokument(dok, visaStatus) {
   // ---------------------------------------------------------------
   // 3. Kontrollera obligatoriska fält – pausa om något saknas
   // ---------------------------------------------------------------
-  const tommaObl = kontrolleraObligatoriskaFält(iDoc);
+  const tommaObl = kontrolleraObligatoriskaFält(iDoc, { kontaktLagdTill });
   if (tommaObl.length > 0) {
     visaStatus(`Fyll i obligatoriska fält: ${tommaObl.join(', ')}`);
     const manuellResultat = await väntaPåAnvändarensSlutför(iframe, tommaObl);
