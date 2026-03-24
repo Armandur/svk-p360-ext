@@ -103,6 +103,19 @@ if (!window.__p360ContentInitierat) {
     console.log(`[p360] cachedHandlingstyper: ${merged.length} alternativ totalt`);
   });
 
+  // Tar emot övriga fältalternativ från dokumentformuläret och sparar i chrome.storage.local
+  window.addEventListener('p360-spara-dokumentformulär-alternativ', async (event) => {
+    const { ansvarigaEnheter, atkomstgrupper, ansvarigaPersoner } = event.detail;
+    const uppdatering = {};
+    if (ansvarigaEnheter?.length > 0) uppdatering.cachedAnsvarigaEnheter = ansvarigaEnheter;
+    if (atkomstgrupper?.length > 0) uppdatering.cachedAtkomstgrupper = atkomstgrupper;
+    if (ansvarigaPersoner?.length > 0) uppdatering.cachedAnsvarigaPersoner = ansvarigaPersoner;
+    if (Object.keys(uppdatering).length > 0) {
+      await chrome.storage.local.set(uppdatering);
+      console.log(`[p360] Dokumentformulär-cache sparad:`, Object.keys(uppdatering).join(', '));
+    }
+  });
+
   // Tar emot meddelanden från popup.js
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (!ÅTGÄRDER_UTAN_SIDKRAV.has(request.action) && !ärPåÄrendesida()) {
