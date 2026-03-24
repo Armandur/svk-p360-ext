@@ -72,73 +72,31 @@ function kontrolleraObligatoriskaFält(iDoc) {
  */
 function väntaPåAnvändarensSlutför(iframe, tommaFält) {
   return new Promise((resolve, reject) => {
-    // Tagga iframen så vi kan nå den med CSS !important via <style>
-    iframe.setAttribute('data-p360-manual', 'true');
+    // 360° använder native <dialog> (HTML5) för modala dialoger.
+    // showModal() gör allt utanför dialogen INERT – inga klick går igenom.
+    // Därför MÅSTE vår banner placeras INUTI dialog-elementet.
+    const dialog = iframe.closest('dialog');
 
-    // Hitta ALLA fasta/absoluta element med hög z-index som kan blockera klick.
-    // 360° skapar overlay-divs som inte har igenkännliga CSS-klasser.
-    const blockerare = [];
-    for (const el of document.body.children) {
-      if (el.tagName === 'SCRIPT' || el.tagName === 'LINK') continue;
-      if (el === iframe) continue;
-      const cs = window.getComputedStyle(el);
-      const z = parseInt(cs.zIndex) || 0;
-      if ((cs.position === 'fixed' || cs.position === 'absolute') && z > 500) {
-        blockerare.push({ el, origPE: el.style.pointerEvents, origZ: el.style.zIndex });
-        el.style.pointerEvents = 'none';
-      }
+    // Spara dialogens ursprungliga stil så vi kan återställa
+    const origDialogStyle = dialog ? dialog.style.cssText : '';
+
+    if (dialog) {
+      // Styla om dialogen till fullskärm med bannern ovanpå
+      dialog.style.cssText =
+        'position:fixed;inset:0;z-index:10000450;' +
+        'margin:0;padding:0;border:none;max-width:100vw;max-height:100vh;' +
+        'width:100vw;height:100vh;background:rgba(0,0,0,0.5);' +
+        'transform:none;display:flex;flex-direction:column;align-items:center;';
     }
 
-    // Lägg till en <style> i huvuddokumentet med !important –
-    // Förhindrar att 360° skriver över iframens position via inline-stilar
-    const styleTag = document.createElement('style');
-    styleTag.id = 'p360-manuell-style';
-    styleTag.textContent = `
-      iframe[data-p360-manual="true"] {
-        position: fixed !important;
-        top: 42px !important;
-        left: 2.5% !important;
-        width: 95% !important;
-        max-width: 980px !important;
-        height: calc(100vh - 52px) !important;
-        z-index: 2000000 !important;
-        border: 3px solid #e67e22 !important;
-        border-radius: 6px !important;
-        background: #fff !important;
-      }
-    `;
-    document.head.appendChild(styleTag);
-
-    // Injicera CSS i iframen för att flytta dialoginnehållet till toppen
-    try {
-      const iDoc = iframe.contentDocument;
-      if (iDoc) {
-        const layoutFix = iDoc.createElement('style');
-        layoutFix.id = 'p360-layout-fix';
-        layoutFix.textContent = `
-          html, body { margin: 0 !important; padding: 0 !important; overflow: auto !important; }
-          .ms-dlgContent, .si-dialog, .ms-dlgBorder,
-          div[id*="dialogTitleBar"], .ms-dlgFrameContainer {
-            position: static !important;
-            top: auto !important;
-            left: auto !important;
-            margin: 0 !important;
-            transform: none !important;
-          }
-        `;
-        iDoc.head.appendChild(layoutFix);
-      }
-    } catch { /* cross-origin */ }
-
-    // Skapa infobanner ovanför iframen
+    // Skapa infobanner – placeras INUTI dialogen (före headern)
     const banner = document.createElement('div');
     banner.id = 'p360-manuell-banner';
     banner.style.cssText =
-      'position:fixed;top:0;left:0;right:0;z-index:2000001;' +
-      'background:#e67e22;color:#fff;font-family:sans-serif;font-size:13px;' +
+      'width:100%;background:#e67e22;color:#fff;font-family:sans-serif;font-size:13px;' +
       'padding:10px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.3);' +
       'display:flex;align-items:center;justify-content:center;gap:12px;' +
-      'pointer-events:auto;';
+      'flex-shrink:0;box-sizing:border-box;';
 
     const bannerText = document.createElement('span');
     bannerText.textContent =
@@ -151,15 +109,38 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
       'padding:5px 14px;background:#c0392b;color:#fff;border:none;border-radius:4px;' +
       'cursor:pointer;font-size:12px;font-family:sans-serif;white-space:nowrap;';
     banner.appendChild(avbrytBtn);
-    document.body.appendChild(banner);
 
-    // Skapa backdrop bakom iframen
-    const backdrop = document.createElement('div');
-    backdrop.id = 'p360-manuell-backdrop';
-    backdrop.style.cssText =
-      'position:fixed;inset:0;z-index:1999999;background:rgba(0,0,0,0.5);' +
-      'pointer-events:none;';
-    document.body.appendChild(backdrop);
+    if (dialog) {
+      // Lägg bannern först i dialogen
+      dialog.insertBefore(banner, dialog.firstChild);
+
+      // Styla om dialogens interna delar – dölj 360°:s titelrad,
+      // låt innehållet ta resterande utrymme
+      const dialogHeader = dialog.querySelector('.old-ms-Dialog-header');
+      if (dialogHeader) dialogHeader.style.display = 'none';
+      const dialogMain = dialog.querySelector('.old-ms-Dialog-main');
+      if (dialogMain) {
+        dialogMain.style.cssText =
+          'flex:1;width:95%;max-width:980px;margin:0 auto;overflow:hidden;' +
+          'display:flex;flex-direction:column;background:#fff;border-radius:6px;' +
+          'border:3px solid #e67e22;';
+      }
+      const dialogInner = dialog.querySelector('.old-ms-Dialog-inner');
+      if (dialogInner) {
+        dialogInner.style.cssText = 'flex:1;overflow:hidden;';
+      }
+      const dialogContent = dialog.querySelector('.old-ms-Dialog-content');
+      if (dialogContent) {
+        dialogContent.style.cssText = 'height:100%;overflow:hidden;';
+      }
+
+      // Iframen ska fylla hela innehållsytan
+      iframe.style.cssText = 'width:100%;height:100%;border:none;';
+    } else {
+      // Fallback: dialog hittades inte, placera på body (äldre beteende)
+      banner.style.cssText += 'position:fixed;top:0;left:0;right:0;z-index:2000001;';
+      document.body.appendChild(banner);
+    }
 
     const TIMEOUT = 300000; // 5 minuter
     const timer = setTimeout(() => {
@@ -173,15 +154,19 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
       clearTimeout(timer);
       if (obs) obs.disconnect();
       banner.remove();
-      backdrop.remove();
-      styleTag.remove();
-      iframe.removeAttribute('data-p360-manual');
-      iframe.style.cssText = '';
-      // Återställ 360°-element som vi satte pointer-events:none på
-      for (const b of blockerare) {
-        b.el.style.pointerEvents = b.origPE;
-        b.el.style.zIndex = b.origZ;
+      // Återställ dialogens ursprungliga stil
+      if (dialog) {
+        dialog.style.cssText = origDialogStyle;
+        const dialogHeader = dialog.querySelector('.old-ms-Dialog-header');
+        if (dialogHeader) dialogHeader.style.display = '';
+        const dialogMain = dialog.querySelector('.old-ms-Dialog-main');
+        if (dialogMain) dialogMain.style.cssText = '';
+        const dialogInner = dialog.querySelector('.old-ms-Dialog-inner');
+        if (dialogInner) dialogInner.style.cssText = '';
+        const dialogContent = dialog.querySelector('.old-ms-Dialog-content');
+        if (dialogContent) dialogContent.style.cssText = '';
       }
+      iframe.style.cssText = '';
     }
 
     // Avbryt-knapp
@@ -195,7 +180,9 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
       for (const mut of mutations) {
         for (const node of mut.addedNodes) {
           if (node.nodeType !== 1) continue;
-          const iframes = node.tagName === 'IFRAME' ? [node] : Array.from(node.querySelectorAll?.('iframe') ?? []);
+          // Kolla dialog-element (360° skapar nya <dialog> med iframes inuti)
+          const iframes = node.tagName === 'IFRAME' ? [node]
+            : Array.from(node.querySelectorAll?.('iframe') ?? []);
           for (const f of iframes) {
             try {
               const src = f.src || f.contentDocument?.location?.href || '';
