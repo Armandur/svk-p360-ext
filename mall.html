@@ -211,7 +211,7 @@
       border-color: #0078d4;
     }
 
-    #btn-lagg-till-kontakt {
+    #btn-lagg-till-kontakt, #btn-lagg-till-dokument {
       padding: 7px 14px;
       border: 1px dashed #0078d4;
       border-radius: 4px;
@@ -221,7 +221,83 @@
       font-size: 13px;
       width: 100%;
     }
-    #btn-lagg-till-kontakt:hover { background: #f0f6ff; }
+    #btn-lagg-till-kontakt:hover, #btn-lagg-till-dokument:hover { background: #f0f6ff; }
+
+    /* Ärendedokument-kort */
+    .dokument-kort {
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      background: #fafafa;
+      position: relative;
+    }
+    .dokument-kort .dok-rubrik {
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 4px;
+      padding-right: 70px;
+    }
+    .dokument-kort .dok-knappar {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      display: flex;
+      gap: 4px;
+    }
+    .dokument-kort .dok-knappar button {
+      padding: 2px 8px;
+      font-size: 11px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      cursor: pointer;
+      background: #fff;
+    }
+    .dokument-kort .dok-detaljer {
+      font-size: 12px;
+      color: #666;
+    }
+
+    /* Dokumentformulär (inline) */
+    .dokument-formulär {
+      border: 1px solid #0078d4;
+      border-radius: 5px;
+      padding: 14px;
+      margin-bottom: 8px;
+      background: #f0f6ff;
+    }
+    .dokument-formulär h4 {
+      margin: 0 0 12px;
+      font-size: 13px;
+      color: #0078d4;
+    }
+    .dokument-formulär .knappar {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .dokument-formulär .knappar button {
+      padding: 6px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      border: 1px solid #ccc;
+      background: #fff;
+    }
+    .dokument-formulär .knappar button.ok {
+      background: #0078d4;
+      color: #fff;
+      border-color: #0078d4;
+    }
+    .dokument-formulär .dok-sekretess {
+      margin-top: 10px;
+      padding: 10px;
+      background: #fff8e8;
+      border: 1px solid #f0d070;
+      border-radius: 5px;
+    }
+    .dokument-formulär .dok-sekretess label { color: #6b4e10; }
+    .dokument-formulär .dok-sekretess select { background: #fffdf5; }
 
     .obligatorisk::after { content: ' *'; color: #c0392b; }
 
@@ -373,6 +449,18 @@
           <textarea id="mall-off-titel" rows="2"></textarea>
         </div>
       </div>
+    </div>
+
+    <!-- Ärendedokument -->
+    <div class="sektion">
+      <h3>Ärendedokument</h3>
+      <p style="font-size:12px;color:#555;margin:0 0 8px;">
+        Dokument som skapas automatiskt i ärendet. Handlingstyper hämtas passivt
+        när du öppnar "Nytt dokument" i 360° – de lagras sedan lokalt.
+        <span id="dok-cache-status" style="font-weight:600;"></span>
+      </p>
+      <div id="dokumentlista"></div>
+      <button id="btn-lagg-till-dokument">＋ Lägg till ärendedokument</button>
     </div>
 
     <!-- Externa kontakter -->
