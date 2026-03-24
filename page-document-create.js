@@ -72,20 +72,47 @@ function kontrolleraObligatoriskaFält(iDoc) {
  */
 function väntaPåAnvändarensSlutför(iframe, tommaFält) {
   return new Promise((resolve, reject) => {
-    // Gör iframen synlig och interaktiv (i overlay-läge)
+    // Neutralisera eventuella 360°-overlays som blockerar klick
+    // 360° skapar divs med höga z-index för sina modala dialoger
+    const p360Overlays = document.querySelectorAll(
+      'div[class*="ms-dlgOverlay"], div[class*="si-overlay"], div[class*="modalOverlay"]'
+    );
+    for (const ol of p360Overlays) {
+      ol.dataset.origZIndex = ol.style.zIndex;
+      ol.style.zIndex = '1';
+    }
+
+    // Gör iframen synlig direkt under bannern
     iframe.style.cssText =
-      'position:fixed;top:50px;left:50%;transform:translateX(-50%);' +
-      'width:95%;max-width:980px;height:calc(100vh - 100px);' +
-      'z-index:100000;border:3px solid #e67e22;border-radius:6px;background:#fff;';
+      'position:fixed;top:42px;left:50%;transform:translateX(-50%);' +
+      'width:95%;max-width:980px;height:calc(100vh - 52px);' +
+      'z-index:2000000;border:3px solid #e67e22;border-radius:6px;background:#fff;';
+
+    // Injicera CSS i iframen för att flytta dialoginnehållet till toppen
+    try {
+      const iDoc = iframe.contentDocument;
+      if (iDoc) {
+        const layoutFix = iDoc.createElement('style');
+        layoutFix.textContent = `
+          .ms-dlgContent, .si-dialog, .ms-dlgBorder { top: 0 !important; margin-top: 0 !important; }
+          body { overflow: auto !important; }
+        `;
+        iDoc.head.appendChild(layoutFix);
+        // Scrolla till formuläret
+        const form = iDoc.querySelector('.si-wizard-maintable, form, [id*="WizardView"]');
+        if (form) form.scrollIntoView({ block: 'start' });
+      }
+    } catch { /* cross-origin */ }
 
     // Skapa infobanner ovanför iframen
     const banner = document.createElement('div');
     banner.id = 'p360-manuell-banner';
     banner.style.cssText =
-      'position:fixed;top:0;left:0;right:0;z-index:100001;' +
+      'position:fixed;top:0;left:0;right:0;z-index:2000001;' +
       'background:#e67e22;color:#fff;font-family:sans-serif;font-size:13px;' +
       'padding:10px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.3);' +
-      'display:flex;align-items:center;justify-content:center;gap:12px;';
+      'display:flex;align-items:center;justify-content:center;gap:12px;' +
+      'pointer-events:auto;';
 
     const bannerText = document.createElement('span');
     bannerText.textContent =
@@ -96,7 +123,8 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
     avbrytBtn.textContent = 'Avbryt';
     avbrytBtn.style.cssText =
       'padding:5px 14px;background:#c0392b;color:#fff;border:none;border-radius:4px;' +
-      'cursor:pointer;font-size:12px;font-family:sans-serif;white-space:nowrap;';
+      'cursor:pointer;font-size:12px;font-family:sans-serif;white-space:nowrap;' +
+      'pointer-events:auto;position:relative;z-index:2000002;';
     banner.appendChild(avbrytBtn);
     document.body.appendChild(banner);
 
@@ -104,7 +132,7 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
     const backdrop = document.createElement('div');
     backdrop.id = 'p360-manuell-backdrop';
     backdrop.style.cssText =
-      'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.5);';
+      'position:fixed;inset:0;z-index:1999999;background:rgba(0,0,0,0.5);';
     document.body.appendChild(backdrop);
 
     const TIMEOUT = 300000; // 5 minuter
@@ -122,6 +150,13 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
       backdrop.remove();
       // Återställ iframe-stilen (döljs av den normala cleanup-koden)
       iframe.style.cssText = '';
+      // Återställ eventuella 360°-overlays
+      for (const ol of p360Overlays) {
+        if (ol.dataset.origZIndex !== undefined) {
+          ol.style.zIndex = ol.dataset.origZIndex;
+          delete ol.dataset.origZIndex;
+        }
+      }
     }
 
     // Avbryt-knapp
