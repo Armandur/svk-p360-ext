@@ -18,15 +18,23 @@ Flytta en punkt till "Klart" när den är implementerad och testad.
   `page-document-options.js` detekterar automatiskt när dokumentformuläret öppnas och
   sparar tillgängliga handlingstyper (Selectize-alternativ) i `chrome.storage.local`
   under nyckeln `cachedHandlingstyper`. Cachen är ackumulerande och dedupliceras på `value`.
+- ✅ Passiv caching av ansvarig enhet, åtkomstgrupp och ansvarig person från
+  dokumentformuläret (sparas i `chrome.storage.local`).
+- ✅ Dokumentmallar frikopplade från ärendemallar – lagras separat i
+  `chrome.storage.local` under nyckeln `dokumentmallar`. Kan användas:
+  - Fristående på befintliga ärenden (via popup "Använd")
+  - Som referenser i ärendemallar (väljs från sparade mallar)
+  - Redigeras via egen sida `dokument-mall.html`
 
 **Implementerat:**
 
-- ✅ Ärendedokument-sektion i mallredigeraren (mall.html/mall.js) med fält per
-  dokument: handlingstyp, dokumentkategori, titel, ansvarig person, skyddskod/paragraf.
+- ✅ Ärendedokument-sektion i mallredigeraren (mall.html/mall.js) – väljer bland
+  sparade dokumentmallar istället för inline-redigering.
 - ✅ Automatiskt skapande av ärendedokument (`page-document-create.js`) som del av
   mallflödet – efter att ärendet skapats sparas pending-dokument i
   `chrome.storage.local`, och efter navigering till ärendesidan skapas dokumenten
   ett i taget med statusfält.
+- ✅ Fristående dokumentskapande från popup på befintligt ärende.
 
 **Återstår att testa/verifiera:**
 
@@ -42,6 +50,12 @@ Flytta en punkt till "Klart" när den är implementerad och testad.
 
 2. **Arbetsdokument och Avtalsdokument** – utöka stödet till fler dokumenttyper
    (andra subtype-värden än 61000).
+
+3. **Kontakter från ärende/projekt i ärendedokument** – när stöd för registrerade
+   kontakter (Kontaktperson, Organisation) läggs till på ärendenivå, bör man även
+   kunna välja "Hämta kontakt från ärende" i dokumentmallen. Då väljs en eller
+   flera av de kontakter som definierats i ärendemallen som avsändare/mottagare
+   på dokumentnivå. Se även notering nedan om oregistrerade kontakter.
 
 ---
 
@@ -145,6 +159,13 @@ skyddskod, ansvarig enhet osv.).
 - **Kontakttyp:** Externa kontakter stöder för närvarande bara typen
   **Oregistrerad kontakt**. Kontaktperson och Organisation kräver ytterligare
   kartläggning och implementation.
+- **Oregistrerade kontakter är fristående kopior:** En oregistrerad kontakt som
+  skapas på ärendenivå och sedan hämtas in som avsändare/mottagare på ett
+  ärendedokument blir en helt separat kopia. Ändringar på ärendenivån påverkar
+  inte dokumentkontakten och vice versa. Detta är en begränsning i 360° som
+  inte kan kringgås. Registrerade kontakter (Kontaktperson/Organisation) delar
+  däremot samma post och uppdateras centralt – framtida stöd för dessa
+  kontakttyper löser problemet.
 - **Dubblettvarning:** Om namnet liknar en befintlig kontakt i 360° visas dialogen
   "Möjliga dubbletter i kontaktlistan". Tillägget svarar alltid med "Spara/Skapa ny"
   och skapar alltså alltid en ny oregistrerad kontakt, oavsett om en matchande
