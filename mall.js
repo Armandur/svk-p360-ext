@@ -65,6 +65,8 @@ let kontakter = [];
 let ärendedokument = [];
 // Cachade handlingstyper (från chrome.storage.local)
 let cachedHandlingstyper = [];
+// Cachade ansvariga personer (från chrome.storage.local)
+let cachedAnsvarigaPersoner = [];
 // Redigerar vi en befintlig mall? Håll ID:t.
 let mallId = null;
 // Inlästa alternativ från 360°
@@ -76,9 +78,10 @@ let inlästaAlternativ = null;
 document.addEventListener('DOMContentLoaded', async () => {
   fyllParagrafer('0');
 
-  // Ladda cachade handlingstyper
-  const stored = await chrome.storage.local.get('cachedHandlingstyper');
+  // Ladda cachade handlingstyper och ansvariga personer
+  const stored = await chrome.storage.local.get(['cachedHandlingstyper', 'cachedAnsvarigaPersoner']);
   cachedHandlingstyper = stored.cachedHandlingstyper || [];
+  cachedAnsvarigaPersoner = stored.cachedAnsvarigaPersoner || [];
   visaDokCacheStatus();
 
   // Kolla om vi redigerar en befintlig mall (URL: ?id=xxx)
@@ -193,6 +196,12 @@ async function läsIn() {
   fyllSelectFrånAlternativ('mall-atkomstgrupp', inlästaAlternativ.atkomstgrupper, true);
   fyllSelectFrånAlternativ('mall-ansvarig-enhet', inlästaAlternativ.ansvarigaEnheter, true);
   fyllSelectFrånAlternativ('mall-ansvarig-person', inlästaAlternativ.ansvarigaPersoner, true);
+
+  // Cacha ansvariga personer för ärendedokument-formuläret
+  if (inlästaAlternativ.ansvarigaPersoner?.length > 0) {
+    cachedAnsvarigaPersoner = inlästaAlternativ.ansvarigaPersoner;
+    await chrome.storage.local.set({ cachedAnsvarigaPersoner });
+  }
 
   // Klassificeringar – visa dropdown om vi fick in data, annars behåll manuella fält
   if (inlästaAlternativ.klassificeringar?.length > 0) {
@@ -414,11 +423,18 @@ function visaKontaktFormulär(idx) {
 function visaDokCacheStatus() {
   const el = document.getElementById('dok-cache-status');
   if (!el) return;
+  const delar = [];
   if (cachedHandlingstyper.length > 0) {
-    el.textContent = `(${cachedHandlingstyper.length} handlingstyper cachade)`;
+    delar.push(`${cachedHandlingstyper.length} handlingstyper`);
+  }
+  if (cachedAnsvarigaPersoner.length > 0) {
+    delar.push(`${cachedAnsvarigaPersoner.length} ansvariga personer`);
+  }
+  if (delar.length > 0) {
+    el.textContent = `(${delar.join(', ')} cachade)`;
     el.style.color = '#2e7d32';
   } else {
-    el.textContent = '(Inga handlingstyper cachade – öppna "Nytt dokument" i 360° först)';
+    el.textContent = '(Inga data cachade – klicka "Läs in" och öppna "Nytt dokument" i 360°)';
     el.style.color = '#b71c1c';
   }
 }
@@ -463,12 +479,23 @@ function visaDokumentFormulär(idx) {
   const formulär = document.createElement('div');
   formulär.className = 'dokument-formulär';
 
-  // Handlingstyp-options
-  const handlingstypOptions = cachedHandlingstyper.length > 0
-    ? '<option value="">(Ingen)</option>' + cachedHandlingstyper.map(h =>
-        `<option value="${escHtml(h.value)}" ${d.handlingstyp?.value === h.value ? 'selected' : ''}>${escHtml(h.text)}</option>`
-      ).join('')
-    : '<option value="">(Inga cachade – öppna "Nytt dokument" i 360°)</option>';
+  // Handlingstyp-options – filtrera på mallens klassificeringskod
+  const klassKod = hämtaKlassificeringskod();
+  let filtreradeHandlingstyper = cachedHandlingstyper;
+  if (klassKod && cachedHandlingstyper.length > 0) {
+    const matchande = cachedHandlingstyper.filter(h => h.text.startsWith(klassKod));
+    if (matchande.length > 0) filtreradeHandlingstyper = matchande;
+  }
+  let handlingstypOptions;
+  if (filtreradeHandlingstyper.length > 0) {
+    handlingstypOptions = '<option value="">(Ingen)</option>' + filtreradeHandlingstyper.map(h =>
+      `<option value="${escHtml(h.value)}" ${d.handlingstyp?.value === h.value ? 'selected' : ''}>${escHtml(h.text)}</option>`
+    ).join('');
+  } else if (cachedHandlingstyper.length > 0 && klassKod) {
+    handlingstypOptions = `<option value="">(Inga handlingstyper för ${escHtml(klassKod)} – öppna "Nytt dokument" på ett ärende med rätt klassificering)</option>`;
+  } else {
+    handlingstypOptions = '<option value="">(Inga cachade – öppna "Nytt dokument" i 360°)</option>';
+  }
 
   // Dokumentkategori-options
   const kategoriOptions = '<option value="">(Ingen)</option>' + DOKUMENTKATEGORIER.map(k =>
@@ -478,10 +505,13 @@ function visaDokumentFormulär(idx) {
   // Skyddskod-options
   const skyddskodVal = d.skyddskod || '0';
 
-  // Ansvarig person – använd inlästa alternativ om de finns
+  // Ansvarig person – använd inlästa alternativ, cache, eller sparat värde
+  const personLista = inlästaAlternativ?.ansvarigaPersoner?.length > 0
+    ? inlästaAlternativ.ansvarigaPersoner
+    : cachedAnsvarigaPersoner;
   let ansvarigPersonOptions = '<option value="">(Ingen)</option>';
-  if (inlästaAlternativ?.ansvarigaPersoner?.length > 0) {
-    ansvarigPersonOptions += inlästaAlternativ.ansvarigaPersoner.map(p =>
+  if (personLista.length > 0) {
+    ansvarigPersonOptions += personLista.map(p =>
       `<option value="${escHtml(p.value)}" ${d.ansvarigPerson?.value === p.value ? 'selected' : ''}>${escHtml(p.label)}</option>`
     ).join('');
   } else if (d.ansvarigPerson?.value) {
@@ -675,6 +705,19 @@ function läsKlassificering() {
   const recno   = document.getElementById('mall-klass-recno').value.trim();
   const display = document.getElementById('mall-klass-display').value.trim();
   return recno ? { value: recno, display } : null;
+}
+
+/**
+ * Hämtar klassificeringskoden (t.ex. "2.7") från mallens klassificering.
+ * Används för att filtrera handlingstyper i ärendedokument-formuläret.
+ */
+function hämtaKlassificeringskod() {
+  const klass = läsKlassificering();
+  if (!klass?.display) return null;
+  // Klassificerings-display ser ut som "2.7 - Ge internt verksamhetsstöd"
+  // Extrahera koden före " - "
+  const match = klass.display.match(/^([\d.]+)/);
+  return match ? match[1] : null;
 }
 
 // ------------------------------------------------------------------
