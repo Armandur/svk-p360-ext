@@ -45,45 +45,33 @@ async function läggTillExternKontakt(kontakt, pb = __doPostBack) {
   await sleep(300);
   kontaktIframe.contentWindow.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish');
 
-  // Vänta händelsestyrt på antingen en dubblettvarning eller att kontaktformuläret stängs.
-  // OBS: 360° tar bort JournalCaseContactNew INNAN DuplicateContacts läggs till, så vi
-  // debouncar "inget kontaktformulär"-detekteringen med 200 ms för att undvika race condition.
+  // Parallell detektering av dubblettdialog eller att kontaktformuläret stängs.
+  //
+  // Spår 1 – waitForNyIframe('DuplicateContacts'): klarar sen src-sättning och
+  //   redirectar via load-lyssnare; mer tillförlitlig än en enkel querySelector-check.
+  // Spår 2 – MutationObserver på kontaktformuläret: när JournalCaseContactNew
+  //   försvinner väntar vi 500 ms (grace) för att ge dubblettdialogen tid att dyka upp.
+  //   Om waitForNyIframe hittar dialogen inom den gransen vinner spår 1; annars null.
   const dubblettIframe = await new Promise(resolve => {
+    let resolved = false;
+    const done = (val) => { if (!resolved) { resolved = true; resolve(val); } };
+
+    // Spår 1
+    waitForNyIframe('DuplicateContacts', 12000).then(done);
+
+    // Spår 2
     function harKontaktIframe() {
       return Array.from(document.querySelectorAll('iframe')).some(f => {
         try { return f.src?.includes('JournalCaseContactNew') || f.contentDocument?.location?.href?.includes('JournalCaseContactNew'); }
         catch { return false; }
       });
     }
-    function finnDublett() {
-      return Array.from(document.querySelectorAll('iframe')).find(f => {
-        try { return f.src?.includes('DuplicateContacts') || f.contentDocument?.location?.href?.includes('DuplicateContacts'); }
-        catch { return false; }
-      });
-    }
+    const signaleraIngenDubblett = () => setTimeout(() => done(null), 500);
 
-    // Om kontaktformuläret redan försvunnit – ge 200 ms för dubblettdialog att dyka upp
-    if (!harKontaktIframe()) {
-      setTimeout(() => resolve(finnDublett() ?? null), 200);
-      return;
-    }
+    if (!harKontaktIframe()) { signaleraIngenDubblett(); return; }
 
-    let stängdTimer = null;
-    const timer = setTimeout(() => { obs.disconnect(); resolve(null); }, 12000);
     const obs = new MutationObserver(() => {
-      const dupl = finnDublett();
-      if (dupl) {
-        clearTimeout(timer); clearTimeout(stängdTimer);
-        obs.disconnect(); resolve(dupl); return;
-      }
-      if (!harKontaktIframe()) {
-        // Kontaktformuläret försvann – vänta kort innan vi slår fast att ingen dubblett kommer
-        clearTimeout(stängdTimer);
-        stängdTimer = setTimeout(() => {
-          const duplSen = finnDublett();
-          clearTimeout(timer); obs.disconnect(); resolve(duplSen ?? null);
-        }, 200);
-      }
+      if (!harKontaktIframe()) { obs.disconnect(); signaleraIngenDubblett(); }
     });
     obs.observe(document.body, { childList: true, subtree: true });
   });
