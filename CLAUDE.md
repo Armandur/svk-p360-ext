@@ -888,8 +888,8 @@ Därefter triggar formulär-iframen automatiskt (i tur och ordning):
 ├── page-arende-create.js  # Skapa ärende från mall (skapaFrånMall)
 ├── page-document-options.js # Passiv caching av Handlingstyp-alternativ
 ├── page-document-create.js  # Skapa ärendedokument från mall (skapaÄrendedokument)
-├── dokument-mall.html     # Redigeringssida för dokumentmallar (fristående)
-├── dokument-mall.js       # Logik för dokumentmallredigeraren
+├── dokument-mall.html     # Redigeringssida för dokumentmallar och instanser
+├── dokument-mall.js       # Logik för dokumentmallredigeraren (stöder instansläge via ?instans=1)
 ├── page.js                # Router i MAIN world (lyssnar på p360-anrop och dispatchar)
 ├── background.js          # Service worker – hanterar tangentbordskommandon
 ├── help.html              # Inbyggd hjälpsida (öppnas via "? Hjälp" i popup)
@@ -914,6 +914,43 @@ Filerna injiceras i denna ordning:
 7. `page-document-options.js`
 8. `page-document-create.js`
 9. `page.js` (router)
+
+## Dokumentmallar och instansmodell
+
+Dokumentmallar lagras i `chrome.storage.local` under nyckeln `dokumentmallar`. De
+är fristående och kan användas direkt på befintliga ärenden via popupen.
+
+### Instanser i ärendemallar
+
+När en dokumentmall läggs till i en ärendemall skapas en **djupkopia** (instans) av
+alla fält. Instansen lagras direkt i ärendemallens `ärendedokument`-array och kan
+redigeras oberoende av originalet.
+
+**Dataformat i `ärendedokument`:**
+```js
+{
+  dokumentmallId: 'dokmall_123',  // Referens till ursprungsmallen (för visning)
+  namn: 'Inkommande brev',       // Ärvt namn (ej redigerbart i instansläge)
+  titel: '...',                   // Instansens egna fältvärden
+  handlingstyp: { value, text },
+  kategori: '110',
+  // ... alla fält från dokumentmallen
+}
+```
+
+**Redigering av instans:**
+1. `mall.js` sparar instansen till `chrome.storage.local.tempDokInstans`
+2. `dokument-mall.html?instans=1` öppnas – laddar data från temp-storage
+3. Vid sparning skrivs uppdaterad data tillbaka till `tempDokInstans`
+4. `mall.js` lyssnar på `chrome.storage.onChanged` och uppdaterar ärendedokument-listan
+
+**`lösaDokumentreferenser` i `content.js`** skickar instanser med egna data rakt
+igenom till `skapaÄrendedokument` – ingen lookup mot `dokumentmallar` behövs.
+
+**Bakåtkompatibilitet:** Gamla rena referenser (`{ dokumentmallId, namn }` utan egna
+fältvärden) expanderas automatiskt vid laddning i `laddaMall()`.
+
+---
 
 ## Kodstil och konventioner
 

@@ -73,6 +73,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (params.get('instans') === '1') {
     instansLäge = true;
     document.getElementById('sidrubrik').textContent = 'Redigera dokumentinstans';
+    // Dölj mallnamn-fältet – instansens namn ärvs från originalmallen
+    const namnFält = document.getElementById('dok-namn');
+    const namnRad = namnFält.closest('.faltrad');
+    if (namnRad) namnRad.style.display = 'none';
+    // Uppdatera spara-knappen
+    document.getElementById('btn-spara').textContent = 'Spara instans';
     const { tempDokInstans } = await chrome.storage.local.get('tempDokInstans');
     if (tempDokInstans?.data) {
       instansIdx = tempDokInstans.idx;
@@ -189,7 +195,7 @@ async function sparaMall() {
   varningsruta.style.display = 'none';
 
   const namn = document.getElementById('dok-namn').value.trim();
-  if (!namn) {
+  if (!namn && !instansLäge) {
     visaFel('Ange ett mallnamn.');
     document.getElementById('dok-namn').focus();
     return;

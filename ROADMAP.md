@@ -35,6 +35,12 @@ Flytta en punkt till "Klart" när den är implementerad och testad.
   `chrome.storage.local`, och efter navigering till ärendesidan skapas dokumenten
   ett i taget med statusfält.
 - ✅ Fristående dokumentskapande från popup på befintligt ärende.
+- ✅ Instansmodell – dokumentmallar som läggs till i en ärendemall djupkopieras som
+  oberoende instanser. Varje instans kan redigeras utan att påverka originalmallen.
+  Redigering sker via `dokument-mall.html?instans=1` med temp-storage-kommunikation.
+- ✅ Drag-and-drop – externa kontakter och ärendedokument kan sorteras via DnD.
+- ✅ Index-numrering på ärendedokument (:1, :2 …) som motsvarar dokumentnumret i 360°.
+- ✅ Live-validering av handlingstyp mot klassificering vid ändring.
 
 **Återstår att testa/verifiera:**
 
