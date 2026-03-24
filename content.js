@@ -81,8 +81,8 @@ if (!window.__p360ContentInitierat) {
     // Lös eventuella dokumentmallreferenser
     const löstaDokument = await lösaDokumentreferenser(pendingÄrendedokument.dokument);
     if (!löstaDokument.length) return;
-    // Skicka till page.js via befintligt meddelandeflöde
-    anropaSidan('skapaÄrendedokument', { dokument: löstaDokument })
+    // Skicka till page.js via befintligt meddelandeflöde (ärendeFlöde = skapas efter ärendeskapande)
+    anropaSidan('skapaÄrendedokument', { dokument: löstaDokument, ärendeFlöde: true })
       .then(svar => {
         if (!svar.success) console.error('[p360] Ärendedokument misslyckades:', svar.fel);
       })
@@ -126,7 +126,10 @@ if (!window.__p360ContentInitierat) {
     const data = {};
     if (request.action === 'sättStatus') data.statusVärde = request.statusVärde;
     if (request.action === 'skapaFrånMall') data.mall = request.mall;
-    if (request.action === 'skapaÄrendedokument') data.dokument = request.dokument;
+    if (request.action === 'skapaÄrendedokument') {
+      data.dokument = request.dokument;
+      data.ärendeFlöde = request.ärendeFlöde || false;
+    }
 
     anropaSidan(request.action, data)
       .then(svar => sendResponse(svar))

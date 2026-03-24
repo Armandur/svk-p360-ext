@@ -44,9 +44,12 @@ function kontrolleraObligatoriskaFält(iDoc) {
 }
 
 /**
- * Visar dokumentformuläret för användaren och väntar på att de klickar Slutför.
- * Returnerar ett Promise som resolvar när RepeatWizardDialog dyker upp (= sparat)
- * eller rejectar vid timeout.
+ * Visar dokumentformuläret för användaren och väntar på att de klickar Slutför
+ * eller Avbryt.
+ *
+ * Returnerar ett objekt:
+ *   { cancelled: false } – användaren slutförde formuläret (RepeatWizardDialog dök upp)
+ *   { cancelled: true }  – användaren klickade Avbryt
  */
 function väntaPåAnvändarensSlutför(iframe, tommaFält) {
   return new Promise((resolve, reject) => {
@@ -62,9 +65,20 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
     banner.style.cssText =
       'position:fixed;top:0;left:0;right:0;z-index:100001;' +
       'background:#e67e22;color:#fff;font-family:sans-serif;font-size:13px;' +
-      'padding:10px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.3);text-align:center;';
-    banner.textContent =
+      'padding:10px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.3);' +
+      'display:flex;align-items:center;justify-content:center;gap:12px;';
+
+    const bannerText = document.createElement('span');
+    bannerText.textContent =
       `Fyll i: ${tommaFält.join(', ')} – klicka sedan Slutför i formuläret.`;
+    banner.appendChild(bannerText);
+
+    const avbrytBtn = document.createElement('button');
+    avbrytBtn.textContent = 'Avbryt';
+    avbrytBtn.style.cssText =
+      'padding:5px 14px;background:#c0392b;color:#fff;border:none;border-radius:4px;' +
+      'cursor:pointer;font-size:12px;font-family:sans-serif;white-space:nowrap;';
+    banner.appendChild(avbrytBtn);
     document.body.appendChild(banner);
 
     // Skapa backdrop bakom iframen
@@ -80,16 +94,25 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
       reject(new Error('Timeout – användaren fyllde inte i formuläret inom 5 minuter.'));
     }, TIMEOUT);
 
+    let obs;
+
     function rensa() {
       clearTimeout(timer);
+      if (obs) obs.disconnect();
       banner.remove();
       backdrop.remove();
       // Återställ iframe-stilen (döljs av den normala cleanup-koden)
       iframe.style.cssText = '';
     }
 
+    // Avbryt-knapp
+    avbrytBtn.addEventListener('click', () => {
+      rensa();
+      resolve({ cancelled: true });
+    });
+
     // Bevaka DOM:en efter RepeatWizardDialog (= dokumentet sparades)
-    const obs = new MutationObserver((mutations) => {
+    obs = new MutationObserver((mutations) => {
       for (const mut of mutations) {
         for (const node of mut.addedNodes) {
           if (node.nodeType !== 1) continue;
@@ -98,9 +121,8 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
             try {
               const src = f.src || f.contentDocument?.location?.href || '';
               if (src.includes('RepeatWizardDialog')) {
-                obs.disconnect();
                 rensa();
-                resolve();
+                resolve({ cancelled: false });
                 return;
               }
             } catch { /* cross-origin */ }
@@ -115,9 +137,8 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
       try {
         const src = f.src || '';
         if (src.includes('RepeatWizardDialog')) {
-          obs.disconnect();
           rensa();
-          resolve();
+          resolve({ cancelled: false });
           return;
         }
       } catch { /* cross-origin */ }
@@ -324,7 +345,12 @@ async function skapaÄrendedokument(dok, visaStatus) {
   const tommaObl = kontrolleraObligatoriskaFält(iDoc);
   if (tommaObl.length > 0) {
     visaStatus(`Fyll i obligatoriska fält: ${tommaObl.join(', ')}`);
-    await väntaPåAnvändarensSlutför(iframe, tommaObl);
+    const manuellResultat = await väntaPåAnvändarensSlutför(iframe, tommaObl);
+    if (manuellResultat.cancelled) {
+      // Stäng dokumentformulärets iframe
+      try { iframe.remove(); } catch { /* ignorera */ }
+      return { cancelled: true };
+    }
   } else {
     // Alla obligatoriska fält ifyllda – skicka automatiskt
     visaStatus('Sparar ärendedokument…');
@@ -388,10 +414,13 @@ async function skapaÄrendedokument(dok, visaStatus) {
  * Visar ett statusfält högst upp på sidan under pågående skapande.
  *
  * @param {Array} dokument – Lista med ärendedokument-mallar
- * @returns {Array} Resultat per dokument: { titel, dokumentNummer, fel }
+ * @param {Object} [options] – Alternativ:
+ *   ärendeFlöde: true om dokumenten skapas som del av ett ärendeskapandeflöde
+ * @returns {Array} Resultat per dokument: { titel, dokumentNummer, fel, avbruten }
  */
-async function skapaAllaÄrendedokument(dokument) {
+async function skapaAllaÄrendedokument(dokument, options) {
   if (!dokument?.length) return [];
+  const ärendeFlöde = options?.ärendeFlöde || false;
 
   // Skapa statusfält
   const statusBar = document.createElement('div');
@@ -410,6 +439,7 @@ async function skapaAllaÄrendedokument(dokument) {
   };
 
   const resultat = [];
+  let avbruten = false;
 
   for (let i = 0; i < dokument.length; i++) {
     const dok = dokument[i];
@@ -417,9 +447,17 @@ async function skapaAllaÄrendedokument(dokument) {
     visaStatus(`Ärendedokument ${nr}/${dokument.length}: ${dok.titel || '(utan titel)'}…`);
 
     try {
-      const dokumentNummer = await skapaÄrendedokument(dok, visaStatus);
-      resultat.push({ titel: dok.titel, dokumentNummer, fel: null });
-      console.log(`[p360] Ärendedokument ${nr}/${dokument.length} skapat: ${dokumentNummer}`);
+      const svar = await skapaÄrendedokument(dok, visaStatus);
+
+      // Kontrollera om användaren avbröt
+      if (svar && svar.cancelled) {
+        resultat.push({ titel: dok.titel, dokumentNummer: null, fel: null, avbruten: true });
+        avbruten = true;
+        break;
+      }
+
+      resultat.push({ titel: dok.titel, dokumentNummer: svar, fel: null });
+      console.log(`[p360] Ärendedokument ${nr}/${dokument.length} skapat: ${svar}`);
     } catch (err) {
       resultat.push({ titel: dok.titel, dokumentNummer: null, fel: err.message });
       console.error(`[p360] Ärendedokument ${nr}/${dokument.length} misslyckades:`, err.message);
@@ -434,14 +472,49 @@ async function skapaAllaÄrendedokument(dokument) {
   // Visa sammanfattning
   const lyckade = resultat.filter(r => r.dokumentNummer);
   const misslyckade = resultat.filter(r => r.fel);
-  let sammanfattning = `Klart: ${lyckade.length}/${dokument.length} ärendedokument skapade.`;
-  if (misslyckade.length > 0) {
-    sammanfattning += ' Misslyckade: ' + misslyckade.map(r => r.titel || '(utan titel)').join(', ');
-  }
-  visaStatus(sammanfattning);
 
-  // Ta bort statusfältet efter 8 sekunder
-  setTimeout(() => statusBar.remove(), 8000);
+  if (avbruten) {
+    visaAvbrytVarning(statusBar, lyckade, dokument.length, ärendeFlöde);
+  } else {
+    let sammanfattning = `Klart: ${lyckade.length}/${dokument.length} ärendedokument skapade.`;
+    if (misslyckade.length > 0) {
+      sammanfattning += ' Misslyckade: ' + misslyckade.map(r => r.titel || '(utan titel)').join(', ');
+    }
+    visaStatus(sammanfattning);
+    // Ta bort statusfältet efter 8 sekunder
+    setTimeout(() => statusBar.remove(), 8000);
+  }
 
   return resultat;
+}
+
+/**
+ * Visar en varningsruta vid avbrytning med info om redan skapade objekt.
+ * Användaren måste klicka bort den manuellt.
+ */
+function visaAvbrytVarning(statusBar, lyckade, totalAntal, ärendeFlöde) {
+  statusBar.style.cssText =
+    'position:fixed;top:0;left:0;right:0;z-index:99999;' +
+    'background:#b35900;color:#fff;font-family:sans-serif;font-size:13px;' +
+    'padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.3);' +
+    'display:flex;flex-direction:column;gap:6px;';
+
+  let html = '<strong>Dokumentskapandet avbröts.</strong>';
+
+  if (lyckade.length > 0) {
+    html += `<div>Redan skapade ärendedokument (${lyckade.length} av ${totalAntal}): ` +
+      lyckade.map(r => `<strong>${r.dokumentNummer || r.titel}</strong>`).join(', ') +
+      '. Dessa måste tas bort manuellt om de inte ska finnas kvar.</div>';
+  }
+
+  if (ärendeFlöde) {
+    html += '<div>Ärendet är redan skapat och måste makuleras separat om det inte ska finnas kvar.</div>';
+  }
+
+  html += '<div style="margin-top:4px;">' +
+    '<button id="p360-avbryt-stäng" style="padding:4px 12px;background:#fff;color:#333;' +
+    'border:1px solid #ccc;border-radius:3px;cursor:pointer;font-size:12px;font-family:sans-serif;">OK</button></div>';
+
+  statusBar.innerHTML = html;
+  statusBar.querySelector('#p360-avbryt-stäng').addEventListener('click', () => statusBar.remove());
 }

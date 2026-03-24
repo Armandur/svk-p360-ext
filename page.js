@@ -36,7 +36,7 @@ window.addEventListener('p360-anrop', async (event) => {
     } else if (action === 'skapaFrånMall') {
       await skapaFrånMall(data.mall);
     } else if (action === 'skapaÄrendedokument') {
-      const resultat = await skapaAllaÄrendedokument(data.dokument);
+      const resultat = await skapaAllaÄrendedokument(data.dokument, { ärendeFlöde: data.ärendeFlöde });
       window.dispatchEvent(new CustomEvent('p360-svar', {
         detail: { id, success: true, data: resultat }
       }));
