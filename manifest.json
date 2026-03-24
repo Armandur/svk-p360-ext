@@ -47,7 +47,9 @@
         "page-utils.js",
         "page-dagboksblad.js",
         "page-status.js",
-        "page-arende.js",
+        "page-arende-options.js",
+        "page-arende-contacts.js",
+        "page-arende-create.js",
         "page.js"
       ],
       "world": "MAIN"
