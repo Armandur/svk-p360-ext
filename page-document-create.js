@@ -543,38 +543,21 @@ async function skapaÄrendedokument(dok, visaStatus) {
         .trim() || null;
     } catch { /* cross-origin */ }
 
-    // Stäng RepeatWizardDialog – välj "stäng"-radioknappen, sedan OK
+    // Stäng RepeatWizardDialog – välj "avsluta" (value=0), sedan OK
+    // Radioknappar: 0 = "avsluta", 1 = "registrera flera", 2 = "registrera flera baserat på sist"
     try {
       const rDoc = repeatIframe.contentDocument;
       const rWin = repeatIframe.contentWindow;
       await waitForElement(rDoc, '#PlaceHolderMain_MainView_DialogButton', 3000);
 
-      // Logga alla radioknappar för att hitta rätt alternativ
-      const radioknappar = rDoc.querySelectorAll('input[type="radio"]');
-      console.log(`[p360-dok] RepeatWizard radioknappar (${radioknappar.length}):`);
-      radioknappar.forEach((r, i) => {
-        const label = r.closest('label')?.textContent?.trim()
-          || r.parentElement?.textContent?.trim()
-          || r.nextSibling?.textContent?.trim() || '';
-        console.log(`  [${i}] id=${r.id} name=${r.name} value=${r.value} checked=${r.checked} label="${label}"`);
-      });
-
-      // Välj den radioknapp som INTE är "registrera flera" (sista alternativet brukar vara "stäng")
-      const stängRadio = Array.from(radioknappar).find(r =>
-        !r.checked // Inte det förifyllda alternativet
-      );
-      // Om vi hittar en, prova den sista (brukar vara "stäng"/"avsluta")
-      const sistaRadio = radioknappar[radioknappar.length - 1];
-      if (sistaRadio && sistaRadio !== radioknappar[0]) {
-        sistaRadio.checked = true;
-        sistaRadio.dispatchEvent(new Event('change', { bubbles: true }));
-        console.log('[p360-dok] Valde sista radioknappen:', sistaRadio.id, sistaRadio.value);
+      const avsluta = rDoc.getElementById('PlaceHolderMain_MainView_ChoiceControl_0');
+      if (avsluta) {
+        avsluta.checked = true;
+        avsluta.dispatchEvent(new Event('change', { bubbles: true }));
       }
 
       rWin.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish');
-    } catch (e) {
-      console.error('[p360-dok] Fel vid stängning av RepeatWizardDialog:', e);
-    }
+    } catch { /* ignorera */ }
 
     // Vänta på att dialogen stängs och ärendesidan uppdateras
     await sleep(2000);
