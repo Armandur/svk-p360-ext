@@ -519,18 +519,8 @@ function visaDokumentväljare() {
     return;
   }
 
-  // Filtrera bort redan tillagda
-  const tillagdaIds = new Set(ärendedokument.map(d => d.dokumentmallId));
-  const tillgängliga = sparadeDokumentmallar.filter(m => !tillagdaIds.has(m.id));
-
-  if (tillgängliga.length === 0) {
-    const info = document.createElement('div');
-    info.className = 'dokument-formulär';
-    info.innerHTML = '<p style="margin:0;font-size:13px;color:#555;">Alla dokumentmallar är redan tillagda.</p>';
-    document.getElementById('dokumentlista').after(info);
-    setTimeout(() => info.remove(), 3000);
-    return;
-  }
+  // Alla dokumentmallar visas – samma mall kan läggas till flera gånger
+  const tillgängliga = sparadeDokumentmallar;
 
   const klassKod = hämtaKlassificeringskod();
 
