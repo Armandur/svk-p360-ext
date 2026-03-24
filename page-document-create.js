@@ -431,8 +431,31 @@ async function skapaÄrendedokument(dok, visaStatus) {
     }
   }
 
-  // Ankomstdatum – sätts EFTER alla UpdatePanel-postbacks (kategori, skyddskod)
-  // så att det inte nollställs av serversvaren.
+  // Oregistrerad kontakt – sätts EFTER alla UpdatePanel-postbacks (kategori,
+  // skyddskod) men FÖRE datum och titel, eftersom kontakt-knappen triggar
+  // en egen UpdatePanel som nollställer datumfältet.
+  let kontaktLagdTill = false;
+  if (dok.oregistreradKontakt) {
+    const kontaktFält = iDoc.getElementById(
+      'PlaceHolderMain_MainView_Custom_QuickUnregContactText'
+    );
+    if (kontaktFält) {
+      kontaktFält.value = dok.oregistreradKontakt;
+      kontaktFält.dispatchEvent(new Event('change', { bubbles: true }));
+      const bekräftaBtn = iDoc.getElementById(
+        'PlaceHolderMain_MainView_Custom_QuickUnregContactButton'
+      );
+      if (bekräftaBtn) {
+        bekräftaBtn.click();
+        await sleep(1500);
+        kontaktLagdTill = true;
+      }
+    }
+  }
+
+  // Ankomstdatum – sätts EFTER alla UpdatePanel-postbacks (kategori, skyddskod,
+  // kontaktknapp) så att det inte nollställs av serversvaren.
+  // Hämta elementet på nytt ifall UpdatePanel ersatte DOM-noden.
   if (dok.ankomstdatum) {
     const datumFält = iDoc.getElementById(
       'PlaceHolderMain_MainView_ReceivedDateControl_si_datepicker'
@@ -450,27 +473,6 @@ async function skapaÄrendedokument(dok, visaStatus) {
       }
       datumFält.value = `${dd}.${mm}.${yyyy}`;
       datumFält.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-  }
-
-  // Oregistrerad kontakt – sätts EFTER alla UpdatePanel-postbacks så att
-  // kontaktraden inte försvinner ur listan.
-  let kontaktLagdTill = false;
-  if (dok.oregistreradKontakt) {
-    const kontaktFält = iDoc.getElementById(
-      'PlaceHolderMain_MainView_Custom_QuickUnregContactText'
-    );
-    if (kontaktFält) {
-      kontaktFält.value = dok.oregistreradKontakt;
-      kontaktFält.dispatchEvent(new Event('change', { bubbles: true }));
-      const bekräftaBtn = iDoc.getElementById(
-        'PlaceHolderMain_MainView_Custom_QuickUnregContactButton'
-      );
-      if (bekräftaBtn) {
-        bekräftaBtn.click();
-        await sleep(1500);
-        kontaktLagdTill = true;
-      }
     }
   }
 
