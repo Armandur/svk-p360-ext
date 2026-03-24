@@ -40,24 +40,22 @@ function kontrolleraObligatoriskaFält(iDoc) {
   const enhet = iDoc.getElementById('PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl');
   if (enhet && !enhet.value) tomma.push('Ansvarig enhet');
 
-  // Avsändare/mottagare – obligatoriskt beroende på dokumentkategori
+  // Oregistrerad kontakt – obligatoriskt för Inkommande/Utgående
+  // Fältet Custom_QuickUnregContactText är gemensamt oavsett kategori.
+  // Kontrollera om fältet finns (visas efter att kategori valts) och är tomt.
   const katVärde = kat?.value;
-  if (katVärde === '110') {
-    // Inkommande – kräver avsändare (oregistrerad eller registrerad)
-    const oregAvsändare = iDoc.getElementById('PlaceHolderMain_MainView_UnregisteredSenderTextBoxControl');
-    const harOregAvsändare = oregAvsändare && oregAvsändare.value.trim();
-    // Kontrollera om registrerade avsändare lagts till (kontaktlista med rader)
-    const avsändarLista = iDoc.getElementById('PlaceHolderMain_MainView_SenderCaseProjectContactsList');
-    const harRegAvsändare = avsändarLista && avsändarLista.querySelectorAll('tr[id]').length > 0;
-    if (!harOregAvsändare && !harRegAvsändare) {
-      tomma.push('Avsändare');
-    }
-  } else if (katVärde === '111') {
-    // Utgående – kräver mottagare
-    const mottagarLista = iDoc.getElementById('PlaceHolderMain_MainView_RecipientCaseProjectContactsList');
-    const harMottagare = mottagarLista && mottagarLista.querySelectorAll('tr[id]').length > 0;
-    if (!harMottagare) {
-      tomma.push('Mottagare');
+  if (katVärde === '110' || katVärde === '111') {
+    const oregKontakt = iDoc.getElementById('PlaceHolderMain_MainView_Custom_QuickUnregContactText');
+    // Fältet töms efter att knappen klickats – kolla även om kontakter redan lagts till
+    // via tabellen med befintliga kontaktrader
+    const kontaktTabell = iDoc.querySelector(
+      '[id*="SenderCaseProjectContactsList"], [id*="RecipientCaseProjectContactsList"]'
+    );
+    const harKontaktRader = kontaktTabell && kontaktTabell.querySelectorAll('tr[id]').length > 0;
+    const harOregText = oregKontakt && oregKontakt.value.trim();
+
+    if (!harKontaktRader && !harOregText) {
+      tomma.push(katVärde === '110' ? 'Avsändare (oregistrerad kontakt)' : 'Mottagare (oregistrerad kontakt)');
     }
   }
 
@@ -278,17 +276,17 @@ async function skapaÄrendedokument(dok, visaStatus) {
   }
 
   // Oregistrerad kontakt (avsändare/mottagare)
+  // Fältet heter Custom_QuickUnregContactText med knappen Custom_QuickUnregContactButton
   if (dok.oregistreradKontakt) {
-    // Fältet för oregistrerad kontakt och dess bekräfta-knapp
     const kontaktFält = iDoc.getElementById(
-      'PlaceHolderMain_MainView_UnregisteredSenderTextBoxControl'
+      'PlaceHolderMain_MainView_Custom_QuickUnregContactText'
     );
     if (kontaktFält) {
       kontaktFält.value = dok.oregistreradKontakt;
       kontaktFält.dispatchEvent(new Event('change', { bubbles: true }));
-      // Klicka på bekräfta-knappen (bock-ikonen bredvid fältet)
+      // Klicka på "Lägg till oregistrerad kontakt"-knappen (bock-ikonen)
       const bekräftaBtn = iDoc.getElementById(
-        'PlaceHolderMain_MainView_AddUnregisteredSenderButtonControl'
+        'PlaceHolderMain_MainView_Custom_QuickUnregContactButton'
       );
       if (bekräftaBtn) {
         bekräftaBtn.click();

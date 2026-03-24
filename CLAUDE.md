@@ -776,8 +776,8 @@ Underliggande view.aspx-id: `70158b84-a8eb-492a-a546-277ee96e16f9`
 | `PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl` | SELECT + Selectize | Nej | Ansvarig enhet (instansspecifikt) |
 | `PlaceHolderMain_MainView_PaperControl` | SELECT + Selectize | **Ja** | Sparat på papper |
 | `PlaceHolderMain_MainView_ResponsibleUserComboControl` | SELECT + Selectize | **Ja** | Ansvarig person |
-| `PlaceHolderMain_MainView_UnregisteredSenderTextBoxControl` | INPUT text | Nej | Oregistrerad kontakt (avsändare) |
-| `PlaceHolderMain_MainView_AddUnregisteredSenderButtonControl` | Knapp (bock) | Nej | Bekräfta oregistrerad avsändare |
+| `PlaceHolderMain_MainView_Custom_QuickUnregContactText` | INPUT text | Nej | Oregistrerad kontakt (avsändare/mottagare) |
+| `PlaceHolderMain_MainView_Custom_QuickUnregContactButton` | Knapp (bock) | Nej | Lägg till oregistrerad kontakt |
 | `PlaceHolderMain_MainView_ProjectQuickSearchControl_DISPLAY` | INPUT text | Nej | Projekt (typeahead, synligt) |
 
 > **`ProcessRecordTypeControl`** = **Handlingstyp** – vilken sorts handling det är (t.ex.
