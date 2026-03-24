@@ -144,6 +144,35 @@
       background: #fffdf5;
     }
 
+    /* Drag-and-drop */
+    .kontakt-kort[draggable="true"],
+    .dokument-kort[draggable="true"] {
+      cursor: grab;
+    }
+    .kontakt-kort[draggable="true"]:active,
+    .dokument-kort[draggable="true"]:active {
+      cursor: grabbing;
+    }
+    .kontakt-kort.dragging,
+    .dokument-kort.dragging {
+      opacity: 0.4;
+    }
+    .kontakt-kort.drag-over,
+    .dokument-kort.drag-over {
+      border-top: 3px solid #0078d4;
+      margin-top: -2px;
+    }
+    .drag-handle {
+      display: inline-block;
+      cursor: grab;
+      color: #aaa;
+      font-size: 14px;
+      margin-right: 6px;
+      user-select: none;
+      vertical-align: middle;
+    }
+    .drag-handle:active { cursor: grabbing; }
+
     /* Kontaktlista */
     .kontakt-kort {
       border: 1px solid #ddd;

@@ -320,9 +320,11 @@ function renderaKontakter() {
   kontakter.forEach((k, idx) => {
     const div = document.createElement('div');
     div.className = 'kontakt-kort';
+    div.draggable = true;
+    div.dataset.idx = idx;
     const roll = KONTAKTROLLER.find(r => r.value === k.roll)?.label || k.roll;
     div.innerHTML = `
-      <div class="kontakt-rubrik">${escHtml(k.namn) || '(Namnlös)'} <span style="font-weight:normal;color:#888;font-size:12px">– ${escHtml(roll)}</span></div>
+      <div class="kontakt-rubrik"><span class="drag-handle">⠿</span>${escHtml(k.namn) || '(Namnlös)'} <span style="font-weight:normal;color:#888;font-size:12px">– ${escHtml(roll)}</span></div>
       <div class="kontakt-knappar">
         <button data-idx="${idx}" data-action="redigera">Redigera</button>
         <button data-idx="${idx}" data-action="ta-bort">✕</button>
@@ -331,6 +333,8 @@ function renderaKontakter() {
     `;
     lista.appendChild(div);
   });
+
+  kopplaDragDrop(lista, kontakter, renderaKontakter);
 
   lista.querySelectorAll('button[data-action]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -464,10 +468,13 @@ function renderaDokument() {
     const dm = sparadeDokumentmallar.find(m => m.id === ref.dokumentmallId);
     const div = document.createElement('div');
     div.className = 'dokument-kort';
+    div.draggable = true;
+    div.dataset.idx = idx;
     const namn = dm?.namn || ref.namn || '(okänd mall)';
     const kategori = dm ? (DOKUMENTKATEGORIER.find(k => k.value === dm.kategori)?.label || '') : '';
     const handlingstyp = dm?.handlingstyp?.text || '';
     const detaljer = [kategori, handlingstyp].filter(Boolean);
+    const nummer = idx + 1; // :1, :2, :3 …
 
     // Kontrollera om handlingstypen matchar ärendets klassificering
     const klassKod = hämtaKlassificeringskod();
@@ -478,7 +485,7 @@ function renderaDokument() {
     const tommaObl = dm ? hittaTommaObligatoriskaFältDokMall(dm) : [];
 
     div.innerHTML = `
-      <div class="dok-rubrik">${escHtml(namn)}</div>
+      <div class="dok-rubrik"><span class="drag-handle">⠿</span><span style="color:#0078d4;font-weight:700;margin-right:6px;">:${nummer}</span>${escHtml(namn)}</div>
       <div class="dok-knappar">
         ${dm ? `<button data-idx="${idx}" data-action="redigera-dok" title="Redigera dokumentmall">✎</button>` : ''}
         <button data-idx="${idx}" data-action="ta-bort-dok" title="Ta bort från ärendemall">✕</button>
@@ -490,6 +497,8 @@ function renderaDokument() {
     `;
     lista.appendChild(div);
   });
+
+  kopplaDragDrop(lista, ärendedokument, renderaDokument);
 
   lista.querySelectorAll('button[data-action]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -786,4 +795,56 @@ function escHtml(str) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+/**
+ * Kopplar HTML5 drag-and-drop på kort inuti en lista-container.
+ * Ändrar ordning i arrayReferens och anropar renderFn efter drop.
+ */
+function kopplaDragDrop(listaEl, arrayReferens, renderFn) {
+  let dragIdx = null;
+
+  for (const kort of listaEl.children) {
+    kort.addEventListener('dragstart', (e) => {
+      dragIdx = parseInt(kort.dataset.idx, 10);
+      kort.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      // Krävs för Firefox
+      e.dataTransfer.setData('text/plain', String(dragIdx));
+    });
+
+    kort.addEventListener('dragend', () => {
+      kort.classList.remove('dragging');
+      // Rensa alla drag-over-markeringar
+      listaEl.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+      dragIdx = null;
+    });
+
+    kort.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      const överIdx = parseInt(kort.dataset.idx, 10);
+      // Markera bara om vi hovrar över ett annat kort
+      if (dragIdx !== null && överIdx !== dragIdx) {
+        kort.classList.add('drag-over');
+      }
+    });
+
+    kort.addEventListener('dragleave', () => {
+      kort.classList.remove('drag-over');
+    });
+
+    kort.addEventListener('drop', (e) => {
+      e.preventDefault();
+      kort.classList.remove('drag-over');
+      const dropIdx = parseInt(kort.dataset.idx, 10);
+      if (dragIdx === null || dragIdx === dropIdx) return;
+
+      // Flytta elementet i arrayen
+      const [flyttat] = arrayReferens.splice(dragIdx, 1);
+      arrayReferens.splice(dropIdx, 0, flyttat);
+      dragIdx = null;
+      renderFn();
+    });
+  }
 }
