@@ -43,7 +43,13 @@
     },
     {
       "matches": ["https://p360.svenskakyrkan.se/*"],
-      "js": ["page.js"],
+      "js": [
+        "page-utils.js",
+        "page-dagboksblad.js",
+        "page-status.js",
+        "page-arende.js",
+        "page.js"
+      ],
       "world": "MAIN"
     }
   ]
