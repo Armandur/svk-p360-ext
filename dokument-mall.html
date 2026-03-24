@@ -214,11 +214,13 @@
 
       <div class="tvakol">
         <div class="faltrad">
-          <label for="dok-ankomstdatum">Ankomstdatum</label>
-          <select id="dok-ankomstdatum">
+          <label for="dok-ankomstdatum-typ">Ankomstdatum</label>
+          <select id="dok-ankomstdatum-typ">
             <option value="">(Inget)</option>
             <option value="idag">Dagens datum</option>
+            <option value="datum">Ange datum</option>
           </select>
+          <input type="date" id="dok-ankomstdatum-värde" style="display:none;margin-top:4px;">
         </div>
         <div class="faltrad">
           <label for="dok-ansvarig-enhet">Ansvarig enhet</label>

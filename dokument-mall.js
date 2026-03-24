@@ -129,6 +129,12 @@ function kopplaHändelser() {
       document.getElementById('dok-off-titel-val').value === '3' ? '' : 'none';
   });
 
+  // Ankomstdatum – visa/dölj datumfält
+  document.getElementById('dok-ankomstdatum-typ').addEventListener('change', () => {
+    const typ = document.getElementById('dok-ankomstdatum-typ').value;
+    document.getElementById('dok-ankomstdatum-värde').style.display = typ === 'datum' ? '' : 'none';
+  });
+
   // Spara
   document.getElementById('btn-spara').addEventListener('click', sparaMall);
   document.getElementById('btn-avbryt').addEventListener('click', () => window.close());
@@ -195,7 +201,12 @@ async function sparaMall() {
       ? { value: atkomstgruppSel.value, label: atkomstgruppSel.options[atkomstgruppSel.selectedIndex]?.text || '' }
       : null,
     oregistreradKontakt: document.getElementById('dok-oregistrerad-kontakt').value.trim(),
-    ankomstdatum: document.getElementById('dok-ankomstdatum').value,
+    ankomstdatum: (() => {
+      const typ = document.getElementById('dok-ankomstdatum-typ').value;
+      if (typ === 'idag') return 'idag';
+      if (typ === 'datum') return document.getElementById('dok-ankomstdatum-värde').value || '';
+      return '';
+    })(),
     ansvarigEnhet: ansvarigEnhetSel.value
       ? { value: ansvarigEnhetSel.value, label: ansvarigEnhetSel.options[ansvarigEnhetSel.selectedIndex]?.text || '' }
       : null,
@@ -231,7 +242,17 @@ async function laddaMall(id) {
   document.getElementById('dok-kategori').value = mall.kategori || '';
   document.getElementById('dok-skyddskod').value = mall.skyddskod || '0';
   document.getElementById('dok-oregistrerad-kontakt').value = mall.oregistreradKontakt || '';
-  document.getElementById('dok-ankomstdatum').value = mall.ankomstdatum || '';
+  // Ankomstdatum – "idag", "YYYY-MM-DD" eller ""
+  const ankomst = mall.ankomstdatum || '';
+  if (ankomst === 'idag') {
+    document.getElementById('dok-ankomstdatum-typ').value = 'idag';
+  } else if (/^\d{4}-\d{2}-\d{2}$/.test(ankomst)) {
+    document.getElementById('dok-ankomstdatum-typ').value = 'datum';
+    document.getElementById('dok-ankomstdatum-värde').value = ankomst;
+    document.getElementById('dok-ankomstdatum-värde').style.display = '';
+  } else {
+    document.getElementById('dok-ankomstdatum-typ').value = '';
+  }
 
   if (mall.handlingstyp?.value) {
     säkertVälj('dok-handlingstyp', mall.handlingstyp.value, mall.handlingstyp.text);

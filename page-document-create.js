@@ -91,15 +91,22 @@ async function skapaÄrendedokument(dok, visaStatus) {
   }
 
   // Ankomstdatum (för inkommande dokument)
-  if (dok.ankomstdatum === 'idag') {
+  if (dok.ankomstdatum) {
     const datumFält = iDoc.getElementById(
       'PlaceHolderMain_MainView_ReceivedDateControl_si_datepicker'
     );
     if (datumFält) {
-      const idag = new Date();
-      const dd = String(idag.getDate()).padStart(2, '0');
-      const mm = String(idag.getMonth() + 1).padStart(2, '0');
-      const yyyy = idag.getFullYear();
+      let dd, mm, yyyy;
+      if (dok.ankomstdatum === 'idag') {
+        const idag = new Date();
+        dd = String(idag.getDate()).padStart(2, '0');
+        mm = String(idag.getMonth() + 1).padStart(2, '0');
+        yyyy = idag.getFullYear();
+      } else {
+        // Förväntat format: YYYY-MM-DD
+        const delar = dok.ankomstdatum.split('-');
+        yyyy = delar[0]; mm = delar[1]; dd = delar[2];
+      }
       datumFält.value = `${dd}.${mm}.${yyyy}`;
       datumFält.dispatchEvent(new Event('change', { bubbles: true }));
     }
