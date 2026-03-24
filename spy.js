@@ -115,10 +115,33 @@
     försökInstallera(); // ifall den redan är laddad
   }
 
+  // Fånga window.open() – 360° kan öppna dokumentdialogen som popup
+  const origOpen = window.open;
+  window.open = function (url, ...rest) {
+    console.log('[spy] window.open:', url);
+    const popup = origOpen.call(window, url, ...rest);
+    if (popup) {
+      const pollPopup = setInterval(() => {
+        try {
+          if (popup.closed) { clearInterval(pollPopup); return; }
+          if (popup.document?.readyState === 'complete' && !popup._p360SpyInstallerad) {
+            installera(popup, 'popup');
+            console.log('[spy] Spion installerad i popup:', popup.location?.href);
+          }
+        } catch { /* cross-origin under laddning */ }
+      }, 200);
+    }
+    return popup;
+  };
+
   const obs = new MutationObserver(mutations => {
     for (const mut of mutations) {
       for (const node of mut.addedNodes) {
-        if (node.nodeType === 1 && node.tagName === 'IFRAME') hanteraIframe(node);
+        if (node.nodeType === 1) {
+          if (node.tagName === 'IFRAME') hanteraIframe(node);
+          // Iframes kan läggas till inuti tillagda containrar
+          for (const f of node.querySelectorAll?.('iframe') ?? []) hanteraIframe(f);
+        }
       }
       for (const node of mut.removedNodes) {
         if (node.nodeType === 1 && node.tagName === 'IFRAME') {
@@ -128,7 +151,7 @@
       }
     }
   });
-  obs.observe(document.body, { childList: true, subtree: false });
+  obs.observe(document.body, { childList: true, subtree: true });
 
   // Registrera iframes som redan finns i DOM:en
   for (const f of document.querySelectorAll('iframe')) hanteraIframe(f);
