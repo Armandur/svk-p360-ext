@@ -737,7 +737,9 @@ Chrome tillåter max 4 `suggested_key` per tillägg. Alla kommandon är konfigur
 ├── page-utils.js          # Delade hjälpfunktioner för MAIN-world-filer
 ├── page-dagboksblad.js    # Dagboksblad + utskriftsdialog
 ├── page-status.js         # Sätt/växla status
-├── page-arende.js         # Skapa ärende från mall + externa kontakter
+├── page-arende-options.js # Inläsning av formuläralternativ (NY_ÄRENDE_URL, läsInAlternativ)
+├── page-arende-contacts.js # Lägg till oregistrerade externa kontakter
+├── page-arende-create.js  # Skapa ärende från mall (skapaFrånMall)
 ├── page.js                # Router i MAIN world (lyssnar på p360-anrop och dispatchar)
 ├── background.js          # Service worker – hanterar tangentbordskommandon
 ├── help.html              # Inbyggd hjälpsida (öppnas via "? Hjälp" i popup)
@@ -756,8 +758,10 @@ Filerna injiceras i denna ordning:
 1. `page-utils.js`
 2. `page-dagboksblad.js`
 3. `page-status.js`
-4. `page-arende.js`
-5. `page.js` (router)
+4. `page-arende-options.js`
+5. `page-arende-contacts.js`
+6. `page-arende-create.js`
+7. `page.js` (router)
 
 ## Kodstil och konventioner
 

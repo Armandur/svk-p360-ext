@@ -86,10 +86,10 @@ Verifiera manuellt i Chrome inloggad i 360° på testärende:
 
 ## Nästa förbättring (rekommenderad)
 
-`page-arende.js` är nu största filen. Nästa naturliga steg är att dela upp i exempelvis:
+`page-arende.js` delades upp 2026-03-24 i tre filer:
 
-- `page-arende-options.js` (inläsning av alternativ/klassificering)
-- `page-arende-create.js` (skapa från mall)
-- `page-arende-contacts.js` (externa kontakter)
+- `page-arende-options.js` (NY_ÄRENDE_URL, läsInAlternativ, försökLäsKlassificeringar)
+- `page-arende-contacts.js` (läggTillExternKontakt)
+- `page-arende-create.js` (skapaFrånMall)
 
-Det följer riktlinjen i `CLAUDE.md` om att undvika mega-filer för stabilare AI-agentflöde.
+Inga ytterligare uppdelningar identifierade för tillfället.
