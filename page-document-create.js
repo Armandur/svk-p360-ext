@@ -543,14 +543,38 @@ async function skapaÄrendedokument(dok, visaStatus) {
         .trim() || null;
     } catch { /* cross-origin */ }
 
-    // Stäng RepeatWizardDialog – 'cancel' = "nej, skapa inte fler"
-    // ('finish' = "ja, skapa ett till" → öppnar nytt tomt formulär)
+    // Stäng RepeatWizardDialog – välj "stäng"-radioknappen, sedan OK
     try {
       const rDoc = repeatIframe.contentDocument;
       const rWin = repeatIframe.contentWindow;
       await waitForElement(rDoc, '#PlaceHolderMain_MainView_DialogButton', 3000);
-      rWin.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'cancel');
-    } catch { /* ignorera */ }
+
+      // Logga alla radioknappar för att hitta rätt alternativ
+      const radioknappar = rDoc.querySelectorAll('input[type="radio"]');
+      console.log(`[p360-dok] RepeatWizard radioknappar (${radioknappar.length}):`);
+      radioknappar.forEach((r, i) => {
+        const label = r.closest('label')?.textContent?.trim()
+          || r.parentElement?.textContent?.trim()
+          || r.nextSibling?.textContent?.trim() || '';
+        console.log(`  [${i}] id=${r.id} name=${r.name} value=${r.value} checked=${r.checked} label="${label}"`);
+      });
+
+      // Välj den radioknapp som INTE är "registrera flera" (sista alternativet brukar vara "stäng")
+      const stängRadio = Array.from(radioknappar).find(r =>
+        !r.checked // Inte det förifyllda alternativet
+      );
+      // Om vi hittar en, prova den sista (brukar vara "stäng"/"avsluta")
+      const sistaRadio = radioknappar[radioknappar.length - 1];
+      if (sistaRadio && sistaRadio !== radioknappar[0]) {
+        sistaRadio.checked = true;
+        sistaRadio.dispatchEvent(new Event('change', { bubbles: true }));
+        console.log('[p360-dok] Valde sista radioknappen:', sistaRadio.id, sistaRadio.value);
+      }
+
+      rWin.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish');
+    } catch (e) {
+      console.error('[p360-dok] Fel vid stängning av RepeatWizardDialog:', e);
+    }
 
     // Vänta på att dialogen stängs och ärendesidan uppdateras
     await sleep(2000);
