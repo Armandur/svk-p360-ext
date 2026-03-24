@@ -453,10 +453,8 @@ async function skapaÄrendedokument(dok, visaStatus) {
     }
   }
 
-  // Ankomstdatum – sätts EFTER alla UpdatePanel-postbacks (kategori, skyddskod,
-  // kontaktknapp) så att det inte nollställs av serversvaren.
-  // SI-datepicker har ett synligt fält (_si_datepicker) och ofta ett dolt fält
-  // (utan suffix) som faktiskt postas. Sätt båda + trigga jQuery-events.
+  // Ankomstdatum – sätts EFTER alla UpdatePanel-postbacks.
+  // Logga alla datumrelaterade element för att hitta rätt fält.
   if (dok.ankomstdatum) {
     let dd, mm, yyyy;
     if (dok.ankomstdatum === 'idag') {
@@ -468,48 +466,47 @@ async function skapaÄrendedokument(dok, visaStatus) {
       const delar = dok.ankomstdatum.split('-');
       yyyy = delar[0]; mm = delar[1]; dd = delar[2];
     }
-    const datumStr = `${dd}.${mm}.${yyyy}`;
+    const datumDotFormat = `${dd}.${mm}.${yyyy}`;
+    const datumISOFormat = `${yyyy}-${mm}-${dd}`;
 
-    // Synligt datepicker-fält
+    // Logga ALLA element med "ReceivedDate" eller "Date" i id/name
+    const allaReceivedDate = iDoc.querySelectorAll('[id*="ReceivedDate"], [name*="ReceivedDate"]');
+    console.log(`[p360-dok] Alla ReceivedDate-element (${allaReceivedDate.length}):`);
+    allaReceivedDate.forEach((el, i) => {
+      console.log(`  [${i}] tag=${el.tagName} type=${el.type} id=${el.id} name=${el.name} value="${el.value}" hidden=${el.type === 'hidden'}`);
+    });
+
+    // Sätt ALLA matchande element med båda formaten
+    allaReceivedDate.forEach(el => {
+      if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+        // Synliga fält: DD.MM.YYYY, dolda fält: prova båda formaten
+        if (el.type === 'hidden') {
+          el.value = datumDotFormat;
+        } else {
+          el.value = datumDotFormat;
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+          el.dispatchEvent(new Event('blur', { bubbles: true }));
+        }
+      }
+    });
+
+    // Trigga jQuery datepicker-event om tillgänglig
     const datumFält = iDoc.getElementById(
       'PlaceHolderMain_MainView_ReceivedDateControl_si_datepicker'
     );
-    if (datumFält) {
-      datumFält.value = datumStr;
-      datumFält.dispatchEvent(new Event('change', { bubbles: true }));
-      datumFält.dispatchEvent(new Event('blur', { bubbles: true }));
-    }
-
-    // Dolt fält som postas (utan _si_datepicker-suffix)
-    const doltDatumFält = iDoc.getElementById(
-      'PlaceHolderMain_MainView_ReceivedDateControl'
-    );
-    if (doltDatumFält) {
-      doltDatumFält.value = datumStr;
-      console.log('[p360-dok] Satte dolt datumfält ReceivedDateControl:', datumStr);
-    }
-
-    // Prova även name-baserad sökning för hidden fields
-    const hiddenByName = iDoc.querySelector(
-      'input[name*="ReceivedDateControl"][type="hidden"]'
-    );
-    if (hiddenByName && hiddenByName !== doltDatumFält) {
-      hiddenByName.value = datumStr;
-      console.log('[p360-dok] Satte hidden input:', hiddenByName.name, datumStr);
-    }
-
-    // Trigga jQuery datepicker-event om tillgänglig
     try {
       const $ = iWin.jQuery || iWin.$;
       if ($ && datumFält) {
         $(datumFält).trigger('change').trigger('blur');
+        // Prova även flatpickr-API
+        if (datumFält._flatpickr) {
+          datumFält._flatpickr.setDate(datumDotFormat, true);
+          console.log('[p360-dok] Satte via flatpickr API');
+        }
       }
-    } catch (e) { /* jQuery saknas eller cross-origin */ }
+    } catch (e) { /* jQuery saknas */ }
 
-    console.log('[p360-dok] Ankomstdatum satt:', datumStr,
-      'synligt:', datumFält?.value,
-      'dolt:', doltDatumFält?.value,
-      'hidden:', hiddenByName?.value);
+    console.log('[p360-dok] Ankomstdatum satt:', datumDotFormat);
   }
 
   // Titel – sätts sist så att eventuella UpdatePanels inte nollställer den.
