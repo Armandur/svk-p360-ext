@@ -477,7 +477,7 @@ async function skapaÄrendedokument(dok, visaStatus) {
       'PlaceHolderMain_MainView_ReceivedDateControl_si_datepicker'
     );
     if (datumFält) {
-      datumFält.value = datumDisplay;
+      datumFält.value = datumISO;
     }
 
     // Dolt fält som faktiskt postas – YYYY-MM-DD (ISO-format)
