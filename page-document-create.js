@@ -543,12 +543,13 @@ async function skapaÄrendedokument(dok, visaStatus) {
         .trim() || null;
     } catch { /* cross-origin */ }
 
-    // Stäng RepeatWizardDialog
+    // Stäng RepeatWizardDialog – 'cancel' = "nej, skapa inte fler"
+    // ('finish' = "ja, skapa ett till" → öppnar nytt tomt formulär)
     try {
       const rDoc = repeatIframe.contentDocument;
       const rWin = repeatIframe.contentWindow;
       await waitForElement(rDoc, '#PlaceHolderMain_MainView_DialogButton', 3000);
-      rWin.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish');
+      rWin.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'cancel');
     } catch { /* ignorera */ }
 
     // Vänta på att dialogen stängs och ärendesidan uppdateras
