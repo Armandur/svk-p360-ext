@@ -62,30 +62,70 @@ function waitForIframe(urlFragment, timeout = 8000) {
  *
  * Kontaktdialogerna skapas av formJavaScript i formiframen via window.top.document,
  * vilket innebär att de hamnar som syskon till formOverlayIframen i huvud-dokumentet.
+ *
+ * Använder MutationObserver + load-händelser för minimal fördröjning i stället för
+ * setInterval-polling.
  */
 function waitForNyIframe(urlFragment, timeout = 10000) {
   return new Promise(resolve => {
-    const start = Date.now();
-    const check = setInterval(() => {
-      for (const f of document.querySelectorAll('iframe')) {
+    let resolved = false;
+    const done = (f) => {
+      if (resolved) return;
+      resolved = true;
+      clearTimeout(timer);
+      observer.disconnect();
+      resolve(f);
+    };
+    const timer = setTimeout(() => done(null), timeout);
+
+    // Bind load-lyssnare på iframen. Vid JS-redirect kan load triggas mer än en
+    // gång – återbind rekursivt tills URL matchar eller försök tar slut.
+    function bindLoad(f, försök = 0) {
+      if (försök > 5 || resolved) return;
+      f.addEventListener('load', function() {
+        if (resolved) return;
         try {
-          const src = f.src || '';
-          const href = f.contentDocument?.location?.href || '';
-          if (
-            (src.includes(urlFragment) || href.includes(urlFragment)) &&
-            f.contentDocument?.readyState === 'complete'
-          ) {
-            clearInterval(check);
-            resolve(f);
-            return;
+          const href = f.contentDocument?.location?.href || f.src || '';
+          if (href.includes(urlFragment) && f.contentDocument?.readyState === 'complete') {
+            done(f);
+          } else {
+            bindLoad(f, försök + 1);
           }
-        } catch { /* cross-origin eller ej laddad */ }
+        } catch { bindLoad(f, försök + 1); }
+      }, { once: true });
+    }
+
+    function kolla(f) {
+      try {
+        const src = f.src || '';
+        const href = f.contentDocument?.location?.href || '';
+        if ((src.includes(urlFragment) || href.includes(urlFragment)) &&
+            f.contentDocument?.readyState === 'complete') {
+          done(f);
+        } else {
+          bindLoad(f);
+        }
+      } catch { /* cross-origin eller ej laddad */ }
+    }
+
+    // Kolla redan befintliga iframes
+    for (const f of document.querySelectorAll('iframe')) {
+      kolla(f);
+      if (resolved) return;
+    }
+
+    // Bevaka tillägg av nya iframes
+    const observer = new MutationObserver(mutations => {
+      for (const mut of mutations) {
+        for (const node of mut.addedNodes) {
+          if (node.nodeType === 1 && node.tagName === 'IFRAME') {
+            kolla(node);
+            if (resolved) return;
+          }
+        }
       }
-      if (Date.now() - start > timeout) {
-        clearInterval(check);
-        resolve(null);
-      }
-    }, 150);
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
   });
 }
 
