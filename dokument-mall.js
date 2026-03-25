@@ -344,6 +344,7 @@ function hämtaFormulärData(namn) {
       const sel = document.getElementById('dok-fastighet');
       return sel.value ? { value: sel.value, display: sel.options[sel.selectedIndex]?.text || '' } : null;
     })(),
+    sparatPaPapper: document.getElementById('dok-sparat-papper').value,
   };
 }
 
@@ -373,6 +374,7 @@ function fyllFormulärFrånData(d) {
   document.getElementById('dok-kategori').value = d.kategori || '';
   document.getElementById('dok-skyddskod').value = d.skyddskod || '0';
   document.getElementById('dok-oregistrerad-kontakt').value = d.oregistreradKontakt || '';
+  document.getElementById('dok-sparat-papper').value = d.sparatPaPapper || '0';
   // Datum – "idag", "YYYY-MM-DD" eller "" (bakåtkompatibel med ankomstdatum)
   const datumVärde = d.datum || d.ankomstdatum || '';
   if (datumVärde === 'idag') {

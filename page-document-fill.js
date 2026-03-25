@@ -105,6 +105,11 @@ async function fyllDokumentFormulär(iDoc, iWin, dok, visaStatus) {
     }
   }
 
+  // Sparat på papper / media
+  if (dok.sparatPaPapper !== undefined && dok.sparatPaPapper !== '') {
+    await sättSelTyst('PlaceHolderMain_MainView_PaperControl', dok.sparatPaPapper);
+  }
+
   // Skyddskod – formuläret ärver ärendets skyddskod som default, så vi måste
   // alltid sätta värdet explicit. Om mallen säger Offentlig (0) men ärendet
   // har KO/OSL triggar vi en UpdatePanel som tar bort sekretessfälten.
