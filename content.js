@@ -68,7 +68,7 @@ if (!window.__p360ContentInitierat) {
         return dm || d;
       }
       return d;
-    }).filter(d => d.titel || d.handlingstyp || d.kategori);
+    }).filter(d => d.titel || d.handlingstyp || d.kategori || d.filerBase64?.length);
   }
 
   // Kontrollera om det finns pending ärendedokument att skapa (efter navigering till ärendesida)

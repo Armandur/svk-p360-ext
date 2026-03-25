@@ -477,3 +477,102 @@ document.getElementById('fil-input').addEventListener('change', async (e) => {
   // Nollställ input så samma fil kan väljas igen
   e.target.value = '';
 });
+
+// ------------------------------------------------------------------
+// Batch-uppladdning: en fil per ärendedokument
+// ------------------------------------------------------------------
+
+let batchFiler = [];
+
+document.getElementById('btn-batch-upload').addEventListener('click', () => {
+  döljFelmeddelande();
+  document.getElementById('batch-fil-input').click();
+});
+
+document.getElementById('batch-fil-input').addEventListener('change', async (e) => {
+  batchFiler = Array.from(e.target.files);
+  if (batchFiler.length === 0) return;
+
+  // Fyll dokumentmall-väljaren
+  const { dokumentmallar = [] } = await chrome.storage.local.get('dokumentmallar');
+  const sel = document.getElementById('batch-mall-val');
+  sel.innerHTML = '<option value="">(ingen mall – enbart fil)</option>';
+  dokumentmallar.forEach(dm => {
+    const opt = document.createElement('option');
+    opt.value = dm.id;
+    opt.textContent = dm.namn;
+    sel.appendChild(opt);
+  });
+
+  // Visa panelen
+  document.getElementById('batch-fil-info').textContent =
+    `${batchFiler.length} fil(er) valda – varje fil blir ett eget ärendedokument.`;
+  document.getElementById('batch-panel').style.display = '';
+
+  // Nollställ input
+  e.target.value = '';
+});
+
+document.getElementById('btn-batch-avbryt').addEventListener('click', () => {
+  document.getElementById('batch-panel').style.display = 'none';
+  batchFiler = [];
+});
+
+document.getElementById('btn-batch-starta').addEventListener('click', async () => {
+  if (batchFiler.length === 0) return;
+  döljFelmeddelande();
+
+  const filStatus = document.getElementById('fil-status');
+  filStatus.style.display = '';
+  filStatus.style.color = '#555';
+
+  // Hämta vald dokumentmall
+  const mallId = document.getElementById('batch-mall-val').value;
+  let mallData = {};
+  if (mallId) {
+    const { dokumentmallar = [] } = await chrome.storage.local.get('dokumentmallar');
+    const dm = dokumentmallar.find(m => m.id === mallId);
+    if (dm) {
+      mallData = { ...dm };
+      delete mallData.id;
+      delete mallData.skapad;
+    }
+  }
+
+  // Konvertera alla filer till base64 och skapa ett dokument per fil
+  const dokument = [];
+  for (let i = 0; i < batchFiler.length; i++) {
+    const f = batchFiler[i];
+    filStatus.textContent = `Läser fil ${i + 1}/${batchFiler.length}: ${f.name}…`;
+    const base64 = await filTillBase64(f);
+
+    // Varje fil → eget ärendedokument
+    const dok = {
+      ...mallData,
+      filerBase64: [{ namn: f.name, typ: f.type, base64 }],
+    };
+    // Om ingen titel: använd filnamnet (utan extension)
+    if (!dok.titel) {
+      dok.titel = f.name.replace(/\.[^.]+$/, '');
+    }
+    dokument.push(dok);
+  }
+
+  filStatus.textContent = `Skickar ${dokument.length} ärendedokument till 360°…`;
+
+  // Dölj panelen
+  document.getElementById('batch-panel').style.display = 'none';
+  batchFiler = [];
+
+  try {
+    await skicka({
+      action: 'skapaÄrendedokument',
+      dokument,
+    });
+    filStatus.textContent = '';
+    filStatus.style.display = 'none';
+  } catch (err) {
+    filStatus.textContent = 'Fel: ' + err.message;
+    filStatus.style.color = '#c0392b';
+  }
+});
