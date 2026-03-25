@@ -140,6 +140,59 @@ Rad 3: Carlsson saknar utgående bevis (Fil_2 tom) → dokument 2 hoppas över.
 Rad 2: Bergström saknar personnummer → fältet lämnas tomt i kontakten.
 Rad 3: Carlsson saknar AnsvarigPerson → ärendemallens default används.
 
+#### Visuellt gränssnitt (extension-sida)
+
+Batch-gränssnittet är en **redigerbar tabell** i en dedikerad extension-sida.
+Tabellen kan fyllas på tre sätt – alla fyller samma tabell:
+
+1. **Manuellt** – klicka "+ Lägg till rad" och fyll i fält direkt i tabellen
+2. **CSV-import** – ladda en CSV-fil som fyller tabellen; redigera sedan vid behov
+3. **Dra och släpp filer** – se nedan
+
+**Filhantering via dra och släpp:**
+
+- **Dra N filer till tabellen (utanför en specifik cell):** Varje fil skapar en ny
+  rad med filen i `Fil_1`-kolumnen. Filnamnet (utan filändelse) föreslås som titel.
+  Smidigt för det vanliga fallet "en inkommande fil per ärende".
+- **Dra en fil till en specifik fil-cell:** Filen läggs i just den cellen. Används
+  för att komplettera en rad med t.ex. `Fil_2` (utgående bevis) eller byta ut en fil.
+- **Filväljare (📎):** Varje fil-cell har en klickbar ikon som öppnar en vanlig
+  filväljare som alternativ till dra och släpp.
+
+**Valfria kolumner:** Tabellen visar som standard bara grundfälten (Titel, Förnamn,
+Efternamn, Fil_1). Extrakolumner (Personnummer, Adress, Diarieenhet, AnsvarigPerson,
+Skyddskod osv.) togglas till via knappar ovanför tabellen. Håller gränssnittet rent
+när man bara behöver grundinformationen.
+
+**Layout:**
+
+```
+┌─ Massregistrering ─────────────────────────────────────────────┐
+│                                                                │
+│  Ärendemall: [Utträde           ▼]                             │
+│  Dokumentslotsar:                                              │
+│    Fil_1 → [Inkommande anmälan  ▼]  (avsändare)               │
+│    Fil_2 → [Utgående bevis      ▼]  (mottagare)               │
+│    [+ Lägg till slot]                                          │
+│                                                                │
+│  ☐ Stäng ärende   ☐ Dagboksblad                               │
+│                                                                │
+│  [Importera CSV]  [+ Lägg till rad]                            │
+│ ┌───┬──────────┬────────┬───────────┬──────────┬──────────┐    │
+│ │ # │ Titel    │Förnamn │ Efternamn │ Fil_1    │ Fil_2    │    │
+│ ├───┼──────────┼────────┼───────────┼──────────┼──────────┤    │
+│ │ 1 │ Utträde… │ Anna   │ Andersson │ 📎 fil… │ 📎 fil… │    │
+│ │ 2 │ Utträde… │ Bo     │ Bergström │ 📎 fil… │ 📎 fil… │    │
+│ │ 3 │ Utträde… │ Carin  │ Carlsson  │ 📎 fil… │          │    │
+│ └───┴──────────┴────────┴───────────┴──────────┴──────────┘    │
+│        ↕ Dra filer hit för att lägga till rader ↕              │
+│                                                                │
+│  Kolumner: [+Personnr] [+Adress] [+Diarieenhet] [+...]        │
+│                                                                │
+│  [Förhandsgranska]  [Starta 3 ärenden]                         │
+└────────────────────────────────────────────────────────────────┘
+```
+
 #### Tekniska utmaningar
 
 - ~~Bifoga PDF-filer programmatiskt~~ → Löst (filuppladdning via FileUpload.ashx + eval i iframe-kontext)
@@ -148,6 +201,7 @@ Rad 3: Carlsson saknar AnsvarigPerson → ärendemallens default används.
 - Köhantering så att 360° inte överbelastas (fördröjning mellan ärenden)
 - CSV-parsning med stöd för semikolon- och kommaseparering
 - Dagboksbladsnerladdning: öppna i nya flikar (manuell utskrift som första steg)
+- Dra och släpp: skilja mellan "dra till tabellen" (nya rader) och "dra till cell" (specifik fil)
 
 ### Import av mallar från fil (TSV/CSV/Excel)
 
