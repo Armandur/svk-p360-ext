@@ -446,7 +446,22 @@ async function skapaAllaÄrendedokument(dokument, options) {
   const resultat = [];
   let avbruten = false;
 
+  // Lyssna på avbryt-signal från batch-sidan (via content.js → chrome.storage)
+  let batchAvbrytSignal = false;
+  const avbrytLyssnare = () => { batchAvbrytSignal = true; };
+  window.addEventListener('p360-batch-avbryt', avbrytLyssnare);
+
   for (let i = 0; i < dokument.length; i++) {
+    // Kolla om batch-sidan signalerat avbryt
+    if (batchAvbrytSignal) {
+      console.log(`[p360] Batch-avbryt mottagen – hoppar över resterande ${dokument.length - i} dokument`);
+      for (let j = i; j < dokument.length; j++) {
+        resultat.push({ titel: dokument[j].titel, dokumentNummer: null, fel: null, avbruten: true });
+      }
+      avbruten = true;
+      break;
+    }
+
     const dok = dokument[i];
     const nr = i + 1;
     visaStatus(`Ärendedokument ${nr}/${dokument.length}: ${dok.titel || '(utan titel)'}…`);
@@ -476,6 +491,9 @@ async function skapaAllaÄrendedokument(dokument, options) {
       }
     }
   }
+
+  // Rensa avbryt-lyssnare
+  window.removeEventListener('p360-batch-avbryt', avbrytLyssnare);
 
   // Visa sammanfattning
   const lyckade = resultat.filter(r => r.dokumentNummer);

@@ -193,7 +193,7 @@ async function förberedFiler(mall) {
         [storageNyckel]: [{
           namn: dok._filObj.name,
           typ: dok._filObj.type,
-          data: base64,
+          base64: base64,
         }]
       });
       dok.filerStorageNyckel = storageNyckel;
@@ -236,7 +236,7 @@ async function startaBatch(baseMall, slots, inställningar) {
   const tabId = flik.id;
 
   // Rensa eventuell gammal batch-signal
-  await chrome.storage.local.remove(['batchRadKlar', 'batchKörning', 'batchManuellPaus']);
+  await chrome.storage.local.remove(['batchRadKlar', 'batchKörning', 'batchManuellPaus', 'batchAvbruten']);
 
   visaBatchProgress(`Startar batch (0/${antalRader})…`);
 
@@ -458,7 +458,7 @@ async function startaBatch(baseMall, slots, inställningar) {
 
   // Rensa batch-körningsdata
   chrome.storage.onChanged.removeListener(manuellPausLyssnare);
-  await chrome.storage.local.remove(['batchKörning', 'batchRadKlar', 'batchManuellPaus']);
+  await chrome.storage.local.remove(['batchKörning', 'batchRadKlar', 'batchManuellPaus', 'batchAvbruten']);
   batchKör = false;
 
   visaBatchProgress(`Klart! ${batchResultat.filter(r => r.status === 'klar').length}/${antalRader} lyckades.`);
@@ -470,8 +470,10 @@ async function startaBatch(baseMall, slots, inställningar) {
 /**
  * Avbryter pågående batchkörning.
  */
-function avbrytBatch() {
+async function avbrytBatch() {
   batchAvbruten = true;
+  // Signalera till 360°-fliken att avbryta pågående operationer
+  await chrome.storage.local.set({ batchAvbruten: true });
   // Avbryt pågående väntan (race mot avbrytPromise)
   if (_avbrytResolve) {
     _avbrytResolve();

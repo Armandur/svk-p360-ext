@@ -165,6 +165,16 @@ if (!window.__p360PendingChecked) {
   }, 3000);
 }
 
+// Vidarebefordra batchAvbruten-signal till MAIN world (så page-document-create kan avbryta)
+if (!window.__p360BatchAvbrytHandler) {
+  window.__p360BatchAvbrytHandler = (changes) => {
+    if (changes.batchAvbruten?.newValue) {
+      window.dispatchEvent(new CustomEvent('p360-batch-avbryt'));
+    }
+  };
+  chrome.storage.onChanged.addListener(window.__p360BatchAvbrytHandler);
+}
+
 // Tar emot signal om manuell paus från MAIN world (dokument/ärende-formulär väntar på input)
 if (!window.__p360ManuellPausHandler) {
   window.__p360ManuellPausHandler = async (event) => {
