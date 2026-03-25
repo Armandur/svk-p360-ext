@@ -230,9 +230,10 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
  *
  * @param {Object} dok  – Dokumentmall med fält (se fyllDokumentFormulär)
  * @param {Function} visaStatus – Callback för statustext
+ * @param {Function} [ärAvbruten] – Callback som returnerar true vid avbryt
  * @returns {string|null} Dokumentnumret (t.ex. "KHS 2026-0062:1") eller null
  */
-async function skapaÄrendedokument(dok, visaStatus) {
+async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
   visaStatus = visaStatus || (() => {});
 
   // ---------------------------------------------------------------
@@ -272,6 +273,12 @@ async function skapaÄrendedokument(dok, visaStatus) {
 
     // Nollställ handlingstyp i dok så att den hoppas över
     dok = { ...dok, handlingstyp: null };
+  }
+
+  // Kontrollera avbryt innan vi öppnar formuläret
+  if (ärAvbruten?.()) {
+    console.log('[p360-dok] Avbruten före formuläröppning – hoppar över.');
+    return { cancelled: true };
   }
 
   // ---------------------------------------------------------------
@@ -319,7 +326,7 @@ async function skapaÄrendedokument(dok, visaStatus) {
 
   if (dok.filer && dok.filer.length > 0) {
     visaStatus('Laddar upp filer…');
-    const uploadRes = await laddaUppFiler(iframe, dok.filer, visaStatus);
+    const uploadRes = await laddaUppFiler(iframe, dok.filer, visaStatus, ärAvbruten);
     if (uploadRes.misslyckade.length > 0) {
       console.warn('[p360-dok] Misslyckade filuppladdningar:', uploadRes.misslyckade);
     }
@@ -472,7 +479,7 @@ async function skapaAllaÄrendedokument(dokument, options) {
     visaStatus(`Ärendedokument ${nr}/${dokument.length}: ${dok.titel || '(utan titel)'}…`);
 
     try {
-      const svar = await skapaÄrendedokument(dok, visaStatus);
+      const svar = await skapaÄrendedokument(dok, visaStatus, () => batchAvbrytSignal);
 
       if (svar && svar.cancelled) {
         resultat.push({ titel: dok.titel, dokumentNummer: null, fel: null, avbruten: true });

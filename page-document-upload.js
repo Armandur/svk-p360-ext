@@ -14,9 +14,10 @@
  * @param {HTMLIFrameElement} iframe - dokumentformulärets iframe-element
  * @param {File[]} filer - Array av File-objekt att ladda upp
  * @param {Function} visaStatus - Callback för statustext
+ * @param {Function} [ärAvbruten] - Callback som returnerar true om operationen ska avbrytas
  * @returns {Promise<{ lyckade: string[], misslyckade: string[] }>}
  */
-async function laddaUppFiler(iframe, filer, visaStatus) {
+async function laddaUppFiler(iframe, filer, visaStatus, ärAvbruten) {
   if (!filer || filer.length === 0) return { lyckade: [], misslyckade: [] };
 
   const hämtaDoc = () => iframe.contentDocument;
@@ -46,8 +47,13 @@ async function laddaUppFiler(iframe, filer, visaStatus) {
     const fil = filer[i];
     visaStatus(`Laddar upp fil ${i + 1}/${filer.length}: ${fil.name}…`);
 
+    if (ärAvbruten?.()) {
+      console.log('[p360-upload] Avbruten – hoppar över resterande filer.');
+      break;
+    }
+
     try {
-      await laddaUppEnFil(iframe, fil);
+      await laddaUppEnFil(iframe, fil, ärAvbruten);
       lyckade.push(fil.name);
     } catch (err) {
       console.error(`[p360-upload] Misslyckades ladda upp ${fil.name}:`, err.message);
@@ -79,7 +85,7 @@ async function laddaUppFiler(iframe, filer, visaStatus) {
  * @param {HTMLIFrameElement} iframe - dokumentformulärets iframe-element
  * @param {File} fil - File-objekt att ladda upp
  */
-async function laddaUppEnFil(iframe, fil) {
+async function laddaUppEnFil(iframe, fil, ärAvbruten) {
   const userSession = Math.floor(Math.random() * 1000000000);
   console.log(`[p360-upload] Steg 1: POST ${fil.name} (${fil.size} bytes) till FileUpload.ashx (session=${userSession})`);
 
@@ -122,13 +128,23 @@ async function laddaUppEnFil(iframe, fil) {
   hp.value = `${userSession}|${fil.name}`;
   console.log(`[p360-upload] Steg 2: Satte hiddenPath="${hp.value}"`);
 
-  // Klicka via __doPostBack i iframe-kontexten (säkrare än eval)
-  const onclickAttr = btn.getAttribute('onclick') || btn.getAttribute('href') || '';
-  console.log(`[p360-upload] Steg 3: Klickar hiddenBtn (onclick/href="${onclickAttr?.substring(0, 80)}")`);
-  btn.click();
+  // Trigga PostBack direkt i iframe-kontexten.
+  // btn.click() från parent-sidan kör inte javascript:-href korrekt.
+  // Extrahera __doPostBack-target från href eller anropa direkt.
+  const href = btn.getAttribute('href') || '';
+  const postBackMatch = href.match(/__doPostBack\('([^']+)'/);
+  const postBackTarget = postBackMatch
+    ? postBackMatch[1]
+    : 'ctl00$PlaceHolderMain$MainView$DocumentMultiFileUploadControl_hiddenUploadButton';
+  console.log(`[p360-upload] Steg 3: __doPostBack('${postBackTarget}', '') i iframe`);
+  iWin.__doPostBack(postBackTarget, '');
 
   // Vänta på att PostBack-svaret kommit (ScannedFilepath eller fillistan)
   for (let poll = 0; poll < 80; poll++) {
+    if (ärAvbruten?.()) {
+      console.log('[p360-upload] Avbruten under poll – avbryter bekräftelse.');
+      return;
+    }
     await sleep(300);
     try {
       const doc = iframe.contentDocument;
