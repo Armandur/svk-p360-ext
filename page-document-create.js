@@ -296,7 +296,8 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
  * @param {Object} dok  – Dokumentmall med fält:
  *   titel, handlingstyp, kategori, skyddskod, sekretessParag,
  *   offentligTitelVal, offentligTitel, atkomstgrupp, oregistreradKontakt,
- *   datum (eller ankomstdatum för bakåtkompatibilitet), ansvarigEnhet, ansvarigPerson
+ *   datum (eller ankomstdatum för bakåtkompatibilitet), ansvarigEnhet, ansvarigPerson,
+ *   projekt, fastighet
  * @param {Function} visaStatus – Callback för statustext
  * @returns {string|null} Dokumentnumret (t.ex. "KHS 2026-0062:1") eller null
  */
@@ -486,6 +487,42 @@ async function skapaÄrendedokument(dok, visaStatus) {
       'PlaceHolderMain_MainView_ResponsibleUserComboControl',
       dok.ansvarigPerson.value
     );
+  }
+
+  // Projekt (typeahead – DISPLAY + hidden + dropDownList + HiddenButton-postback)
+  if (dok.projekt?.value) {
+    const projektVis = iDoc.getElementById('PlaceHolderMain_MainView_ProjectQuickSearchControl_DISPLAY');
+    const projektDolt = iDoc.getElementById('PlaceHolderMain_MainView_ProjectQuickSearchControl');
+    const projektLista = iDoc.getElementById('PlaceHolderMain_MainView_ProjectQuickSearchControl_dropDownList');
+    if (projektVis) projektVis.value = dok.projekt.display || '';
+    if (projektDolt) projektDolt.value = dok.projekt.value;
+    if (projektLista) {
+      if (!Array.from(projektLista.options).some(o => o.value === dok.projekt.value)) {
+        const opt = document.createElement('option');
+        opt.value = dok.projekt.value;
+        opt.textContent = dok.projekt.display || dok.projekt.value;
+        projektLista.appendChild(opt);
+      }
+      projektLista.value = dok.projekt.value;
+    }
+  }
+
+  // Fastighet (typeahead – samma mönster som Projekt)
+  if (dok.fastighet?.value) {
+    const fastVis = iDoc.getElementById('PlaceHolderMain_MainView_EstateGeneralTabSearchControl_DISPLAY');
+    const fastDolt = iDoc.getElementById('PlaceHolderMain_MainView_EstateGeneralTabSearchControl');
+    const fastLista = iDoc.getElementById('PlaceHolderMain_MainView_EstateGeneralTabSearchControl_dropDownList');
+    if (fastVis) fastVis.value = dok.fastighet.display || '';
+    if (fastDolt) fastDolt.value = dok.fastighet.value;
+    if (fastLista) {
+      if (!Array.from(fastLista.options).some(o => o.value === dok.fastighet.value)) {
+        const opt = document.createElement('option');
+        opt.value = dok.fastighet.value;
+        opt.textContent = dok.fastighet.display || dok.fastighet.value;
+        fastLista.appendChild(opt);
+      }
+      fastLista.value = dok.fastighet.value;
+    }
   }
 
   // Skyddskod – formuläret ärver ärendets skyddskod som default, så vi måste

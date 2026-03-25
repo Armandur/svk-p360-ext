@@ -44,6 +44,8 @@ let cachedHandlingstyper = [];
 let cachedAnsvarigaPersoner = [];
 let cachedAtkomstgrupper = [];
 let cachedAnsvarigaEnheter = [];
+let cachedProjekt = [];
+let cachedFastigheter = [];
 
 // Aktuellt mall-ID (null = ny mall)
 let mallId = null;
@@ -58,12 +60,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Ladda cachade alternativ
   const stored = await chrome.storage.local.get([
     'cachedHandlingstyper', 'cachedAnsvarigaPersoner',
-    'cachedAtkomstgrupper', 'cachedAnsvarigaEnheter'
+    'cachedAtkomstgrupper', 'cachedAnsvarigaEnheter',
+    'cachedProjekt', 'cachedFastigheter'
   ]);
   cachedHandlingstyper = stored.cachedHandlingstyper || [];
   cachedAnsvarigaPersoner = stored.cachedAnsvarigaPersoner || [];
   cachedAtkomstgrupper = stored.cachedAtkomstgrupper || [];
   cachedAnsvarigaEnheter = stored.cachedAnsvarigaEnheter || [];
+  cachedProjekt = stored.cachedProjekt || [];
+  cachedFastigheter = stored.cachedFastigheter || [];
 
   visaCacheStatus();
   fyllDropdowns();
@@ -103,6 +108,8 @@ function fyllDropdowns() {
   fyllSelect('dok-atkomstgrupp', cachedAtkomstgrupper);
   fyllSelect('dok-ansvarig-enhet', cachedAnsvarigaEnheter);
   fyllSelect('dok-ansvarig-person', cachedAnsvarigaPersoner);
+  fyllSelect('dok-projekt', cachedProjekt.map(p => ({ value: p.value, label: p.display })));
+  fyllSelect('dok-fastighet', cachedFastigheter.map(f => ({ value: f.value, label: f.display })));
 }
 
 function fyllSelect(elId, alternativ) {
@@ -125,6 +132,8 @@ function visaCacheStatus() {
   if (cachedAnsvarigaPersoner.length > 0) delar.push(`${cachedAnsvarigaPersoner.length} personer`);
   if (cachedAtkomstgrupper.length > 0) delar.push(`${cachedAtkomstgrupper.length} åtkomstgrupper`);
   if (cachedAnsvarigaEnheter.length > 0) delar.push(`${cachedAnsvarigaEnheter.length} enheter`);
+  if (cachedProjekt.length > 0) delar.push(`${cachedProjekt.length} projekt`);
+  if (cachedFastigheter.length > 0) delar.push(`${cachedFastigheter.length} fastigheter`);
   if (delar.length > 0) {
     el.textContent = `(${delar.join(', ')} cachade)`;
     el.style.color = '#2e7d32';
@@ -327,6 +336,14 @@ function hämtaFormulärData(namn) {
     ansvarigPerson: ansvarigPersonSel.value
       ? { value: ansvarigPersonSel.value, label: ansvarigPersonSel.options[ansvarigPersonSel.selectedIndex]?.text || '' }
       : null,
+    projekt: (() => {
+      const sel = document.getElementById('dok-projekt');
+      return sel.value ? { value: sel.value, display: sel.options[sel.selectedIndex]?.text || '' } : null;
+    })(),
+    fastighet: (() => {
+      const sel = document.getElementById('dok-fastighet');
+      return sel.value ? { value: sel.value, display: sel.options[sel.selectedIndex]?.text || '' } : null;
+    })(),
   };
 }
 
@@ -382,6 +399,12 @@ function fyllFormulärFrånData(d) {
   }
   if (d.ansvarigPerson?.value) {
     säkertVälj('dok-ansvarig-person', d.ansvarigPerson.value, d.ansvarigPerson.label);
+  }
+  if (d.projekt?.value) {
+    säkertVälj('dok-projekt', d.projekt.value, d.projekt.display);
+  }
+  if (d.fastighet?.value) {
+    säkertVälj('dok-fastighet', d.fastighet.value, d.fastighet.display);
   }
 
   uppdateraSekretessFält();

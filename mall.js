@@ -240,6 +240,12 @@ async function läsIn() {
     cachedAnsvarigaEnheter = inlästaAlternativ.ansvarigaEnheter;
     cacheUppdatering.cachedAnsvarigaEnheter = cachedAnsvarigaEnheter;
   }
+  if (inlästaAlternativ.projekt?.length > 0) {
+    cacheUppdatering.cachedProjekt = inlästaAlternativ.projekt;
+  }
+  if (inlästaAlternativ.fastigheter?.length > 0) {
+    cacheUppdatering.cachedFastigheter = inlästaAlternativ.fastigheter;
+  }
   if (Object.keys(cacheUppdatering).length > 0) {
     await chrome.storage.local.set(cacheUppdatering);
   }
