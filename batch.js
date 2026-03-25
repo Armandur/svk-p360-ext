@@ -15,12 +15,79 @@
   batchCachedAlternativ.ansvarigaPersoner = (cached.cachedAnsvarigaPersoner || [])
     .map(p => ({ value: p.value, label: p.label || p.text || p.value }));
 
-  const harCachadeAlternativ = batchCachedAlternativ.diarieenheter.length > 0 ||
-                                batchCachedAlternativ.ansvarigaPersoner.length > 0;
-  if (!harCachadeAlternativ) {
+  function uppdateraAlternativStatus() {
     const info = document.getElementById('mall-info');
-    info.innerHTML = 'Välj en ärendemall som grund. <em style="color:#e67e22;">Tips: Klicka "Läs in alternativ" i mallredigeraren för att cachea diarieenheter och ansvariga personer.</em>';
+    const d = batchCachedAlternativ.diarieenheter.length;
+    const p = batchCachedAlternativ.ansvarigaPersoner.length;
+    if (d > 0 || p > 0) {
+      const delar = [];
+      if (d > 0) delar.push(`${d} diarieenheter`);
+      if (p > 0) delar.push(`${p} ansvariga personer`);
+      info.textContent = `Inläst: ${delar.join(', ')}.`;
+      info.style.color = '#27ae60';
+    } else {
+      info.innerHTML = 'Klicka <strong>Läs in alternativ</strong> för att hämta diarieenheter och ansvariga personer från 360°.';
+      info.style.color = '#e67e22';
+    }
   }
+  uppdateraAlternativStatus();
+
+  // Läs in alternativ från 360°-fliken
+  document.getElementById('btn-läs-in-alternativ').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-läs-in-alternativ');
+    const info = document.getElementById('mall-info');
+    const flik = await hittaP360Flik();
+    if (!flik) {
+      info.textContent = 'Ingen öppen 360°-flik hittades. Öppna 360° i en annan flik först.';
+      info.style.color = '#c0392b';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Läser in…';
+    info.textContent = 'Hämtar alternativ från 360° (kan ta 15–30 s)…';
+    info.style.color = '#0078d4';
+
+    try {
+      const svar = await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('Timeout')), 45000);
+        chrome.tabs.sendMessage(flik.id, { action: 'läsInAlternativ' }, (resp) => {
+          clearTimeout(timer);
+          if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
+          else resolve(resp);
+        });
+      });
+
+      if (!svar?.success) throw new Error(svar?.fel || 'Okänt fel');
+
+      const alt = svar.data;
+      // Spara till cache
+      const cacheUppdatering = {};
+      if (alt.diarieenheter?.length > 0) cacheUppdatering.cachedDiarieenheter = alt.diarieenheter;
+      if (alt.ansvarigaPersoner?.length > 0) cacheUppdatering.cachedAnsvarigaPersoner = alt.ansvarigaPersoner;
+      if (alt.atkomstgrupper?.length > 0) cacheUppdatering.cachedAtkomstgrupper = alt.atkomstgrupper;
+      if (alt.ansvarigaEnheter?.length > 0) cacheUppdatering.cachedAnsvarigaEnheter = alt.ansvarigaEnheter;
+      if (Object.keys(cacheUppdatering).length > 0) {
+        await chrome.storage.local.set(cacheUppdatering);
+      }
+
+      // Uppdatera lokala alternativ
+      batchCachedAlternativ.diarieenheter = (alt.diarieenheter || [])
+        .map(d => ({ value: d.value, label: d.label || d.text || d.value }));
+      batchCachedAlternativ.ansvarigaPersoner = (alt.ansvarigaPersoner || [])
+        .map(p => ({ value: p.value, label: p.label || p.text || p.value }));
+
+      uppdateraAlternativStatus();
+      // Rendera om tabellen så dropdowns uppdateras
+      renderaTabell();
+    } catch (err) {
+      info.textContent = `Kunde inte läsa in alternativ: ${err.message}`;
+      info.style.color = '#c0392b';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Läs in alternativ';
+    }
+  });
 
   const mallSelect = document.getElementById('batch-ärendemall');
   for (const mall of mallar) {
@@ -37,10 +104,10 @@
   // Ärendemall-val ändras
   mallSelect.addEventListener('change', () => {
     valdMall = mallar.find(m => m.id === mallSelect.value) || null;
-    const info = document.getElementById('mall-info');
+    const valdInfo = document.getElementById('mall-vald-info');
     if (valdMall) {
-      info.textContent = `Mall: ${valdMall.namn || valdMall.titel}`;
-      info.style.color = '#333';
+      valdInfo.textContent = `Mall: ${valdMall.namn || valdMall.titel}`;
+      valdInfo.style.color = '#333';
       // Initiera slots från mallens ärendedokument
       slotsar = (valdMall.ärendedokument || []).map((dok, idx) => ({
         dokumentmall: dok,
@@ -49,8 +116,8 @@
       renderaSlotsar();
       uppdateraFilKolumner(slotsar.length);
     } else {
-      info.textContent = 'Välj en ärendemall som grund för alla ärenden.';
-      info.style.color = '#888';
+      valdInfo.textContent = 'Välj en ärendemall som grund för alla ärenden.';
+      valdInfo.style.color = '#888';
       slotsar = [];
       renderaSlotsar();
       uppdateraFilKolumner(1);
