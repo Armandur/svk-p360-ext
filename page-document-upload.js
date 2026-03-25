@@ -127,18 +127,41 @@ async function laddaUppEnFil(iframe, fil) {
     'ctl00$PlaceHolderMain$MainView$DocumentMultiFileUploadControl_hiddenUploadButton', ''
   );
 
-  // Vänta på att PostBack-svaret kommit (fillistan uppdateras)
-  for (let poll = 0; poll < 40; poll++) {
-    await sleep(200);
+  // Vänta på att PostBack-svaret kommit.
+  // ASP.NET PageRequestManager hanterar postbacken asynkront.
+  // Polla tills ScannedFilepath fyllts ELLER fillistan innehåller filnamnet.
+  console.log('[p360-upload] Väntar på PostBack-svar…');
+  for (let poll = 0; poll < 60; poll++) {
+    await sleep(300);
     try {
-      const filLista = iframe.contentDocument.getElementById(
+      const doc = iframe.contentDocument;
+      // Kolla om ScannedFilepath fyllts (servern sätter den efter lyckad upload)
+      const scanned = doc.querySelector('[name*="ScannedFilepath"]');
+      if (scanned && scanned.value && scanned.value.includes(String(userSession))) {
+        console.log('[p360-upload] Upload bekräftad via ScannedFilepath:', scanned.value);
+        return;
+      }
+      // Kolla fillistan som backup
+      const filLista = doc.getElementById(
         'PlaceHolderMain_MainView_ImportFileListControl'
       );
       if (filLista && filLista.textContent.includes(fil.name)) {
+        console.log('[p360-upload] Upload bekräftad via fillistan');
+        return;
+      }
+      // Kolla om hidden path tömts (servern nollställer den efter processing)
+      const hp = doc.getElementById(
+        'PlaceHolderMain_MainView_DocumentMultiFileUploadControl_hiddenUploadedFilesPath'
+      );
+      if (hp && hp.value === '' && poll > 3) {
+        // Path tömdes – PostBacken har kört men vi vet inte om den lyckades
+        console.log('[p360-upload] Hidden path tömdes – PostBack har kört');
+        // Ge extra tid för DOM-uppdatering
+        await sleep(500);
         return;
       }
     } catch { /* iframe kan vara i loading-state */ }
   }
 
-  console.warn(`[p360-upload] Kunde inte bekräfta att ${fil.name} registrerades i fillistan.`);
+  console.warn(`[p360-upload] Timeout – kunde inte bekräfta att ${fil.name} registrerades.`);
 }
