@@ -49,18 +49,21 @@ async function skicka(meddelande) {
   let svar;
   try {
     svar = await chrome.tabs.sendMessage(tab.id, meddelande);
-  } catch {
+  } catch (err1) {
     // Content script saknas – injicera content.js (MAIN-world-filer laddas av manifest)
+    console.log('[p360-popup] sendMessage misslyckades:', err1.message, '– försöker injicera content.js');
     try {
       await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         files: ['content.js'],
         world: 'ISOLATED',
       });
+      console.log('[p360-popup] content.js injicerad, väntar 300ms…');
       await new Promise(r => setTimeout(r, 300));
       svar = await chrome.tabs.sendMessage(tab.id, meddelande);
-    } catch {
-      visaFel('Kunde inte kommunicera med sidan. Prova att ladda om fliken.');
+    } catch (err2) {
+      console.error('[p360-popup] Fallback misslyckades:', err2.message);
+      visaFel('Kunde inte kommunicera med sidan: ' + err2.message);
       return;
     }
   }
