@@ -974,17 +974,61 @@ Triggras av ankarlänken i drag-and-drop-containern. Stöder multipla filer.
 | `PlaceHolderMain_MainView_SetFilePropertiesMenuButtonControl` | Redigera egenskaper | Redigera filens titel/metadata |
 | `PlaceHolderMain_MainView_DeleteFileMenuButtonControl` | Ta bort | Ta bort fil från listan |
 
-#### Programmatisk uppladdning (ej implementerat ännu)
+#### Verifierat upload-flöde (2026-03-25)
 
-För att ladda upp filer programmatiskt behöver man:
-1. Skapa en `File`-objekt (eller läsa från `<input type="file">`)
-2. Chunka filen i 1 MB-delar och POST:a varje chunk till `/FileUpload.ashx`
-   med `multipart/form-data`
-3. Sätta den returnerade sökvägen i `hiddenUploadedFilesPath`
-4. Trigga `hiddenUploadButton.click()` för att registrera filen
+**Ingen chunking** behövs – hela filen skickas i ett enda POST, oavsett storlek
+(testat med 6.2 MB PDF). Flödet i tre steg:
 
-> **Notering:** Exakt request-format för `/FileUpload.ashx` (headers, chunk-parametrar,
-> session-token) behöver kartläggas via nätverksloggning vid en manuell uppladdning.
+**Steg 1 – POST filen:**
+```js
+const userSession = Math.floor(Math.random() * 1000000000);
+const formData = new FormData();
+formData.append(file.name, file); // Nyckeln = filnamnet
+const xhr = new XMLHttpRequest();
+xhr.open('POST', `/FileUpload.ashx?userSession=${userSession}`);
+xhr.send(formData);
+// Response: filnamnet som text (t.ex. "dokument.pdf")
+```
+
+**Steg 2 – Sätt hidden field:**
+```js
+const hiddenPath = iDoc.getElementById(
+  'PlaceHolderMain_MainView_DocumentMultiFileUploadControl_hiddenUploadedFilesPath'
+);
+hiddenPath.value = `${userSession}|${file.name}`;
+// Servern lagrar filen i: D:\Public360\...\{userSession}\{filnamn}
+```
+
+**Steg 3 – Trigga PostBack:**
+```js
+const hiddenBtn = iDoc.getElementById(
+  'PlaceHolderMain_MainView_DocumentMultiFileUploadControl_hiddenUploadButton'
+);
+hiddenBtn.click(); // <A>-länk som triggar __doPostBack
+// → ImportFileListControl uppdateras med filens metadata
+```
+
+**`userSession`** är ett slumpat nummer som fungerar som mappnamn på servern.
+Det finns ingen autentiserings-check utöver den vanliga ASP.NET-sessionen (cookies).
+
+**`SI_HiddenField_ScannedFilepath`** fylls automatiskt av servern med den
+fullständiga sökvägen efter PostBack:
+`D:\Public360\360\UploadedFiles_prod\KNET\{user}\{userSession}\{filnamn}`
+
+**Data-attribut på drag-drop-containern** (`_dragdropContainer`):
+
+| Attribut | Värde |
+|---|---|
+| `data-uploadurl` | `%2FFileUpload.ashx` |
+| `data-maxfilesize` | `2147482624` |
+| `data-hiddenuploadedfilespathid` | `..._hiddenUploadedFilesPath` |
+| `data-hiddenuploadbuttonid` | `..._hiddenUploadButton` |
+| `data-overlayattachedlistcontrolclientid` | `..._ImportFileListControl` |
+
+**Navigering till Filer-fliken:**
+```js
+iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'FileStep');
+```
 
 ---
 
