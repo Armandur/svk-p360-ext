@@ -42,12 +42,6 @@ Flytta en punkt till "Klart" när den är implementerad och testad.
 - ✅ Index-numrering på ärendedokument (:1, :2 …) som motsvarar dokumentnumret i 360°.
 - ✅ Live-validering av handlingstyp mot klassificering vid ändring.
 
-**Återstår att testa/verifiera:**
-
-- Hela flödet ärendeskapande → ärendedokument i faktisk 360°-miljö
-- Att UpdatePanel-ordningen för handlingstyp/kategori fungerar korrekt
-- Felhantering vid valideringsfel i dokumentformuläret
-
 **Långsiktigt:**
 
 1. **Filuppladdning** – möjlighet att ladda upp en fil (t.ex. PDF) till ett
@@ -85,9 +79,6 @@ Formuläret öppnas via dialog-iframe, fält fylls med `element.selectize.setVal
 iframe-kontexten. Se CLAUDE.md → "Skapa nytt ärende" för komplett teknisk spec.
 
 **Återstår att kartlägga / implementera:**
-- Sekretessfältens element-ID och beteende (extra fält vid val av KO/OSL):
-  paragraf-/skyddskodsfältet samt alternativ för ärendetitelns sekretesshantering
-  (skyddad / manuell / samma som ärendetitel)
 - **Projekt och Fastighet i mallredigeraren** – fälten finns på respektive flik i
   ärendeformuläret och ser ut som klassificering (typeahead med synligt visningsvärde
   + dolt recno-fält). Inläsning av tillgängliga alternativ och sättning av värdet
@@ -213,3 +204,4 @@ Funktioner som diskuterats men ännu inte prioriterats.
 | Stöd för Utgående, Upprättat och Protokoll i dokumentskapande | 2026-03-25 |
 | Explicit skyddskod (Offentlig) när ärendet har annan default | 2026-03-25 |
 | Validering av handlingstyp mot ärendets klassificering (popup + formulär) | 2026-03-25 |
+| Fullständigt flöde ärendeskapande → ärendedokument testat och verifierat | 2026-03-25 |
