@@ -16,7 +16,7 @@ function ärPåÄrendesida() {
 }
 
 // Åtgärder som inte kräver att vi är på en ärendesida (fungerar på hela p360-domänen)
-var ÅTGÄRDER_UTAN_SIDKRAV = new Set(['skapaFrånMall', 'läsInAlternativ']);
+var ÅTGÄRDER_UTAN_SIDKRAV = new Set(['skapaFrånMall', 'läsInAlternativ', 'läsDiarienummer']);
 
 /**
  * Skickar ett anrop till page.js (MAIN world) och väntar på svar via CustomEvent.
@@ -75,21 +75,81 @@ async function lösaDokumentreferenser(dokument) {
   }).filter(d => d.titel || d.handlingstyp || d.kategori || d.filerBase64?.length);
 }
 
+/**
+ * Läser diarienummer från ärendesidans DOM.
+ */
+function läsDiarienummerFrånDOM() {
+  const el = document.getElementById('PlaceHolderMain_MainView_DetailDescription');
+  if (!el) return '';
+  return el.textContent.replace('Ärende: ', '').trim();
+}
+
 // Kontrollera om det finns pending ärendedokument att skapa (efter navigering till ärendesida)
 if (!window.__p360PendingChecked) {
   window.__p360PendingChecked = true;
   setTimeout(async () => {
     if (!window.location.href.includes('/DMS/Case/Details/')) return;
-    const { pendingÄrendedokument } = await chrome.storage.local.get('pendingÄrendedokument');
-    if (!pendingÄrendedokument?.dokument?.length) return;
+    const { pendingÄrendedokument, batchKörning } = await chrome.storage.local.get([
+      'pendingÄrendedokument', 'batchKörning'
+    ]);
+    if (!pendingÄrendedokument?.dokument?.length) {
+      // Inga pending dokument – signalera batch att raden är klar (om batch kör)
+      if (batchKörning) {
+        const diarienummer = läsDiarienummerFrånDOM();
+        await chrome.storage.local.set({
+          batchRadKlar: { diarienummer, dokument: [], tid: Date.now() }
+        });
+      }
+      return;
+    }
     await chrome.storage.local.remove('pendingÄrendedokument');
+
+    // Hämta fildata från storage (batch sparar filer separat)
+    for (const dok of pendingÄrendedokument.dokument) {
+      if (dok.filerStorageNyckel) {
+        const stored = await chrome.storage.local.get(dok.filerStorageNyckel);
+        dok.filerBase64 = stored[dok.filerStorageNyckel] || [];
+        await chrome.storage.local.remove(dok.filerStorageNyckel);
+        delete dok.filerStorageNyckel;
+      }
+    }
+
     const löstaDokument = await lösaDokumentreferenser(pendingÄrendedokument.dokument);
-    if (!löstaDokument.length) return;
+    if (!löstaDokument.length) {
+      if (batchKörning) {
+        const diarienummer = läsDiarienummerFrånDOM();
+        await chrome.storage.local.set({
+          batchRadKlar: { diarienummer, dokument: [], tid: Date.now() }
+        });
+      }
+      return;
+    }
     anropaSidan('skapaÄrendedokument', { dokument: löstaDokument, ärendeFlöde: true })
-      .then(svar => {
+      .then(async (svar) => {
         if (!svar.success) console.error('[p360] Ärendedokument misslyckades:', svar.fel);
+        // Signalera batch att raden är klar (om batch kör)
+        const { batchKörning: bk } = await chrome.storage.local.get('batchKörning');
+        if (bk) {
+          const diarienummer = läsDiarienummerFrånDOM();
+          await chrome.storage.local.set({
+            batchRadKlar: {
+              diarienummer,
+              dokument: (svar.data || []).map(d => d.dokumentNr || ''),
+              fel: svar.success ? null : (svar.fel || 'Dokumentskapande misslyckades'),
+              tid: Date.now(),
+            }
+          });
+        }
       })
-      .catch(err => console.error('[p360] Ärendedokument fel:', err.message));
+      .catch(async (err) => {
+        console.error('[p360] Ärendedokument fel:', err.message);
+        const { batchKörning: bk } = await chrome.storage.local.get('batchKörning');
+        if (bk) {
+          await chrome.storage.local.set({
+            batchRadKlar: { fel: err.message, tid: Date.now() }
+          });
+        }
+      });
   }, 3000);
 }
 
@@ -124,8 +184,14 @@ if (!window.__p360DokOptHandler) {
   window.addEventListener('p360-spara-dokumentformulär-alternativ', window.__p360DokOptHandler);
 }
 
-// Tar emot meddelanden från popup.js
+// Tar emot meddelanden från popup.js och batch.html
 window.__p360OnMessageHandler = (request, sender, sendResponse) => {
+  // Snabbsvar: läsDiarienummer behöver inte MAIN world
+  if (request.action === 'läsDiarienummer') {
+    sendResponse({ success: true, diarienummer: läsDiarienummerFrånDOM() });
+    return;
+  }
+
   if (!ÅTGÄRDER_UTAN_SIDKRAV.has(request.action) && !ärPåÄrendesida()) {
     sendResponse({ success: false, fel: 'Navigera till ett ärende i 360° först.' });
     return;

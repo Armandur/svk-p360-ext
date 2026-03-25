@@ -1059,6 +1059,11 @@ iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'File
 ├── mall.js                  # Init, händelsehanterare, läsIn, laddaMall
 ├── dokument-mall.html     # Redigeringssida för dokumentmallar och instanser
 ├── dokument-mall.js       # Logik för dokumentmallredigeraren (stöder instansläge via ?instans=1)
+├── batch.html             # Massregistrering – UI med redigerbar tabell
+├── batch-data.js          # CSV-parsning, validering, mallbyggnad för batch
+├── batch-table.js         # Redigerbar tabell med drag-and-drop för batch
+├── batch-run.js           # Exekveringsmotor: orkestrerar ärendeskapande per rad
+├── batch.js               # Init, händelsehanterare, sammankoppling av batch-UI
 ├── help.html              # Inbyggd hjälpsida (öppnas via "? Hjälp" i popup)
 ├── help.js                # Logik för hjälpsidan
 ├── arendepaus.html        # Paussida vid ärendeskapande (väntar på navigering)

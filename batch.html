@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <title>Massregistrering – 360° Hjälptillägg</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: sans-serif;
+      font-size: 14px;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 20px 80px;
+    }
+    h2 {
+      margin: 0 0 20px;
+      font-size: 18px;
+      color: #222;
+    }
+    h3 {
+      margin: 0 0 12px;
+      font-size: 14px;
+      text-transform: uppercase;
+      color: #666;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 6px;
+    }
+    .sektion {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .faltrad { margin-bottom: 12px; }
+    label {
+      display: block;
+      font-size: 12px;
+      color: #555;
+      margin-bottom: 3px;
+      font-weight: 600;
+    }
+    select, input[type=text], input[type=file] {
+      padding: 7px 9px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: inherit;
+      background: #fafafa;
+    }
+    select:focus, input:focus {
+      outline: none;
+      border-color: #0078d4;
+      background: #fff;
+    }
+    .tvakol {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .trekol {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+
+    /* Knappar */
+    button {
+      padding: 7px 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      font-family: inherit;
+      background: #f5f5f5;
+    }
+    button:hover { background: #e8e8e8; }
+    button.primär {
+      background: #0078d4;
+      color: #fff;
+      border-color: #0078d4;
+    }
+    button.primär:hover { background: #006cbf; }
+    button.primär:disabled { background: #90bce8; cursor: default; }
+    button.varning {
+      background: #e67e22;
+      color: #fff;
+      border-color: #e67e22;
+    }
+
+    /* Dokumentslotsar */
+    .slot-rad {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      padding: 6px 10px;
+      background: #f8f8f8;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+    }
+    .slot-rad select { flex: 1; }
+    .slot-rad .slot-etikett {
+      font-weight: 600;
+      font-size: 12px;
+      color: #555;
+      min-width: 40px;
+    }
+    .slot-rad .slot-roll {
+      font-size: 11px;
+      color: #888;
+      min-width: 80px;
+    }
+    .slot-rad button {
+      padding: 3px 8px;
+      font-size: 11px;
+    }
+
+    /* Tabell */
+    .tabell-container {
+      overflow-x: auto;
+      margin-top: 12px;
+    }
+    #batch-tabell {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    #batch-tabell th {
+      background: #f0f0f0;
+      border: 1px solid #ddd;
+      padding: 6px 8px;
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #555;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+    }
+    #batch-tabell td {
+      border: 1px solid #ddd;
+      padding: 4px 6px;
+      vertical-align: middle;
+    }
+    #batch-tabell td input[type=text] {
+      width: 100%;
+      border: none;
+      padding: 4px;
+      font-size: 13px;
+      background: transparent;
+    }
+    #batch-tabell td input[type=text]:focus {
+      background: #fff;
+      outline: 1px solid #0078d4;
+      border-radius: 2px;
+    }
+    #batch-tabell tr:hover { background: #f8fbff; }
+    #batch-tabell .rad-nr {
+      text-align: center;
+      color: #999;
+      font-size: 11px;
+      width: 30px;
+    }
+    #batch-tabell .fil-cell {
+      min-width: 120px;
+      position: relative;
+    }
+    #batch-tabell .fil-cell.drag-over {
+      background: #d4edff !important;
+      outline: 2px dashed #0078d4;
+    }
+    .fil-cell-innehåll {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+    }
+    .fil-cell-innehåll .filnamn {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 140px;
+    }
+    .fil-cell-innehåll .ta-bort-fil {
+      cursor: pointer;
+      color: #c0392b;
+      font-size: 14px;
+      border: none;
+      background: none;
+      padding: 0 2px;
+    }
+    .fil-välj-knapp {
+      cursor: pointer;
+      color: #0078d4;
+      font-size: 16px;
+      border: none;
+      background: none;
+      padding: 2px 4px;
+      title: "Välj fil";
+    }
+    .ta-bort-rad {
+      cursor: pointer;
+      color: #c0392b;
+      font-size: 14px;
+      border: none;
+      background: none;
+      padding: 2px 6px;
+    }
+
+    /* Statuskolumn */
+    .rad-status { font-size: 11px; white-space: nowrap; }
+    .rad-status.väntar { color: #999; }
+    .rad-status.pågår { color: #0078d4; font-weight: 600; }
+    .rad-status.klar { color: #27ae60; }
+    .rad-status.fel { color: #c0392b; }
+    .rad-status.avbruten { color: #e67e22; }
+
+    /* Dra-filer-zon */
+    #drag-zon {
+      border: 2px dashed #ccc;
+      border-radius: 6px;
+      padding: 16px;
+      text-align: center;
+      color: #999;
+      font-size: 13px;
+      margin-top: 10px;
+      transition: all 0.2s;
+    }
+    #drag-zon.aktiv {
+      border-color: #0078d4;
+      background: #f0f6ff;
+      color: #0078d4;
+    }
+
+    /* Kolumntogglar */
+    .kolumn-togglar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 10px;
+    }
+    .kolumn-togglar button {
+      padding: 3px 8px;
+      font-size: 11px;
+      border-radius: 12px;
+    }
+    .kolumn-togglar button.aktiv {
+      background: #0078d4;
+      color: #fff;
+      border-color: #0078d4;
+    }
+
+    /* Verktygsfält */
+    .verktygsfält {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .verktygsfält .separator {
+      width: 1px;
+      height: 20px;
+      background: #ddd;
+    }
+
+    /* Resultatpanel */
+    #resultat-panel {
+      display: none;
+      margin-top: 16px;
+    }
+    #resultat-panel table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    #resultat-panel th, #resultat-panel td {
+      border: 1px solid #ddd;
+      padding: 6px 8px;
+      text-align: left;
+    }
+    #resultat-panel th {
+      background: #f0f0f0;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    /* Fasta knappar */
+    .knappar-fast {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border-top: 1px solid #ddd;
+      padding: 10px 20px;
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      align-items: center;
+    }
+    #batch-progress {
+      flex: 1;
+      font-size: 12px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Massregistrering</h2>
+
+    <!-- Konfiguration -->
+    <div class="sektion">
+      <h3>Konfiguration</h3>
+      <div class="tvakol">
+        <div class="faltrad">
+          <label for="batch-ärendemall">Ärendemall</label>
+          <select id="batch-ärendemall" style="width:100%;">
+            <option value="">– välj ärendemall –</option>
+          </select>
+        </div>
+        <div class="faltrad" style="display:flex;align-items:flex-end;gap:8px;">
+          <div style="flex:1;">
+            <label>&nbsp;</label>
+            <div id="mall-info" style="font-size:12px;color:#888;">Välj en ärendemall som grund för alla ärenden.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dokumentslotsar -->
+    <div class="sektion">
+      <h3>Dokumentslotsar</h3>
+      <p style="font-size:12px;color:#555;margin:0 0 8px;">
+        Koppla varje <code>Fil_N</code>-kolumn till en dokumentmall. Kontaktrollen (avsändare/mottagare) bestäms av dokumentmallens kategori.
+      </p>
+      <div id="slot-lista"></div>
+      <button id="btn-lägg-till-slot" style="margin-top:6px;">＋ Lägg till dokumentslot</button>
+    </div>
+
+    <!-- Inställningar -->
+    <div class="sektion">
+      <h3>Inställningar</h3>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:normal;">
+          <input type="checkbox" id="batch-stäng-ärende" checked> Stäng ärende efter skapande
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:normal;">
+          <input type="checkbox" id="batch-dagboksblad"> Öppna dagboksblad efteråt
+        </label>
+      </div>
+    </div>
+
+    <!-- Rader -->
+    <div class="sektion">
+      <h3>Ärenden</h3>
+
+      <div class="verktygsfält">
+        <button id="btn-importera-csv">Importera CSV</button>
+        <input type="file" id="csv-input" accept=".csv,.txt,.tsv" style="display:none;">
+        <button id="btn-lägg-till-rad">＋ Lägg till rad</button>
+        <div class="separator"></div>
+        <span style="font-size:11px;color:#888;">Kolumner:</span>
+        <div class="kolumn-togglar" id="kolumn-togglar"></div>
+      </div>
+
+      <div class="tabell-container">
+        <table id="batch-tabell">
+          <thead><tr id="tabell-huvud"></tr></thead>
+          <tbody id="tabell-kropp"></tbody>
+        </table>
+      </div>
+
+      <div id="drag-zon">Dra filer hit för att lägga till rader (en fil per rad i Fil_1)</div>
+    </div>
+
+    <!-- Resultat -->
+    <div id="resultat-panel" class="sektion">
+      <h3>Resultat</h3>
+      <div id="resultat-innehåll"></div>
+      <div style="margin-top:10px;display:flex;gap:8px;">
+        <button id="btn-ladda-ned-csv">Ladda ned resultat-CSV</button>
+        <button id="btn-öppna-dagboksblad">Öppna dagboksblad</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fasta knappar -->
+  <div class="knappar-fast">
+    <span id="batch-progress"></span>
+    <button id="btn-avbryt-batch" style="display:none;" class="varning">Avbryt</button>
+    <button id="btn-starta-batch" class="primär" disabled>Starta batch</button>
+  </div>
+
+  <script src="mall-data.js"></script>
+  <script src="batch-data.js"></script>
+  <script src="batch-table.js"></script>
+  <script src="batch-run.js"></script>
+  <script src="batch.js"></script>
+</body>
+</html>

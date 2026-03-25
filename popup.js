@@ -94,6 +94,11 @@ document.getElementById('hjalp-lank').addEventListener('click', (e) => {
   chrome.tabs.create({ url: chrome.runtime.getURL('help.html') });
 });
 
+// Massregistrering – öppna batch.html
+document.getElementById('btn-massregistrering').addEventListener('click', () => {
+  chrome.tabs.create({ url: chrome.runtime.getURL('batch.html') });
+});
+
 // ------------------------------------------------------------------
 // Mallhantering
 // ------------------------------------------------------------------
