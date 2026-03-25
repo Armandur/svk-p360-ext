@@ -1048,6 +1048,7 @@ iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'File
 ├── page-document-options.js  # Passiv caching av Handlingstyp-alternativ m.m.
 ├── page-document-validate.js # Validering av dokumentformulär (obligatoriska fält, handlingstyp)
 ├── page-document-fill.js    # Fyller i dokumentformulärets fält från mall
+├── page-document-upload.js  # Filuppladdning till ärendedokument (FileUpload.ashx)
 ├── page-document-create.js  # Orkestrering av ärendedokumentskapande
 ├── page.js                  # Router i MAIN world (lyssnar på p360-anrop och dispatchar)
 ├── background.js            # Service worker – hanterar tangentbordskommandon
@@ -1082,8 +1083,9 @@ Filerna injiceras i denna ordning:
 7. `page-document-options.js`
 8. `page-document-validate.js`
 9. `page-document-fill.js`
-10. `page-document-create.js`
-11. `page.js` (router)
+10. `page-document-upload.js`
+11. `page-document-create.js`
+12. `page.js` (router)
 
 ## Dokumentmallar och instansmodell
 

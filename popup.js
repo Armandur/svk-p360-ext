@@ -416,3 +416,64 @@ function escHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 }
+
+// ------------------------------------------------------------------
+// Filuppladdning
+// ------------------------------------------------------------------
+
+/**
+ * Konverterar en File till base64-sträng.
+ */
+function filTillBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      // result = "data:application/pdf;base64,XXXX..."
+      const base64 = reader.result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = () => reject(new Error('Kunde inte läsa filen.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+document.getElementById('btn-ladda-upp-filer').addEventListener('click', () => {
+  döljFelmeddelande();
+  document.getElementById('fil-input').click();
+});
+
+document.getElementById('fil-input').addEventListener('change', async (e) => {
+  const filer = Array.from(e.target.files);
+  if (filer.length === 0) return;
+
+  const filStatus = document.getElementById('fil-status');
+  filStatus.style.display = '';
+  filStatus.textContent = `Förbereder ${filer.length} fil(er)…`;
+
+  try {
+    // Konvertera filer till serialiserbart format (base64)
+    const filData = [];
+    for (const f of filer) {
+      filStatus.textContent = `Läser ${f.name}…`;
+      const base64 = await filTillBase64(f);
+      filData.push({ namn: f.name, typ: f.type, base64 });
+    }
+
+    filStatus.textContent = `Skickar ${filer.length} fil(er) till 360°…`;
+
+    // Skicka till content.js → page.js
+    await skicka({
+      action: 'skapaÄrendedokument',
+      dokument: [{ filerBase64: filData }],
+    });
+
+    filStatus.textContent = '';
+    filStatus.style.display = 'none';
+  } catch (err) {
+    filStatus.textContent = 'Fel: ' + err.message;
+    filStatus.style.color = '#c0392b';
+  }
+
+  // Nollställ input så samma fil kan väljas igen
+  e.target.value = '';
+});

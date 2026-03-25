@@ -303,6 +303,27 @@ async function skapaÄrendedokument(dok, visaStatus) {
   const { kontaktLagdTill } = await fyllDokumentFormulär(iDoc, iWin, dok, visaStatus);
 
   // ---------------------------------------------------------------
+  // 2b. Ladda upp filer om sådana finns
+  // ---------------------------------------------------------------
+  // Konvertera base64-filer (från popup) till File-objekt
+  if (dok.filerBase64 && dok.filerBase64.length > 0 && (!dok.filer || dok.filer.length === 0)) {
+    dok.filer = dok.filerBase64.map(f => {
+      const binär = atob(f.base64);
+      const bytes = new Uint8Array(binär.length);
+      for (let j = 0; j < binär.length; j++) bytes[j] = binär.charCodeAt(j);
+      return new File([bytes], f.namn, { type: f.typ || 'application/octet-stream' });
+    });
+  }
+
+  if (dok.filer && dok.filer.length > 0) {
+    visaStatus('Laddar upp filer…');
+    const uploadRes = await laddaUppFiler(iDoc, iWin, dok.filer, visaStatus);
+    if (uploadRes.misslyckade.length > 0) {
+      console.warn('[p360-dok] Misslyckade filuppladdningar:', uploadRes.misslyckade);
+    }
+  }
+
+  // ---------------------------------------------------------------
   // 3. Kontrollera obligatoriska fält – pausa om något saknas
   // ---------------------------------------------------------------
   const tommaObl = kontrolleraObligatoriskaFält(iDoc, { kontaktLagdTill });

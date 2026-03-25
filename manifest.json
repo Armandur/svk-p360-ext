@@ -53,6 +53,7 @@
         "page-document-options.js",
         "page-document-validate.js",
         "page-document-fill.js",
+        "page-document-upload.js",
         "page-document-create.js",
         "page.js"
       ],
