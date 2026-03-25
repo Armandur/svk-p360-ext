@@ -128,16 +128,30 @@ async function laddaUppEnFil(iframe, fil, ärAvbruten) {
   hp.value = `${userSession}|${fil.name}`;
   console.log(`[p360-upload] Steg 2: Satte hiddenPath="${hp.value}"`);
 
-  // Trigga PostBack direkt i iframe-kontexten.
-  // btn.click() från parent-sidan kör inte javascript:-href korrekt.
-  // Extrahera __doPostBack-target från href eller anropa direkt.
+  // Trigga PostBack inifrån iframe-kontexten.
+  // btn.click() från parent kör inte javascript:-href.
+  // iWin.__doPostBack() från parent når inte alltid PageRequestManager korrekt.
+  // Lösning: injicera en <script>-tag i iframe som kör klicket inifrån.
   const href = btn.getAttribute('href') || '';
-  const postBackMatch = href.match(/__doPostBack\('([^']+)'/);
-  const postBackTarget = postBackMatch
-    ? postBackMatch[1]
-    : 'ctl00$PlaceHolderMain$MainView$DocumentMultiFileUploadControl_hiddenUploadButton';
-  console.log(`[p360-upload] Steg 3: __doPostBack('${postBackTarget}', '') i iframe`);
-  iWin.__doPostBack(postBackTarget, '');
+  const onclick = btn.getAttribute('onclick') || '';
+  console.log(`[p360-upload] Steg 3: btn.tagName=${btn.tagName}, href="${href.substring(0, 80)}", onclick="${onclick.substring(0, 80)}"`);
+
+  // Metod 1: Script-injektion i iframe (kör i iframens kontext)
+  try {
+    const script = iDoc.createElement('script');
+    script.textContent = `document.getElementById('${btnId}').click();`;
+    iDoc.body.appendChild(script);
+    script.remove();
+    console.log('[p360-upload] Steg 3: Script-injektion lyckades');
+  } catch (e) {
+    // Metod 2: Fallback till __doPostBack direkt
+    console.log('[p360-upload] Steg 3: Script-injektion misslyckades, fallback till __doPostBack:', e.message);
+    const postBackMatch = href.match(/__doPostBack\('([^']+)'/);
+    const postBackTarget = postBackMatch
+      ? postBackMatch[1]
+      : 'ctl00$PlaceHolderMain$MainView$DocumentMultiFileUploadControl$hiddenUploadButton';
+    iWin.__doPostBack(postBackTarget, '');
+  }
 
   // Vänta på att PostBack-svaret kommit (ScannedFilepath eller fillistan)
   for (let poll = 0; poll < 80; poll++) {
