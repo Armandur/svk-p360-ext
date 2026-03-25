@@ -23,13 +23,19 @@ async function hittaP360Flik() {
 function väntaPåNavigation(tabId, urlMönster, timeout = 45000) {
   return new Promise((resolve) => {
     const timer = setTimeout(() => {
+      console.log(`[batch] väntaPåNavigation: Timeout (${timeout} ms) – ingen matchande URL hittades.`);
       chrome.tabs.onUpdated.removeListener(lyssnare);
       resolve(null);
     }, timeout);
 
     function lyssnare(id, info, tab) {
       if (id !== tabId) return;
+      // Logga alla statusändringar för denna flik
+      if (info.url || info.status) {
+        console.log(`[batch] väntaPåNavigation: flik ${id} status=${info.status} url=${info.url || tab.url || '?'}`);
+      }
       if (info.status === 'complete' && tab.url && urlMönster.test(tab.url)) {
+        console.log(`[batch] väntaPåNavigation: Matchad! URL=${tab.url}`);
         clearTimeout(timer);
         chrome.tabs.onUpdated.removeListener(lyssnare);
         resolve(tab.url);
@@ -219,14 +225,22 @@ async function startaBatch(baseMall, slots, inställningar) {
       });
       await chrome.storage.local.remove('batchRadKlar');
 
+      // Starta navigeringslyssnaren INNAN vi skickar skapaFrånMall
+      // (annars missar vi navigeringen om den sker snabbt)
+      const navigeringsPromise = väntaPåNavigation(tabId, /\/DMS\/Case\/Details\//, 120000);
+      console.log(`[batch] Rad ${idx + 1}: Skickar skapaFrånMall till flik ${tabId}…`);
+
       // Skicka skapaFrånMall till 360°-fliken
-      // OBS: skapaFrånMall navigerar sidan – svaret kommer troligen aldrig tillbaka
+      // OBS: skapaFrånMall navigerar sidan – svaret kommer troligen aldrig tillbaka.
+      // Timeout 120s: formuläret kan ta lång tid (fyllning + postbacks + submit).
       const svar = await skickaTillFlik(tabId, {
         action: 'skapaFrånMall',
         mall: mall,
-      }, 60000);
+      }, 120000);
 
-      // Om vi fick svar = case creation misslyckades innan navigering
+      console.log(`[batch] Rad ${idx + 1}: skickaTillFlik svar:`, svar);
+
+      // Om vi fick ett explicit felsvar (innan navigering) – avbryt
       if (svar && !svar.success) {
         throw new Error(svar.fel || 'Ärendet kunde inte skapas');
       }
@@ -235,25 +249,45 @@ async function startaBatch(baseMall, slots, inställningar) {
       sättRadStatus(idx, 'pågår', 'Väntar på ärende…');
       visaBatchProgress(`Rad ${idx + 1}/${antalRader}: Väntar på ärende…`);
 
-      const nyUrl = await väntaPåNavigation(tabId, /\/DMS\/Case\/Details\//, 45000);
+      const nyUrl = await navigeringsPromise;
+      console.log(`[batch] Rad ${idx + 1}: Navigering resultat:`, nyUrl);
       if (!nyUrl) {
-        throw new Error('Navigering till ärendesida skedde inte inom 45 s');
+        // Kolla om fliken redan är på en ärendesida (navigeringen kan ha skett
+        // innan lyssnaren hann registreras vid snabb submit)
+        const flikNu = await chrome.tabs.get(tabId).catch(() => null);
+        const nuUrl = flikNu?.url || '';
+        console.log(`[batch] Rad ${idx + 1}: Flikens nuvarande URL:`, nuUrl);
+        if (/\/DMS\/Case\/Details\//.test(nuUrl)) {
+          console.log(`[batch] Rad ${idx + 1}: Fliken är redan på ärendesida, fortsätter.`);
+        } else {
+          throw new Error(
+            'Navigering till ärendesida skedde inte inom 120 s. ' +
+            'Flikens URL: ' + nuUrl
+          );
+        }
       }
 
       // Extrahera diarienummer – vänta på att content.js laddas och läser DOM
-      await new Promise(r => setTimeout(r, 3000));
+      console.log(`[batch] Rad ${idx + 1}: Väntar 4 s på att sidan laddas…`);
+      await new Promise(r => setTimeout(r, 4000));
 
-      // Läs diarienummer från flik-titeln eller via meddelande
+      // Hämta aktuell URL (kan vara nyUrl eller flikens nuvarande URL)
+      const flikEfter = await chrome.tabs.get(tabId).catch(() => null);
+      const slutUrl = nyUrl || flikEfter?.url || '';
+
+      // Läs diarienummer
       let diarienummer = '';
-      const recnoMatch = nyUrl.match(/recno=(\d+)/);
+      const recnoMatch = slutUrl.match(/recno=(\d+)/);
       const recno = recnoMatch ? recnoMatch[1] : '';
 
       // Vänta på att dokument skapas (om det finns ärendedokument)
       if (mall.ärendedokument?.length > 0) {
         sättRadStatus(idx, 'pågår', 'Skapar dokument…');
         visaBatchProgress(`Rad ${idx + 1}/${antalRader}: Skapar dokument…`);
+        console.log(`[batch] Rad ${idx + 1}: Väntar på batchRadKlar-signal (${mall.ärendedokument.length} dokument)…`);
 
         const signal = await väntaPåBatchSignal(300000);
+        console.log(`[batch] Rad ${idx + 1}: batchRadKlar-signal:`, signal);
         if (!signal) {
           throw new Error('Dokumentskapande tog för lång tid (timeout 5 min)');
         }
@@ -263,10 +297,12 @@ async function startaBatch(baseMall, slots, inställningar) {
         diarienummer = signal.diarienummer || '';
       } else {
         // Inga dokument – läs diarienummer direkt
+        console.log(`[batch] Rad ${idx + 1}: Inga dokument, läser diarienummer direkt…`);
         try {
           const diarieResp = await skickaTillFlik(tabId, {
             action: 'läsDiarienummer',
           }, 10000);
+          console.log(`[batch] Rad ${idx + 1}: diarieResp:`, diarieResp);
           diarienummer = diarieResp?.diarienummer || '';
         } catch { /* ignore */ }
       }

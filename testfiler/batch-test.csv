@@ -1,7 +1,7 @@
-Titel;Namn;Personnummer;Adress;Postnummer;Ort;Epost;Fil_1;Fil_2
-Utträde - Andersson, Anna;Andersson, Anna;19850312-1234;Storgatan 12;123 45;Stockholm;;utträdesansökan_andersson.pdf;bekräftelse_andersson.pdf
-Utträde - Bergström, Erik;Bergström, Erik;19780614-5678;Björkvägen 7;456 78;Göteborg;;utträdesansökan_bergström.pdf;bekräftelse_bergström.pdf
-Utträde - Carlsson, Maria;Carlsson, Maria;19920801-9012;Lindgatan 3;789 01;Malmö;maria.carlsson@example.com;utträdesansökan_carlsson.pdf;bekräftelse_carlsson.pdf
-Inträde - Danielsson, Lars;Danielsson, Lars;19900215-3456;Ekvägen 5;234 56;Uppsala;;inträdesansökan_danielsson.pdf;bekräftelse_danielsson.pdf
-Inträde - Eriksson, Sara;Eriksson, Sara;19881103-7890;Tallgatan 18;567 89;Linköping;sara.eriksson@example.com;inträdesansökan_eriksson.pdf;bekräftelse_eriksson.pdf
-Inträde - Fransson, Omar;Fransson, Omar;19950427-2345;Kungsgatan 22;345 67;Västerås;;inträdesansökan_fransson.pdf;bekräftelse_fransson.pdf
+Titel;Namn;Personnummer;Adress;Postnummer;Ort;Epost;DokTitel_1;Fil_1;DokTitel_2;Fil_2
+Inträde - Eriksson, Sara;Eriksson, Sara;19881103-7890;Tallgatan 18;567 89;Linköping;sara.eriksson@example.com;Inträdesansökan;inträdesansökan_eriksson.pdf;Bekräftelse inträde;bekräftelse_eriksson.pdf
+Inträde - Fransson, Omar;Fransson, Omar;19950427-2345;Kungsgatan 22;345 67;Västerås;;Inträdesansökan;inträdesansökan_fransson.pdf;Bekräftelse inträde;bekräftelse_fransson.pdf
+Utträde - Andersson, Anna;Andersson, Anna;19850312-1234;Storgatan 12;123 45;Stockholm;;Utträdesansökan;utträdesansökan_andersson.pdf;Bekräftelse utträde;bekräftelse_andersson.pdf
+Utträde - Bergström, Erik;Bergström, Erik;19780614-5678;Björkvägen 7;456 78;Göteborg;;Utträdesansökan;utträdesansökan_bergström.pdf;Bekräftelse utträde;bekräftelse_bergström.pdf
+Utträde - Carlsson, Maria;Carlsson, Maria;19920801-9012;Lindgatan 3;789 01;Malmö;maria.carlsson@example.com;Utträdesansökan;utträdesansökan_carlsson.pdf;Bekräftelse utträde;bekräftelse_carlsson.pdf
+Inträde - Danielsson, Lars;Danielsson, Lars;19900215-3456;Ekvägen 5;234 56;Uppsala;;Inträdesansökan;inträdesansökan_danielsson.pdf;Bekräftelse inträde;bekräftelse_danielsson.pdf
