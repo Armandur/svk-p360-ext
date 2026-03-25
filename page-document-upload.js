@@ -110,12 +110,11 @@ async function laddaUppEnFil(iframe, fil) {
   if (!hiddenPath) throw new Error('Hidden upload path-fält hittades inte.');
   hiddenPath.value = `${userSession}|${fil.name}`;
 
-  // Steg 3: Trigga PostBack via den dolda länken
-  const hiddenBtn = iDoc.getElementById(
-    'PlaceHolderMain_MainView_DocumentMultiFileUploadControl_hiddenUploadButton'
+  // Steg 3: Trigga PostBack direkt via __doPostBack (inte .click() på display:none <a>)
+  const iWin = iframe.contentWindow;
+  iWin.__doPostBack(
+    'ctl00$PlaceHolderMain$MainView$DocumentMultiFileUploadControl_hiddenUploadButton', ''
   );
-  if (!hiddenBtn) throw new Error('Hidden upload-knapp hittades inte.');
-  hiddenBtn.click();
 
   // Vänta på att PostBack-svaret kommit (fillistan uppdateras)
   for (let poll = 0; poll < 40; poll++) {
