@@ -100,7 +100,6 @@ if (!window.__p360ContentInitierat) {
       if (!merged.some(e => e.value === h.value)) merged.push(h);
     }
     await chrome.storage.local.set({ cachedHandlingstyper: merged });
-    console.log(`[p360] cachedHandlingstyper: ${merged.length} alternativ totalt`);
   });
 
   // Tar emot övriga fältalternativ från dokumentformuläret och sparar i chrome.storage.local
@@ -112,7 +111,6 @@ if (!window.__p360ContentInitierat) {
     if (ansvarigaPersoner?.length > 0) uppdatering.cachedAnsvarigaPersoner = ansvarigaPersoner;
     if (Object.keys(uppdatering).length > 0) {
       await chrome.storage.local.set(uppdatering);
-      console.log(`[p360] Dokumentformulär-cache sparad:`, Object.keys(uppdatering).join(', '));
     }
   });
 

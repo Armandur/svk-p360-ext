@@ -60,7 +60,6 @@ function väntaOchCachea(doc) {
     clearInterval(poll);
     const handlingstyper = läsHandlingstyperFrånDokument(doc);
     if (handlingstyper.length > 0) {
-      console.log('[p360] Handlingstyper cachade från dokumentformulär:', handlingstyper.length, 'alternativ');
       window.dispatchEvent(new CustomEvent('p360-spara-handlingstyper', {
         detail: { handlingstyper }
       }));
@@ -75,7 +74,6 @@ function väntaOchCachea(doc) {
     if (atkomstgrupper.length > 0) extra.atkomstgrupper = atkomstgrupper;
     if (ansvarigaPersoner.length > 0) extra.ansvarigaPersoner = ansvarigaPersoner;
     if (Object.keys(extra).length > 0) {
-      console.log('[p360] Dokumentformulär-cache:', Object.entries(extra).map(([k,v]) => `${v.length} ${k}`).join(', '));
       window.dispatchEvent(new CustomEvent('p360-spara-dokumentformulär-alternativ', {
         detail: extra
       }));
