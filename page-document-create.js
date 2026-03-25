@@ -377,8 +377,11 @@ async function skapaÄrendedokument(dok, visaStatus) {
     );
   }
 
-  // Skyddskod – triggar UpdatePanel om KO/OSL (paragraf-fältet dyker upp)
+  // Skyddskod – formuläret ärver ärendets skyddskod som default, så vi måste
+  // alltid sätta värdet explicit. Om mallen säger Offentlig (0) men ärendet
+  // har KO/OSL triggar vi en UpdatePanel som tar bort sekretessfälten.
   if (dok.skyddskod && dok.skyddskod !== '0') {
+    // Sekretess – triggar UpdatePanel (paragraf-fältet dyker upp)
     await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', dok.skyddskod);
 
     const paragrafFält = await waitForElement(
@@ -447,6 +450,19 @@ async function skapaÄrendedokument(dok, visaStatus) {
           dok.offentligTitelVal
         );
       }
+    }
+  } else {
+    // Offentlig – sätt explicit ifall ärendet har en annan skyddskod som default.
+    // Kolla om formuläret redan har Offentlig – om inte, sätt via postback.
+    const nuvarandeSkyddskod = iDoc.getElementById(
+      'PlaceHolderMain_MainView_AccessCodeComboControl'
+    )?.value;
+    if (nuvarandeSkyddskod && nuvarandeSkyddskod !== '0') {
+      console.log('[p360-dok] Ärendet har skyddskod', nuvarandeSkyddskod,
+        '– sätter explicit till Offentlig (0)');
+      await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', '0');
+      // Vänta på UpdatePanel-svar (sekretessfälten försvinner)
+      await sleep(1500);
     }
   }
 
