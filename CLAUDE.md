@@ -917,11 +917,74 @@ visar/döljer fält. Alla kategorier har samma grund av fält (titel, handlingst
 >
 > **Ankomstdatum** (`ReceivedDateControl`) visas **enbart** för Inkommande.
 
-### Återstår att kartlägga
+### Filuppladdning (flik "Filer") – teknisk kartläggning
 
-- ~~Titelfältets element-ID~~ ✓ `TitleTextBoxControl` (TEXTAREA, maxlength 254)
-- ~~Värden för `TypeJournalDocumentInsertComboControl`~~ ✓ kartlagt
-- Filuppladdning (flik "Filer")
+Dokumentguiden har en flik "Filer" som nås via:
+```js
+__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'FileStep');
+```
+
+#### Upload-kontroll: `DocumentMultiFileUploadControl`
+
+Uppladdning sker i **två steg**: först XHR till `/FileUpload.ashx`, sedan PostBack
+för att registrera filen i formuläret.
+
+**Drag-and-drop-container:**
+
+| Egenskap | Värde |
+|---|---|
+| Element-ID | `PlaceHolderMain_MainView_DocumentMultiFileUploadControl` |
+| `data-url` | `/FileUpload.ashx` |
+| `data-max-file-size` | `2147482624` (~2 GB) |
+| `data-allowed-file-extension` | `*` (alla filtyper) |
+| `data-max-files` | `100` |
+| `data-chunk-size` | `1048576` (1 MB chunks) |
+
+**Dold fil-input:**
+```html
+<input type="file" multiple style="display:none">
+```
+Triggras av ankarlänken i drag-and-drop-containern. Stöder multipla filer.
+
+**Dolda fält efter uppladdning:**
+
+| Element-ID | Syfte |
+|---|---|
+| `PlaceHolderMain_MainView_DocumentMultiFileUploadControl_hiddenUploadedFilesPath` | Sökväg(ar) till uppladdade filer på servern |
+| `PlaceHolderMain_MainView_DocumentMultiFileUploadControl_hiddenUploadButton` | Dold knapp – triggar PostBack efter XHR-upload |
+
+**Uppladdningsflöde:**
+1. Fil(er) väljs via `<input type="file">` eller drag-and-drop
+2. JavaScript laddar upp filen i chunks à 1 MB via XHR POST till `/FileUpload.ashx`
+3. Servern returnerar filsökväg som skrivs till `hiddenUploadedFilesPath`
+4. `hiddenUploadButton` klickas → PostBack registrerar filen i formuläret
+5. `ImportFileListControl` uppdateras med filens metadata (format, namn, titel)
+
+**Fillistan (`ImportFileListControl`):**
+
+| Element-ID | Syfte |
+|---|---|
+| `PlaceHolderMain_MainView_ImportFileListControl` | Tabell med uppladdade filer |
+| Kolumner | Filformat, Filnamn, Titel, Sorteringskolumn |
+
+**Verktygsknappar:**
+
+| Element-ID | Text | Syfte |
+|---|---|---|
+| `PlaceHolderMain_MainView_SetFilePropertiesMenuButtonControl` | Redigera egenskaper | Redigera filens titel/metadata |
+| `PlaceHolderMain_MainView_DeleteFileMenuButtonControl` | Ta bort | Ta bort fil från listan |
+
+#### Programmatisk uppladdning (ej implementerat ännu)
+
+För att ladda upp filer programmatiskt behöver man:
+1. Skapa en `File`-objekt (eller läsa från `<input type="file">`)
+2. Chunka filen i 1 MB-delar och POST:a varje chunk till `/FileUpload.ashx`
+   med `multipart/form-data`
+3. Sätta den returnerade sökvägen i `hiddenUploadedFilesPath`
+4. Trigga `hiddenUploadButton.click()` för att registrera filen
+
+> **Notering:** Exakt request-format för `/FileUpload.ashx` (headers, chunk-parametrar,
+> session-token) behöver kartläggas via nätverksloggning vid en manuell uppladdning.
 
 ---
 
