@@ -1,62 +1,8 @@
-// page-document-create.js – Skapa ärendedokument från mall
-// Körs i sidans MAIN world. Beror på: sleep, waitForElement, waitForNyIframe,
-// sättSelectize, sättSelectizeTyst (page-utils.js)
-
-/**
- * Kontrollerar vilka obligatoriska fält i dokumentformuläret som är tomma.
- * @param {Document} iDoc - iframe-dokumentet
- * @param {Object} [options] - Extra info om vad som redan fyllts i automatiskt
- * @param {boolean} [options.kontaktLagdTill] - Om oregistrerad kontakt redan lagts till via postback
- * @returns {string[]} Lista med etiketter för tomma fält.
- */
-function kontrolleraObligatoriskaFält(iDoc, options = {}) {
-  const tomma = [];
-
-  // Titel (alltid obligatorisk)
-  const titel = iDoc.getElementById('PlaceHolderMain_MainView_TitleTextBoxControl');
-  if (titel && !titel.value.trim()) tomma.push('Titel');
-
-  // Handlingstyp – obligatoriskt om fältet finns och är tomt
-  const handlTyp = iDoc.getElementById('PlaceHolderMain_MainView_ProcessRecordTypeControl');
-  if (handlTyp && !handlTyp.value) tomma.push('Handlingstyp');
-
-  // Dokumentkategori – obligatoriskt
-  const kat = iDoc.getElementById('PlaceHolderMain_MainView_TypeJournalDocumentInsertComboControl');
-  if (kat && !kat.value) tomma.push('Dokumentkategori');
-
-  // Skyddskod (har default Offentlig=0, kontrollera att det valts)
-  // Inte obligatoriskt per se men paragraf är det om skyddskod != 0
-  const skyddskod = iDoc.getElementById('PlaceHolderMain_MainView_AccessCodeComboControl');
-  if (skyddskod && skyddskod.value && skyddskod.value !== '0') {
-    const paragraf = iDoc.getElementById('PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl');
-    if (paragraf && !paragraf.value) tomma.push('Paragraf (sekretess)');
-
-    const offTitelVal = iDoc.getElementById('PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl');
-    if (offTitelVal && !offTitelVal.value) tomma.push('Val av offentlig titel');
-  }
-
-  // Åtkomstgrupp – obligatoriskt
-  const atkomst = iDoc.getElementById('PlaceHolderMain_MainView_AccessGroupComboControl');
-  if (atkomst && !atkomst.value) tomma.push('Åtkomstgrupp');
-
-  // Ansvarig enhet – obligatoriskt
-  const enhet = iDoc.getElementById('PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl');
-  if (enhet && !enhet.value) tomma.push('Ansvarig enhet');
-
-  // Oregistrerad kontakt – obligatoriskt för Inkommande/Utgående
-  // Om kontakten redan lagts till via QuickUnregContactButton-postback, hoppa över.
-  const katVärde = kat?.value;
-  if ((katVärde === '110' || katVärde === '111') && !options.kontaktLagdTill) {
-    const oregKontakt = iDoc.getElementById('PlaceHolderMain_MainView_Custom_QuickUnregContactText');
-    const harOregText = oregKontakt && oregKontakt.value.trim();
-
-    if (!harOregText) {
-      tomma.push(katVärde === '110' ? 'Avsändare (oregistrerad kontakt)' : 'Mottagare (oregistrerad kontakt)');
-    }
-  }
-
-  return tomma;
-}
+// page-document-create.js – Orkestrering av ärendedokumentskapande
+// Körs i sidans MAIN world. Beror på:
+//   page-utils.js (sleep, waitForElement, waitForNyIframe, sättSelectize, sättSelectizeTyst)
+//   page-document-validate.js (kontrolleraObligatoriskaFält, valideraHandlingstyp, escHtml)
+//   page-document-fill.js (fyllDokumentFormulär)
 
 /**
  * Visar dokumentformuläret för användaren och väntar på att de klickar Slutför
@@ -227,7 +173,6 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
       // ExecCancel stänger formuläret men lämnar kvar dialogskal och loader.
       // Rensa bort alla öppna 360°-dialoger efter en kort fördröjning.
       setTimeout(() => {
-        // Ta bort alla öppna dialog-element (och deras wrapper-div om den är tom)
         const allaDialoger = document.querySelectorAll('dialog');
         allaDialoger.forEach(d => {
           if (d.hasAttribute('open') || d.classList.contains('is-open')) {
@@ -248,7 +193,6 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
       for (const mut of mutations) {
         for (const node of mut.addedNodes) {
           if (node.nodeType !== 1) continue;
-          // Kolla dialog-element (360° skapar nya <dialog> med iframes inuti)
           const iframes = node.tagName === 'IFRAME' ? [node]
             : Array.from(node.querySelectorAll?.('iframe') ?? []);
           for (const f of iframes) {
@@ -284,86 +228,10 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
  * Skapar ett enskilt ärendedokument via formuläret på ärendesidan.
  * Förutsätter att vi befinner oss på en ärendedetaljsida.
  *
- * @param {Object} dok  – Dokumentmall med fält:
- *   titel, handlingstyp, kategori, skyddskod, sekretessParag,
- *   offentligTitelVal, offentligTitel, atkomstgrupp, oregistreradKontakt,
- *   datum (eller ankomstdatum för bakåtkompatibilitet), ansvarigEnhet, ansvarigPerson,
- *   projekt, fastighet
+ * @param {Object} dok  – Dokumentmall med fält (se fyllDokumentFormulär)
  * @param {Function} visaStatus – Callback för statustext
  * @returns {string|null} Dokumentnumret (t.ex. "KHS 2026-0062:1") eller null
  */
-function escHtml(str) {
-  return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-/**
- * Läser ärendets klassificering från detaljpanelen på ärendesidan.
- * Panelens fält finns bara i DOM:en när den är utfälld – om den är ihopfälld
- * fälls den ut tillfälligt och fälls sedan ihop igen.
- * @returns {Promise<string|null>} Klassificeringskod (t.ex. "2.4") eller null.
- */
-async function läsKlassificeringFrånÄrende() {
-  const KLASS_ID = 'PlaceHolderMain_MainView_RightFolderView1_ViewControl_EditClassCodeTextFieldControl';
-  let el = document.getElementById(KLASS_ID);
-
-  if (!el) {
-    // Panelen är ihopfälld (aria-expanded="false") – fälten finns inte i DOM:en.
-    // Fäll ut via __doPostBack och vänta på att servern returnerar innehållet.
-    const wrapper = document.querySelector(
-      '.details-title-desc-wrapper[aria-expanded="false"]'
-    );
-    if (wrapper) {
-      __doPostBack('ctl00$PlaceHolderMain$MainView$RightFolderView1_ExpandCollapse', '');
-      // Vänta på att klassificeringsfältet dyker upp i DOM:en
-      for (let i = 0; i < 25; i++) {
-        await sleep(200);
-        el = document.getElementById(KLASS_ID);
-        if (el) break;
-      }
-      // Fäll ihop igen så att sidan ser ut som innan
-      if (el) {
-        setTimeout(() => {
-          __doPostBack('ctl00$PlaceHolderMain$MainView$RightFolderView1_ExpandCollapse', '');
-        }, 300);
-      }
-    }
-  }
-
-  if (el) {
-    // "2.4 - Administrera IT och telefoni" → "2.4"
-    const text = el.textContent.trim();
-    const match = text.match(/^([\d.]+)/);
-    return match ? match[1] : text;
-  }
-  return null;
-}
-
-/**
- * Kontrollerar om mallens handlingstyp matchar ärendets klassificering.
- * Handlingstyp-text har formen "2.4-8 (Korrespondens...)" där "2.4" är
- * klassificeringskoden.
- * @returns {{ ok: boolean, ärendeKlass?: string, mallKlass?: string, mallText?: string }}
- */
-async function valideraHandlingstyp(dok) {
-  if (!dok.handlingstyp?.text) return { ok: true };
-
-  const ärendeKlass = await läsKlassificeringFrånÄrende();
-  if (!ärendeKlass) return { ok: true }; // Kan inte validera – fortsätt ändå
-
-  // Extrahera klassificeringskod ur handlingstyp-text: "2.4-8 (...)" → "2.4"
-  const match = dok.handlingstyp.text.match(/^([\d.]+)/);
-  const mallKlass = match ? match[1] : null;
-  if (!mallKlass) return { ok: true }; // Okänt format – fortsätt ändå
-
-  return {
-    ok: ärendeKlass === mallKlass,
-    ärendeKlass,
-    mallKlass,
-    mallText: dok.handlingstyp.text,
-  };
-}
-
 async function skapaÄrendedokument(dok, visaStatus) {
   visaStatus = visaStatus || (() => {});
 
@@ -429,256 +297,10 @@ async function skapaÄrendedokument(dok, visaStatus) {
   );
   if (!titelFält) throw new Error('Dokumentformuläret laddades inte korrekt.');
 
-  const pb = (t, a) => iWin.__doPostBack(t, a);
-  const sättSelTyst = (id, val) => sättSelectizeTyst(id, val, iDoc);
-  const sättSel = (id, val) => sättSelectize(id, val, iDoc);
-
   // ---------------------------------------------------------------
-  // 2. Fyll i fält
+  // 2. Fyll i fält (delegerat till page-document-fill.js)
   // ---------------------------------------------------------------
-  visaStatus('Fyller i dokumentfält…');
-
-  // Handlingstyp
-  if (dok.handlingstyp?.value) {
-    await sättSelTyst(
-      'PlaceHolderMain_MainView_ProcessRecordTypeControl',
-      dok.handlingstyp.value
-    );
-  }
-
-  // Dokumentkategori – triggar UpdatePanel (visar datumfält m.m.)
-  if (dok.kategori) {
-    await sättSel(
-      'PlaceHolderMain_MainView_TypeJournalDocumentInsertComboControl',
-      dok.kategori
-    );
-    // Polla tills UpdatePanel svarat (titelfältet finns kvar efter uppdatering)
-    for (let poll = 0; poll < 20; poll++) {
-      await sleep(150);
-      const titelFinns = iDoc.getElementById('PlaceHolderMain_MainView_TitleTextBoxControl');
-      const kontaktFält = iDoc.getElementById('PlaceHolderMain_MainView_Custom_QuickUnregContactText');
-      if (titelFinns && kontaktFält) break;
-    }
-  }
-
-  // Åtkomstgrupp
-  if (dok.atkomstgrupp?.value) {
-    await sättSelTyst(
-      'PlaceHolderMain_MainView_AccessGroupComboControl',
-      dok.atkomstgrupp.value
-    );
-  }
-
-  // Ansvarig enhet
-  if (dok.ansvarigEnhet?.value) {
-    await sättSelTyst(
-      'PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl',
-      dok.ansvarigEnhet.value
-    );
-  }
-
-  // Ansvarig person
-  if (dok.ansvarigPerson?.value) {
-    await sättSelTyst(
-      'PlaceHolderMain_MainView_ResponsibleUserComboControl',
-      dok.ansvarigPerson.value
-    );
-  }
-
-  // Projekt (typeahead – DISPLAY + hidden + dropDownList + HiddenButton-postback)
-  if (dok.projekt?.value) {
-    const projektVis = iDoc.getElementById('PlaceHolderMain_MainView_ProjectQuickSearchControl_DISPLAY');
-    const projektDolt = iDoc.getElementById('PlaceHolderMain_MainView_ProjectQuickSearchControl');
-    const projektLista = iDoc.getElementById('PlaceHolderMain_MainView_ProjectQuickSearchControl_dropDownList');
-    if (projektVis) projektVis.value = dok.projekt.display || '';
-    if (projektDolt) projektDolt.value = dok.projekt.value;
-    if (projektLista) {
-      if (!Array.from(projektLista.options).some(o => o.value === dok.projekt.value)) {
-        const opt = document.createElement('option');
-        opt.value = dok.projekt.value;
-        opt.textContent = dok.projekt.display || dok.projekt.value;
-        projektLista.appendChild(opt);
-      }
-      projektLista.value = dok.projekt.value;
-    }
-  }
-
-  // Fastighet (typeahead – samma mönster som Projekt)
-  if (dok.fastighet?.value) {
-    const fastVis = iDoc.getElementById('PlaceHolderMain_MainView_EstateGeneralTabSearchControl_DISPLAY');
-    const fastDolt = iDoc.getElementById('PlaceHolderMain_MainView_EstateGeneralTabSearchControl');
-    const fastLista = iDoc.getElementById('PlaceHolderMain_MainView_EstateGeneralTabSearchControl_dropDownList');
-    if (fastVis) fastVis.value = dok.fastighet.display || '';
-    if (fastDolt) fastDolt.value = dok.fastighet.value;
-    if (fastLista) {
-      if (!Array.from(fastLista.options).some(o => o.value === dok.fastighet.value)) {
-        const opt = document.createElement('option');
-        opt.value = dok.fastighet.value;
-        opt.textContent = dok.fastighet.display || dok.fastighet.value;
-        fastLista.appendChild(opt);
-      }
-      fastLista.value = dok.fastighet.value;
-    }
-  }
-
-  // Skyddskod – formuläret ärver ärendets skyddskod som default, så vi måste
-  // alltid sätta värdet explicit. Om mallen säger Offentlig (0) men ärendet
-  // har KO/OSL triggar vi en UpdatePanel som tar bort sekretessfälten.
-  if (dok.skyddskod && dok.skyddskod !== '0') {
-    // Sekretess – triggar UpdatePanel (paragraf-fältet dyker upp)
-    await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', dok.skyddskod);
-
-    const paragrafFält = await waitForElement(
-      iDoc,
-      '#PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl',
-      10000
-    );
-    if (paragrafFält && dok.sekretessParag) {
-      // Vänta kort så att Selectize hinner initialiseras med options
-      await sleep(500);
-      await sättSelTyst(
-        'PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl',
-        dok.sekretessParag
-      );
-      // Verifiera att värdet faktiskt sattes – om inte, försök igen
-      const paragrafEl = iDoc.getElementById(
-        'PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl'
-      );
-      if (paragrafEl && paragrafEl.value !== dok.sekretessParag) {
-        console.warn('[p360-dok] Paragraf-värde sattes inte korrekt, försöker igen…',
-          'Förväntat:', dok.sekretessParag, 'Fick:', paragrafEl.value);
-        await sleep(1000);
-        await sättSelTyst(
-          'PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl',
-          dok.sekretessParag
-        );
-        if (paragrafEl.value !== dok.sekretessParag) {
-          console.error('[p360-dok] Paragraf-värde kunde inte sättas.',
-            'Tillgängliga options:', Array.from(paragrafEl.options).map(o => o.value));
-        }
-      }
-    }
-
-    // Vänta på att SelectOfficialTitleComboBoxControl dyker upp i DOM
-    const offTitelValFält = await waitForElement(
-      iDoc,
-      '#PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl',
-      5000
-    );
-
-    // Val av offentlig titel
-    if (offTitelValFält && dok.offentligTitelVal) {
-      if (dok.offentligTitelVal === '3') {
-        // Manuell titel – behöver postback för att visa det manuella fältet
-        await sättSel(
-          'PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl',
-          dok.offentligTitelVal
-        );
-        // Vänta på UpdatePanel-svar (PublicTitleTextBoxControl laddas)
-        await sleep(1500);
-        if (dok.offentligTitel) {
-          const offTitelFält = await waitForElement(
-            iDoc,
-            '#PlaceHolderMain_MainView_PublicTitleTextBoxControl',
-            5000
-          );
-          if (offTitelFält) {
-            offTitelFält.value = dok.offentligTitel;
-            offTitelFält.dispatchEvent(new Event('change', { bubbles: true }));
-          }
-        }
-      } else {
-        // Val 1 eller 2 – inget extra fält behövs, sätt tyst utan postback
-        await sättSelTyst(
-          'PlaceHolderMain_MainView_SelectOfficialTitleComboBoxControl',
-          dok.offentligTitelVal
-        );
-      }
-    }
-  } else {
-    // Offentlig – sätt explicit ifall ärendet har en annan skyddskod som default.
-    // Kolla om formuläret redan har Offentlig – om inte, sätt via postback.
-    const nuvarandeSkyddskod = iDoc.getElementById(
-      'PlaceHolderMain_MainView_AccessCodeComboControl'
-    )?.value;
-    if (nuvarandeSkyddskod && nuvarandeSkyddskod !== '0') {
-      await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', '0');
-      // Vänta på UpdatePanel-svar (sekretessfälten försvinner)
-      await sleep(1500);
-    }
-  }
-
-  // Oregistrerad kontakt – sätts EFTER alla UpdatePanel-postbacks (kategori,
-  // skyddskod) men FÖRE datum och titel, eftersom kontakt-knappen triggar
-  // en egen UpdatePanel som nollställer datumfältet.
-  // OBS: För Upprättat (60005) finns inget ToContactQuickSearchControl,
-  // men QuickUnregContactText finns för alla kategorier.
-  let kontaktLagdTill = false;
-  if (dok.oregistreradKontakt) {
-    const kontaktFält = iDoc.getElementById(
-      'PlaceHolderMain_MainView_Custom_QuickUnregContactText'
-    );
-    if (kontaktFält) {
-      kontaktFält.value = dok.oregistreradKontakt;
-      kontaktFält.dispatchEvent(new Event('change', { bubbles: true }));
-      const bekräftaBtn = iDoc.getElementById(
-        'PlaceHolderMain_MainView_Custom_QuickUnregContactButton'
-      );
-      if (bekräftaBtn) {
-        bekräftaBtn.click();
-        await sleep(1500);
-        kontaktLagdTill = true;
-      }
-    }
-  }
-
-  // Datum – sätts EFTER alla UpdatePanel-postbacks.
-  // Inkommande (110) → ReceivedDateControl (Ankomstdatum)
-  // Övriga (111, 60005, 112) → DispatchedDateControl (Färdigst/exp-datum)
-  // SI-datepicker har tre element:
-  //   _si_datepicker        = synligt textfält (name tom, postas EJ)
-  //   _si_datepicker_hidden = dolt fält (name=ctl00$..., postas till server)
-  const datumVärde = dok.datum || dok.ankomstdatum || ''; // bakåtkompatibel
-  if (datumVärde) {
-    let dd, mm, yyyy;
-    if (datumVärde === 'idag') {
-      const idag = new Date();
-      dd = String(idag.getDate()).padStart(2, '0');
-      mm = String(idag.getMonth() + 1).padStart(2, '0');
-      yyyy = idag.getFullYear();
-    } else {
-      const delar = datumVärde.split('-');
-      yyyy = delar[0]; mm = delar[1]; dd = delar[2];
-    }
-    const datumISO = `${yyyy}-${mm}-${dd}`;
-
-    // Välj rätt datumkontroll beroende på kategori
-    const datumPrefix = dok.kategori === '110'
-      ? 'PlaceHolderMain_MainView_ReceivedDateControl'
-      : 'PlaceHolderMain_MainView_DispatchedDateControl';
-
-    // Synligt fält (visar datumet för användaren)
-    const datumFält = iDoc.getElementById(datumPrefix + '_si_datepicker');
-    if (datumFält) {
-      datumFält.value = datumISO;
-    }
-
-    // Dolt fält som faktiskt postas – YYYY-MM-DD (ISO-format)
-    const doltFält = iDoc.getElementById(datumPrefix + '_si_datepicker_hidden');
-    if (doltFält) {
-      doltFält.value = datumISO;
-    }
-
-  }
-
-  // Titel – sätts sist så att eventuella UpdatePanels inte nollställer den.
-  // Hämta elementet på nytt ifall en UpdatePanel ersatte DOM-noden.
-  const aktuellTitel = iDoc.getElementById('PlaceHolderMain_MainView_TitleTextBoxControl');
-  if (aktuellTitel) {
-    aktuellTitel.value = dok.titel || '';
-    aktuellTitel.dispatchEvent(new Event('input', { bubbles: true }));
-    aktuellTitel.dispatchEvent(new Event('change', { bubbles: true }));
-  }
+  const { kontaktLagdTill } = await fyllDokumentFormulär(iDoc, iWin, dok, visaStatus);
 
   // ---------------------------------------------------------------
   // 3. Kontrollera obligatoriska fält – pausa om något saknas
@@ -688,7 +310,6 @@ async function skapaÄrendedokument(dok, visaStatus) {
     visaStatus(`Fyll i obligatoriska fält: ${tommaObl.join(', ')}`);
     const manuellResultat = await väntaPåAnvändarensSlutför(iframe, tommaObl);
     if (manuellResultat.cancelled) {
-      // Stäng dokumentformulärets iframe
       try { iframe.remove(); } catch { /* ignorera */ }
       return { cancelled: true };
     }
@@ -701,7 +322,7 @@ async function skapaÄrendedokument(dok, visaStatus) {
     if (slutförBtn) {
       slutförBtn.click();
     } else {
-      pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
+      iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
     }
   }
 
@@ -723,7 +344,6 @@ async function skapaÄrendedokument(dok, visaStatus) {
     } catch { /* cross-origin */ }
 
     // Stäng RepeatWizardDialog – välj "avsluta" (value=0), sedan OK
-    // Radioknappar: 0 = "avsluta", 1 = "registrera flera", 2 = "registrera flera baserat på sist"
     try {
       const rDoc = repeatIframe.contentDocument;
       const rWin = repeatIframe.contentWindow;
@@ -804,7 +424,6 @@ async function skapaAllaÄrendedokument(dokument, options) {
     try {
       const svar = await skapaÄrendedokument(dok, visaStatus);
 
-      // Kontrollera om användaren avbröt
       if (svar && svar.cancelled) {
         resultat.push({ titel: dok.titel, dokumentNummer: null, fel: null, avbruten: true });
         avbruten = true;
@@ -840,7 +459,6 @@ async function skapaAllaÄrendedokument(dokument, options) {
       sammanfattning += ' Misslyckade: ' + misslyckade.map(r => r.titel || '(utan titel)').join(', ');
     }
     visaStatus(sammanfattning);
-    // Ta bort statusfältet efter 8 sekunder
     setTimeout(() => statusBar.remove(), 8000);
   }
 

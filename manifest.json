@@ -51,6 +51,8 @@
         "page-arende-contacts.js",
         "page-arende-create.js",
         "page-document-options.js",
+        "page-document-validate.js",
+        "page-document-fill.js",
         "page-document-create.js",
         "page.js"
       ],
