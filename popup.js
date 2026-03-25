@@ -370,7 +370,27 @@ async function visaKlassificeringsvarningar() {
 }
 
 // Kör klassificeringsvalidering efter att dokumentmallar laddats
-setTimeout(visaKlassificeringsvarningar, 100);
+setTimeout(async () => {
+  const klass = await hämtaÄrendeKlassificering();
+  if (klass) {
+    visaKlassificeringsvarningar();
+  } else {
+    // Detaljpanelen kan vara ihopfälld – visa tips
+    const { dokumentmallar = [] } = await chrome.storage.local.get('dokumentmallar');
+    if (dokumentmallar.some(dm => dm.handlingstyp?.text)) {
+      const lista = document.getElementById('dokumentmalllista');
+      if (lista && !lista.querySelector('.klass-tips')) {
+        const tips = document.createElement('div');
+        tips.className = 'klass-tips';
+        tips.style.cssText =
+          'font-size:11px;color:#777;padding:4px 8px;margin-top:4px;' +
+          'border-top:1px solid #eee;line-height:1.3;';
+        tips.textContent = 'Tips: Fäll ut detaljpanelen på ärendet för att se varningar om handlingstyp.';
+        lista.appendChild(tips);
+      }
+    }
+  }
+}, 100);
 
 // ------------------------------------------------------------------
 // Hjälpfunktion

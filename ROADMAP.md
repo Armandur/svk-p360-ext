@@ -42,15 +42,6 @@ Flytta en punkt till "Klart" när den är implementerad och testad.
 - ✅ Index-numrering på ärendedokument (:1, :2 …) som motsvarar dokumentnumret i 360°.
 - ✅ Live-validering av handlingstyp mot klassificering vid ändring.
 
-**Nästa steg:**
-
-- **Stöd för Utgående och Upprättat** – dokumentskapandet hanterar just nu bara
-  Inkommande (kategori `110`). Utgående (`111`) har Brevdatum/Expedieringsdatum
-  (`DispatchedDateControl`) istället för Ankomstdatum, samt Mottagare istället för
-  Avsändare. Upprättat (`60005`) har troligen varken datum- eller kontaktfält att
-  fylla i automatiskt. Kartlägg skillnaderna, uppdatera `page-document-create.js`
-  och lägg till datumval per kategori i `dokument-mall.html`.
-
 **Återstår att testa/verifiera:**
 
 - Hela flödet ärendeskapande → ärendedokument i faktisk 360°-miljö
@@ -219,3 +210,6 @@ Funktioner som diskuterats men ännu inte prioriterats.
 | Buggfix: andra kontakten lades inte till vid flera kontakter i mall | 2026-03-24 |
 | Ärendedokument-formuläret kartlagt i CLAUDE.md | 2026-03-24 |
 | Passiv caching av Handlingstyp-alternativ (page-document-options.js) | 2026-03-24 |
+| Stöd för Utgående, Upprättat och Protokoll i dokumentskapande | 2026-03-25 |
+| Explicit skyddskod (Offentlig) när ärendet har annan default | 2026-03-25 |
+| Validering av handlingstyp mot ärendets klassificering (popup + formulär) | 2026-03-25 |

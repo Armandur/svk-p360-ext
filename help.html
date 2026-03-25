@@ -146,6 +146,64 @@
     innan det skickas.
   </p>
 
+  <h2>Dokumentmallar</h2>
+  <p>
+    Dokumentmallar används för att snabbt skapa ärendedokument (handlingar) med
+    förifyllda fält som handlingstyp, dokumentkategori, skyddskod, datum m.m.
+  </p>
+  <p>
+    Klicka på <strong>＋ Ny dokumentmall</strong> i popup-menyn för att skapa en mall.
+    Du kan sedan använda mallen direkt på ett öppet ärende via <strong>Använd</strong>.
+  </p>
+
+  <h3>Stödda dokumentkategorier</h3>
+  <table>
+    <thead>
+      <tr><th>Kategori</th><th>Datumfält</th><th>Kontaktfält</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Inkommande</td>
+        <td>Ankomstdatum</td>
+        <td>Avsändare (oregistrerad kontakt)</td>
+      </tr>
+      <tr>
+        <td>Utgående</td>
+        <td>Färdigst/exp-datum</td>
+        <td>Mottagare (oregistrerad kontakt)</td>
+      </tr>
+      <tr>
+        <td>Upprättat</td>
+        <td>Färdigst/exp-datum</td>
+        <td>Oregistrerad kontakt</td>
+      </tr>
+      <tr>
+        <td>Protokoll</td>
+        <td>Färdigst/exp-datum</td>
+        <td>Mottagare (oregistrerad kontakt)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Handlingstyp och klassificering</h3>
+  <p>
+    Handlingstyper i 360° är kopplade till ärendets klassificering. Om en dokumentmall
+    har en handlingstyp som inte matchar det aktuella ärendets klassificering visas en
+    varningstriangel (<span style="color:#b36b00;">⚠</span>) bredvid mallnamnet i popupen.
+  </p>
+  <div class="notera">
+    <strong>Tips:</strong> Fäll ut ärendets <em>Detaljer</em>-panel innan du öppnar tilläggets
+    popup. Då kan tillägget läsa klassificeringen och visa varningen direkt. Om panelen är
+    ihopfälld visas varningen först när du klickar "Använd".
+  </div>
+
+  <h3>Dokumentmallar i ärendemallar</h3>
+  <p>
+    Dokumentmallar kan även läggas till i en ärendemall. Då skapas en oberoende
+    <em>instans</em> (kopia) av mallen som kan redigeras utan att påverka
+    originalmallen. Dokumenten skapas automatiskt efter att ärendet skapats.
+  </p>
+
   <h2>Funktioner i popup-menyn</h2>
   <p>Klicka på tilläggsikonen i verktygsfältet för att öppna popup-menyn.</p>
 
