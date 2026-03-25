@@ -139,7 +139,20 @@ window.__p360OnMessageHandler = (request, sender, sendResponse) => {
     data.ärendeFlöde = request.ärendeFlöde || false;
   }
 
-  anropaSidan(request.action, data)
+  // Hämta fildata från chrome.storage.local om popup sparade dem där
+  // (filer kan vara för stora för sendMessage-gränsen på 64 MB)
+  const hämtaFiler = async () => {
+    if (!data.dokument) return;
+    for (const dok of data.dokument) {
+      if (dok.filerStorageNyckel) {
+        const stored = await chrome.storage.local.get(dok.filerStorageNyckel);
+        dok.filerBase64 = stored[dok.filerStorageNyckel] || [];
+        delete dok.filerStorageNyckel;
+      }
+    }
+  };
+
+  hämtaFiler().then(() => anropaSidan(request.action, data))
     .then(svar => sendResponse(svar))
     .catch(err => sendResponse({ success: false, fel: err.message }));
 

@@ -424,13 +424,46 @@ function filTillBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
-      // result = "data:application/pdf;base64,XXXX..."
       const base64 = reader.result.split(',')[1];
       resolve(base64);
     };
     reader.onerror = () => reject(new Error('Kunde inte läsa filen.'));
     reader.readAsDataURL(file);
   });
+}
+
+/**
+ * Sparar fildata i chrome.storage.local och skickar ett lättviktigt meddelande
+ * till content.js. Undviker 64 MB-gränsen på chrome.tabs.sendMessage.
+ *
+ * @param {Object[]} dokument – dokument-array (med filerBase64-fält)
+ */
+async function skickaFilDokument(dokument) {
+  // Extrahera fildata → storage, ersätt med referens
+  const filStorage = {};
+  for (let i = 0; i < dokument.length; i++) {
+    if (dokument[i].filerBase64?.length) {
+      const nyckel = `tempFiler_${i}`;
+      filStorage[nyckel] = dokument[i].filerBase64;
+      dokument[i] = { ...dokument[i], filerStorageNyckel: nyckel };
+      delete dokument[i].filerBase64;
+    }
+  }
+
+  // Spara fildata i storage (inga storleksbegränsningar i chrome.storage.local)
+  if (Object.keys(filStorage).length > 0) {
+    await chrome.storage.local.set(filStorage);
+  }
+
+  try {
+    await skicka({ action: 'skapaÄrendedokument', dokument });
+  } finally {
+    // Rensa temporär fildata oavsett resultat
+    const nycklar = Object.keys(filStorage);
+    if (nycklar.length > 0) {
+      await chrome.storage.local.remove(nycklar);
+    }
+  }
 }
 
 document.getElementById('btn-ladda-upp-filer').addEventListener('click', () => {
@@ -447,7 +480,6 @@ document.getElementById('fil-input').addEventListener('change', async (e) => {
   filStatus.textContent = `Förbereder ${filer.length} fil(er)…`;
 
   try {
-    // Konvertera filer till serialiserbart format (base64)
     const filData = [];
     for (const f of filer) {
       filStatus.textContent = `Läser ${f.name}…`;
@@ -456,12 +488,7 @@ document.getElementById('fil-input').addEventListener('change', async (e) => {
     }
 
     filStatus.textContent = `Skickar ${filer.length} fil(er) till 360°…`;
-
-    // Skicka till content.js → page.js
-    await skicka({
-      action: 'skapaÄrendedokument',
-      dokument: [{ filerBase64: filData }],
-    });
+    await skickaFilDokument([{ filerBase64: filData }]);
 
     filStatus.textContent = '';
     filStatus.style.display = 'none';
@@ -470,7 +497,6 @@ document.getElementById('fil-input').addEventListener('change', async (e) => {
     filStatus.style.color = '#c0392b';
   }
 
-  // Nollställ input så samma fil kan väljas igen
   e.target.value = '';
 });
 
@@ -489,7 +515,6 @@ document.getElementById('batch-fil-input').addEventListener('change', async (e) 
   batchFiler = Array.from(e.target.files);
   if (batchFiler.length === 0) return;
 
-  // Fyll dokumentmall-väljaren
   const { dokumentmallar = [] } = await chrome.storage.local.get('dokumentmallar');
   const sel = document.getElementById('batch-mall-val');
   sel.innerHTML = '<option value="">(ingen mall – enbart fil)</option>';
@@ -500,12 +525,10 @@ document.getElementById('batch-fil-input').addEventListener('change', async (e) 
     sel.appendChild(opt);
   });
 
-  // Visa panelen
   document.getElementById('batch-fil-info').textContent =
     `${batchFiler.length} fil(er) valda – varje fil blir ett eget ärendedokument.`;
   document.getElementById('batch-panel').style.display = '';
 
-  // Nollställ input
   e.target.value = '';
 });
 
@@ -522,7 +545,6 @@ document.getElementById('btn-batch-starta').addEventListener('click', async () =
   filStatus.style.display = '';
   filStatus.style.color = '#555';
 
-  // Hämta vald dokumentmall
   const mallId = document.getElementById('batch-mall-val').value;
   let mallData = {};
   if (mallId) {
@@ -535,19 +557,16 @@ document.getElementById('btn-batch-starta').addEventListener('click', async () =
     }
   }
 
-  // Konvertera alla filer till base64 och skapa ett dokument per fil
   const dokument = [];
   for (let i = 0; i < batchFiler.length; i++) {
     const f = batchFiler[i];
     filStatus.textContent = `Läser fil ${i + 1}/${batchFiler.length}: ${f.name}…`;
     const base64 = await filTillBase64(f);
 
-    // Varje fil → eget ärendedokument
     const dok = {
       ...mallData,
       filerBase64: [{ namn: f.name, typ: f.type, base64 }],
     };
-    // Om ingen titel: använd filnamnet (utan extension)
     if (!dok.titel) {
       dok.titel = f.name.replace(/\.[^.]+$/, '');
     }
@@ -556,15 +575,11 @@ document.getElementById('btn-batch-starta').addEventListener('click', async () =
 
   filStatus.textContent = `Skickar ${dokument.length} ärendedokument till 360°…`;
 
-  // Dölj panelen
   document.getElementById('batch-panel').style.display = 'none';
   batchFiler = [];
 
   try {
-    await skicka({
-      action: 'skapaÄrendedokument',
-      dokument,
-    });
+    await skickaFilDokument(dokument);
     filStatus.textContent = '';
     filStatus.style.display = 'none';
   } catch (err) {
