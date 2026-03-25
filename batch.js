@@ -2,6 +2,28 @@
 // Beror på mall-data.js, batch-data.js, batch-table.js, batch-run.js
 
 (async function init() {
+  // Kontrollera att en 360°-flik finns
+  async function kontrolleraP360Flik() {
+    const flik = await hittaP360Flik();
+    const varning = document.getElementById('flik-varning');
+    const ok = document.getElementById('flik-ok');
+    if (flik) {
+      varning.style.display = 'none';
+      ok.style.display = '';
+      // Visa flikens titel eller URL
+      const detalj = document.getElementById('flik-ok-detalj');
+      const beskrivning = flik.title || flik.url || '';
+      detalj.textContent = beskrivning.length > 80
+        ? beskrivning.substring(0, 80) + '…' : beskrivning;
+    } else {
+      varning.style.display = '';
+      ok.style.display = 'none';
+    }
+    return flik;
+  }
+  await kontrolleraP360Flik();
+  document.getElementById('btn-kontrollera-flik').addEventListener('click', kontrolleraP360Flik);
+
   // Ladda ärendemallar, dokumentmallar och cachade dropdown-alternativ
   const { mallar = [] } = await chrome.storage.local.get('mallar');
   const { dokumentmallar = [] } = await chrome.storage.local.get('dokumentmallar');
