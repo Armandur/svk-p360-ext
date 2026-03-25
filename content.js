@@ -131,11 +131,23 @@ if (!window.__p360PendingChecked) {
         const { batchKörning: bk } = await chrome.storage.local.get('batchKörning');
         if (bk) {
           const diarienummer = läsDiarienummerFrånDOM();
+          const resultat = svar.data || [];
+          const avbrutna = resultat.filter(r => r.avbruten);
+          const misslyckade = resultat.filter(r => r.fel);
+          let fel = null;
+          if (!svar.success) {
+            fel = svar.fel || 'Dokumentskapande misslyckades';
+          } else if (avbrutna.length > 0) {
+            fel = `Avbrutet av användaren (${resultat.length - avbrutna.length}/${resultat.length} dokument skapade)`;
+          } else if (misslyckade.length > 0) {
+            fel = misslyckade.map(r => r.fel).join('; ');
+          }
           await chrome.storage.local.set({
             batchRadKlar: {
               diarienummer,
-              dokument: (svar.data || []).map(d => d.dokumentNr || ''),
-              fel: svar.success ? null : (svar.fel || 'Dokumentskapande misslyckades'),
+              dokument: resultat.map(d => d.dokumentNr || d.dokumentNummer || ''),
+              avbruten: avbrutna.length > 0,
+              fel,
               tid: Date.now(),
             }
           });

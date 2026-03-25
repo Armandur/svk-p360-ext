@@ -357,6 +357,10 @@ async function startaBatch(baseMall, slots, inställningar) {
         if (!signal) {
           throw new Error('Dokumentskapande tog för lång tid (timeout 5 min)');
         }
+        if (signal.avbruten) {
+          // Användaren avbröt dokumentskapandet i 360°-dialogen
+          throw new Error(signal.fel || 'Dokumentskapande avbrutet av användaren');
+        }
         if (signal.fel) {
           throw new Error(`Dokumentfel: ${signal.fel}`);
         }
