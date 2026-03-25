@@ -160,8 +160,11 @@ async function läsIn() {
   fyllSelectFrånAlternativ('mall-ansvarig-enhet', inlästaAlternativ.ansvarigaEnheter, true);
   fyllSelectFrånAlternativ('mall-ansvarig-person', inlästaAlternativ.ansvarigaPersoner, true);
 
-  // Cacha instansspecifika alternativ för ärendedokument-formuläret
+  // Cacha instansspecifika alternativ för ärendedokument-formuläret och batch
   const cacheUppdatering = {};
+  if (inlästaAlternativ.diarieenheter?.length > 0) {
+    cacheUppdatering.cachedDiarieenheter = inlästaAlternativ.diarieenheter;
+  }
   if (inlästaAlternativ.ansvarigaPersoner?.length > 0) {
     cachedAnsvarigaPersoner = inlästaAlternativ.ansvarigaPersoner;
     cacheUppdatering.cachedAnsvarigaPersoner = cachedAnsvarigaPersoner;

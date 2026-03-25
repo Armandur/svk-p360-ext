@@ -192,7 +192,7 @@ async function startaBatch(baseMall, slots, inställningar) {
       batchResultat.push({
         rad: idx + 1,
         titel: rad.Titel || rad.titel || '',
-        kontakt: `${rad.Efternamn || ''}, ${rad.Förnamn || ''}`.trim(),
+        kontakt: rad.Namn || rad.namn || '',
         status: 'fel',
         fel: fel.join('; '),
       });
@@ -307,7 +307,7 @@ async function startaBatch(baseMall, slots, inställningar) {
       batchResultat.push({
         rad: idx + 1,
         titel: rad.Titel || rad.titel || '',
-        kontakt: `${rad.Efternamn || ''}, ${rad.Förnamn || ''}`.trim(),
+        kontakt: rad.Namn || rad.namn || '',
         diarienummer: diarienummer,
         dokument: (mall.ärendedokument || []).map(d => d._filnamn || d.titel || ''),
         status: 'klar',
@@ -319,7 +319,7 @@ async function startaBatch(baseMall, slots, inställningar) {
       batchResultat.push({
         rad: idx + 1,
         titel: rad.Titel || rad.titel || '',
-        kontakt: `${rad.Efternamn || ''}, ${rad.Förnamn || ''}`.trim(),
+        kontakt: rad.Namn || rad.namn || '',
         status: 'fel',
         fel: err.message,
       });

@@ -3,7 +3,7 @@
 
 // Tabelldata: array av rad-objekt. Varje rad har textfält + _filer (array av File-objekt per slot)
 let batchRader = [];
-let synligaKolumner = new Set(['Titel', 'Förnamn', 'Efternamn']);
+let synligaKolumner = new Set(['Titel', 'Namn']);
 let filKolumner = ['Fil_1']; // Standard: en filkolumn
 
 /**
@@ -82,6 +82,9 @@ function sparaFrånTabell() {
     tr.querySelectorAll('input[data-kol]').forEach(inp => {
       batchRader[idx][inp.dataset.kol] = inp.value;
     });
+    tr.querySelectorAll('select[data-kol]').forEach(sel => {
+      batchRader[idx][sel.dataset.kol] = sel.value;
+    });
   });
 }
 
@@ -154,14 +157,38 @@ function renderaTabell() {
     // Radnummer
     tr.innerHTML = `<td class="rad-nr">${idx + 1}</td>`;
 
-    // Textfält
+    // Fält (text eller select beroende på kolumndefinition)
     for (const kol of kolumner) {
       const td = document.createElement('td');
-      const inp = document.createElement('input');
-      inp.type = 'text';
-      inp.dataset.kol = kol;
-      inp.value = rad[kol] || '';
-      td.appendChild(inp);
+      const def = BATCH_KOLUMNER[kol];
+
+      if (def?.typ === 'select') {
+        const sel = document.createElement('select');
+        sel.dataset.kol = kol;
+        sel.style.cssText = 'width:100%;border:none;padding:4px;font-size:13px;background:transparent;';
+
+        // Hämta alternativ: fasta eller cachade
+        const alternativ = hämtaKolumnAlternativ(def.alternativNyckel);
+        const tomOpt = document.createElement('option');
+        tomOpt.value = '';
+        tomOpt.textContent = '–';
+        sel.appendChild(tomOpt);
+        for (const alt of alternativ) {
+          const opt = document.createElement('option');
+          opt.value = alt.value;
+          opt.textContent = alt.label;
+          sel.appendChild(opt);
+        }
+        sel.value = rad[kol] || '';
+        td.appendChild(sel);
+      } else {
+        const inp = document.createElement('input');
+        inp.type = 'text';
+        inp.dataset.kol = kol;
+        inp.value = rad[kol] || '';
+        td.appendChild(inp);
+      }
+
       tr.appendChild(td);
     }
 
@@ -320,6 +347,23 @@ function sättRadStatus(idx, status, text) {
 function uppdateraStartKnapp() {
   const btn = document.getElementById('btn-starta-batch');
   if (btn) btn.disabled = batchRader.length === 0;
+}
+
+/**
+ * Hämtar dropdown-alternativ för en kolumn.
+ * Kombinerar fasta (BATCH_FASTA_ALTERNATIV) och cachade (batchCachedAlternativ).
+ */
+function hämtaKolumnAlternativ(alternativNyckel) {
+  if (!alternativNyckel) return [];
+  // Fasta alternativ (skyddskoder, statusar, paragrafer)
+  if (BATCH_FASTA_ALTERNATIV[alternativNyckel]) {
+    return BATCH_FASTA_ALTERNATIV[alternativNyckel];
+  }
+  // Cachade instansspecifika alternativ (diarieenheter, ansvarigaPersoner)
+  if (batchCachedAlternativ[alternativNyckel]) {
+    return batchCachedAlternativ[alternativNyckel];
+  }
+  return [];
 }
 
 function escBatchHtml(str) {

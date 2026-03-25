@@ -2,9 +2,25 @@
 // Beror på mall-data.js, batch-data.js, batch-table.js, batch-run.js
 
 (async function init() {
-  // Ladda ärendemallar och fyll dropdown
+  // Ladda ärendemallar, dokumentmallar och cachade dropdown-alternativ
   const { mallar = [] } = await chrome.storage.local.get('mallar');
   const { dokumentmallar = [] } = await chrome.storage.local.get('dokumentmallar');
+
+  // Ladda cachade instansspecifika alternativ
+  const cached = await chrome.storage.local.get([
+    'cachedDiarieenheter', 'cachedAnsvarigaPersoner',
+  ]);
+  batchCachedAlternativ.diarieenheter = (cached.cachedDiarieenheter || [])
+    .map(d => ({ value: d.value, label: d.label || d.text || d.value }));
+  batchCachedAlternativ.ansvarigaPersoner = (cached.cachedAnsvarigaPersoner || [])
+    .map(p => ({ value: p.value, label: p.label || p.text || p.value }));
+
+  const harCachadeAlternativ = batchCachedAlternativ.diarieenheter.length > 0 ||
+                                batchCachedAlternativ.ansvarigaPersoner.length > 0;
+  if (!harCachadeAlternativ) {
+    const info = document.getElementById('mall-info');
+    info.innerHTML = 'Välj en ärendemall som grund. <em style="color:#e67e22;">Tips: Klicka "Läs in alternativ" i mallredigeraren för att cachea diarieenheter och ansvariga personer.</em>';
+  }
 
   const mallSelect = document.getElementById('batch-ärendemall');
   for (const mall of mallar) {
@@ -182,38 +198,10 @@
     const baseMall = JSON.parse(JSON.stringify(valdMall));
 
     // Lägg till cachade alternativ för per-rad-överstyrning
-    const cached = await chrome.storage.local.get([
-      'cachedDiarieenheter', 'cachedAnsvarigaPersoner',
-    ]);
-
-    // Diarieenheter från mallen eller cache
-    if (!baseMall._diarieenheter) {
-      // Bygg från mallen: om mallen har diarieenhet, inkludera den
-      const enheter = [];
-      if (baseMall.diarieenhet?.value) {
-        enheter.push({ value: baseMall.diarieenhet.value, text: baseMall.diarieenhet.label || '' });
-      }
-      // Lägg till cachade
-      if (cached.cachedDiarieenheter) {
-        for (const d of cached.cachedDiarieenheter) {
-          if (!enheter.some(e => e.value === d.value)) enheter.push(d);
-        }
-      }
-      if (enheter.length > 0) baseMall._diarieenheter = enheter;
-    }
-
-    if (!baseMall._ansvarigaPersoner) {
-      const personer = [];
-      if (baseMall.ansvarigPerson?.value) {
-        personer.push({ value: baseMall.ansvarigPerson.value, text: baseMall.ansvarigPerson.label || '' });
-      }
-      if (cached.cachedAnsvarigaPersoner) {
-        for (const p of cached.cachedAnsvarigaPersoner) {
-          if (!personer.some(e => e.value === p.value)) personer.push(p);
-        }
-      }
-      if (personer.length > 0) baseMall._ansvarigaPersoner = personer;
-    }
+    baseMall._diarieenheter = batchCachedAlternativ.diarieenheter
+      .map(d => ({ value: d.value, text: d.label || '' }));
+    baseMall._ansvarigaPersoner = batchCachedAlternativ.ansvarigaPersoner
+      .map(p => ({ value: p.value, text: p.label || '' }));
 
     const inställningar = {
       stängÄrende: document.getElementById('batch-stäng-ärende').checked,

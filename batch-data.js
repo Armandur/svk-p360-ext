@@ -2,11 +2,11 @@
 // Beror på mall-data.js (KO_PARAGRAFER, OSL_PARAGRAFER)
 
 // Kända CSV-kolumner och deras mappning till mallfält
+// typ: 'text' (default), 'select' (dropdown med cachade alternativ)
 const BATCH_KOLUMNER = {
   // Alltid synliga
   Titel:         { fält: 'titel',         obligatorisk: true,  standard: true },
-  Förnamn:       { fält: 'förnamn',       obligatorisk: true,  standard: true },
-  Efternamn:     { fält: 'efternamn',     obligatorisk: true,  standard: true },
+  Namn:          { fält: 'namn',          obligatorisk: true,  standard: true },
   // Valfria – kontakt
   Personnummer:  { fält: 'personnummer',  obligatorisk: false, standard: false },
   Adress:        { fält: 'adress',        obligatorisk: false, standard: false },
@@ -14,15 +14,40 @@ const BATCH_KOLUMNER = {
   Ort:           { fält: 'ort',           obligatorisk: false, standard: false },
   Epost:         { fält: 'epost',         obligatorisk: false, standard: false },
   Telefon:       { fält: 'telefon',       obligatorisk: false, standard: false },
-  // Valfria – ärendeöverstyrning
-  Diarieenhet:   { fält: 'diarieenhet',   obligatorisk: false, standard: false },
-  AnsvarigPerson:{ fält: 'ansvarigPerson',obligatorisk: false, standard: false },
-  Skyddskod:     { fält: 'skyddskod',     obligatorisk: false, standard: false },
-  Paragraf:      { fält: 'paragraf',      obligatorisk: false, standard: false },
+  // Valfria – ärendeöverstyrning (select = dropdown med cachade alternativ)
+  Diarieenhet:   { fält: 'diarieenhet',   obligatorisk: false, standard: false, typ: 'select', alternativNyckel: 'diarieenheter' },
+  AnsvarigPerson:{ fält: 'ansvarigPerson',obligatorisk: false, standard: false, typ: 'select', alternativNyckel: 'ansvarigaPersoner' },
+  Skyddskod:     { fält: 'skyddskod',     obligatorisk: false, standard: false, typ: 'select', alternativNyckel: 'skyddskoder' },
+  Paragraf:      { fält: 'paragraf',      obligatorisk: false, standard: false, typ: 'select', alternativNyckel: 'paragrafer' },
   OffentligTitel:{ fält: 'offentligTitel',obligatorisk: false, standard: false },
   Kommentar:     { fält: 'kommentar',     obligatorisk: false, standard: false },
   Ankomstdatum:  { fält: 'ankomstdatum',  obligatorisk: false, standard: false },
-  Status:        { fält: 'status',        obligatorisk: false, standard: false },
+  Status:        { fält: 'status',        obligatorisk: false, standard: false, typ: 'select', alternativNyckel: 'statusar' },
+};
+
+// Fasta dropdown-alternativ (ej instansspecifika)
+const BATCH_FASTA_ALTERNATIV = {
+  skyddskoder: [
+    { value: '0', label: 'Offentlig' },
+    { value: '100031', label: 'Sekretess KO' },
+    { value: '100032', label: 'Sekretess OSL' },
+  ],
+  statusar: [
+    { value: '5', label: 'B - Öppet' },
+    { value: '6', label: 'A - Avslutat' },
+    { value: '8', label: 'M - Makulerat' },
+    { value: '17', label: 'AH - Avslutat från handläggare' },
+  ],
+  paragrafer: [
+    ...KO_PARAGRAFER.map(p => ({ value: p, label: 'K - ' + p.replace('Kyrkoordningen ', '') })),
+    ...OSL_PARAGRAFER.map(p => ({ value: p, label: p })),
+  ],
+};
+
+// Cachade dropdown-alternativ (instansspecifika, fylls från chrome.storage.local)
+let batchCachedAlternativ = {
+  diarieenheter: [],
+  ansvarigaPersoner: [],
 };
 
 /**
@@ -132,8 +157,7 @@ function detekteraFilKolumner(headers) {
 function valideraRad(rad, slots) {
   const fel = [];
   if (!rad.Titel && !rad.titel) fel.push('Titel saknas');
-  if (!rad.Förnamn && !rad.förnamn) fel.push('Förnamn saknas');
-  if (!rad.Efternamn && !rad.efternamn) fel.push('Efternamn saknas');
+  if (!rad.Namn && !rad.namn) fel.push('Namn saknas');
 
   // Kolla att minst en fil finns om det finns slots
   if (slots.length > 0) {
@@ -159,34 +183,30 @@ function byggMallFrånRad(baseMall, rad, slots) {
   if (rad.Kommentar || rad.kommentar) mall.kommentar = rad.Kommentar || rad.kommentar;
   if (rad.Ankomstdatum || rad.ankomstdatum) mall.ankomstdatum = rad.Ankomstdatum || rad.ankomstdatum;
 
-  // Diarieenhet – matchning mot text
+  // Diarieenhet – direkt value-matchning (väljs via dropdown i tabellen)
   if (rad.Diarieenhet || rad.diarieenhet) {
-    const sök = (rad.Diarieenhet || rad.diarieenhet).toLowerCase();
+    const val = rad.Diarieenhet || rad.diarieenhet;
     if (mall._diarieenheter) {
-      const match = mall._diarieenheter.find(d =>
-        d.text.toLowerCase().includes(sök) || d.value === sök
-      );
-      if (match) mall.diarieenhet = match;
+      const match = mall._diarieenheter.find(d => d.value === val || d.text === val);
+      if (match) mall.diarieenhet = { value: match.value, label: match.text || match.label || '' };
     }
   }
 
-  // Ansvarig person – matchning mot text
+  // Ansvarig person – direkt value-matchning
   if (rad.AnsvarigPerson || rad.ansvarigPerson) {
-    const sök = (rad.AnsvarigPerson || rad.ansvarigPerson).toLowerCase();
+    const val = rad.AnsvarigPerson || rad.ansvarigPerson;
     if (mall._ansvarigaPersoner) {
-      const match = mall._ansvarigaPersoner.find(p =>
-        p.text.toLowerCase().includes(sök) || p.value === sök
-      );
-      if (match) mall.ansvarigPerson = match;
+      const match = mall._ansvarigaPersoner.find(p => p.value === val || p.text === val);
+      if (match) mall.ansvarigPerson = { value: match.value, label: match.text || match.label || '' };
     }
   }
 
-  // Skyddskod
+  // Skyddskod – value direkt (0, 100031, 100032)
   if (rad.Skyddskod || rad.skyddskod) {
-    const sk = (rad.Skyddskod || rad.skyddskod).toUpperCase();
-    if (sk === 'KO') mall.skyddskod = '100031';
-    else if (sk === 'OSL') mall.skyddskod = '100032';
-    else if (sk === 'OFFENTLIG' || sk === '0') mall.skyddskod = '0';
+    const sk = rad.Skyddskod || rad.skyddskod;
+    if (['0', '100031', '100032'].includes(sk)) {
+      mall.skyddskod = sk;
+    }
   }
   if (rad.Paragraf || rad.paragraf) mall.sekretessParag = rad.Paragraf || rad.paragraf;
   if (rad.OffentligTitel || rad.offentligTitel) {
@@ -194,11 +214,18 @@ function byggMallFrånRad(baseMall, rad, slots) {
     mall.offentligTitel = rad.OffentligTitel || rad.offentligTitel;
   }
 
-  // Bygg kontakt från CSV-rad
-  const förnamn = rad.Förnamn || rad.förnamn || '';
-  const efternamn = rad.Efternamn || rad.efternamn || '';
+  // Status – value direkt (5, 6, 8, 17)
+  if (rad.Status || rad.status) {
+    const st = rad.Status || rad.status;
+    if (['5', '6', '8', '17'].includes(st)) {
+      mall.status = st;
+    }
+  }
+
+  // Bygg kontakt från CSV-rad (P360 hanterar för-/efternamn själv)
+  const namn = rad.Namn || rad.namn || '';
   const kontakt = {
-    namn: `${efternamn}, ${förnamn}`.trim().replace(/^,\s*/, '').replace(/,\s*$/, ''),
+    namn: namn,
     roll: '9',
     personnummer: rad.Personnummer || rad.personnummer || '',
     adress: rad.Adress || rad.adress || '',
