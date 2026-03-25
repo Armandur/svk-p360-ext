@@ -316,21 +316,24 @@ async function läsKlassificeringFrånÄrende() {
   let el = document.getElementById(KLASS_ID);
 
   if (!el) {
-    // Panelen kan vara ihopfälld – fäll ut den tillfälligt
-    const expandBtn = document.getElementById(
-      'PlaceHolderMain_MainView_RightFolderView1_ExpandCollapse'
+    // Panelen är ihopfälld (aria-expanded="false") – fälten finns inte i DOM:en.
+    // Fäll ut via __doPostBack och vänta på att servern returnerar innehållet.
+    const wrapper = document.querySelector(
+      '.details-title-desc-wrapper[aria-expanded="false"]'
     );
-    if (expandBtn) {
-      expandBtn.click();
-      // Vänta på att DOM:en uppdateras
-      for (let i = 0; i < 20; i++) {
+    if (wrapper) {
+      __doPostBack('ctl00$PlaceHolderMain$MainView$RightFolderView1_ExpandCollapse', '');
+      // Vänta på att klassificeringsfältet dyker upp i DOM:en
+      for (let i = 0; i < 25; i++) {
         await sleep(200);
         el = document.getElementById(KLASS_ID);
         if (el) break;
       }
-      // Fäll ihop igen
+      // Fäll ihop igen så att sidan ser ut som innan
       if (el) {
-        setTimeout(() => expandBtn.click(), 300);
+        setTimeout(() => {
+          __doPostBack('ctl00$PlaceHolderMain$MainView$RightFolderView1_ExpandCollapse', '');
+        }, 300);
       }
     }
   }
