@@ -35,6 +35,15 @@
   // Exponera loggen direkt för inspektion
   window.p360SpyLogg = _logg;
 
+  // Rensa loggen – anrop innan nytt test så att loggarna inte bygger på varandra
+  window.p360SpyRensa = function () {
+    const antal = _logg.length;
+    _logg.length = 0;
+    console.log(`[spy] Rensade ${antal} poster. Loggen är nu tom.`);
+    const btn = document.getElementById('p360-spy-export-btn');
+    if (btn) { btn.textContent = '🧹 Rensat!'; setTimeout(() => { btn.textContent = '📥 Spy-export'; }, 1500); }
+  };
+
   // --- Flytande exportknapp ---
   function skapaExportKnapp() {
     const btn = document.createElement('button');
@@ -55,6 +64,22 @@
       btn.textContent = `✅ ${_logg.length} poster`;
       setTimeout(() => { btn.textContent = '📥 Spy-export'; }, 2000);
     });
+
+    // Rensa-knapp
+    const rensaBtn = document.createElement('button');
+    rensaBtn.id = 'p360-spy-rensa-btn';
+    rensaBtn.textContent = '🧹 Rensa';
+    rensaBtn.title = 'Rensa spy-loggen (gör detta mellan tester)';
+    rensaBtn.style.cssText =
+      'position:fixed;bottom:12px;right:140px;z-index:999999;' +
+      'padding:8px 14px;background:#7f8c8d;color:#fff;border:2px solid #e67e22;' +
+      'border-radius:6px;font-family:sans-serif;font-size:12px;font-weight:bold;' +
+      'cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);opacity:0.9;';
+    rensaBtn.addEventListener('mouseenter', () => { rensaBtn.style.opacity = '1'; });
+    rensaBtn.addEventListener('mouseleave', () => { rensaBtn.style.opacity = '0.9'; });
+    rensaBtn.addEventListener('click', () => window.p360SpyRensa());
+
+    document.body.appendChild(rensaBtn);
     document.body.appendChild(btn);
   }
   if (document.body) skapaExportKnapp();
