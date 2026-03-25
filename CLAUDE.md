@@ -938,13 +938,17 @@ visar/döljer fält. Alla kategorier har samma grund av fält (titel, handlingst
 ├── page-arende-options.js # Inläsning av formuläralternativ (NY_ÄRENDE_URL, läsInAlternativ)
 ├── page-arende-contacts.js # Lägg till oregistrerade externa kontakter
 ├── page-arende-create.js  # Skapa ärende från mall (skapaFrånMall)
-├── page-document-options.js # Passiv caching av Handlingstyp-alternativ
+├── page-document-options.js # Passiv caching av Handlingstyp-alternativ m.m.
 ├── page-document-create.js  # Skapa ärendedokument från mall (skapaÄrendedokument)
-├── dokument-mall.html     # Redigeringssida för dokumentmallar och instanser
-├── dokument-mall.js       # Logik för dokumentmallredigeraren (stöder instansläge via ?instans=1)
 ├── page.js                # Router i MAIN world (lyssnar på p360-anrop och dispatchar)
 ├── background.js          # Service worker – hanterar tangentbordskommandon
+├── mall.html              # Redigeringssida för ärendemallar
+├── mall.js                # Logik för ärendemallredigeraren
+├── dokument-mall.html     # Redigeringssida för dokumentmallar och instanser
+├── dokument-mall.js       # Logik för dokumentmallredigeraren (stöder instansläge via ?instans=1)
 ├── help.html              # Inbyggd hjälpsida (öppnas via "? Hjälp" i popup)
+├── help.js                # Logik för hjälpsidan
+├── arendepaus.html        # Paussida vid ärendeskapande (väntar på navigering)
 ├── icons/
 │   ├── icon16.png
 │   ├── icon48.png

@@ -5,78 +5,7 @@ Flytta en punkt till "Klart" när den är implementerad och testad.
 
 ---
 
-## Under arbete
-
-### Ärendedokument – mall och filuppladdning
-
-**Var vi är (2026-03-24):**
-
-- ✅ Ärendedokument-formuläret är fullständigt kartlagt i CLAUDE.md (formulärfält,
-  PostBack-nycklar, Inkommande/Utgående-kontakter, spara-sekvens, RepeatWizardDialog,
-  dokumentnummer-extraktion).
-- ✅ Passiv caching av Handlingstyp-alternativ (`ProcessRecordTypeControl`) implementerad:
-  `page-document-options.js` detekterar automatiskt när dokumentformuläret öppnas och
-  sparar tillgängliga handlingstyper (Selectize-alternativ) i `chrome.storage.local`
-  under nyckeln `cachedHandlingstyper`. Cachen är ackumulerande och dedupliceras på `value`.
-- ✅ Passiv caching av ansvarig enhet, åtkomstgrupp och ansvarig person från
-  dokumentformuläret (sparas i `chrome.storage.local`).
-- ✅ Dokumentmallar frikopplade från ärendemallar – lagras separat i
-  `chrome.storage.local` under nyckeln `dokumentmallar`. Kan användas:
-  - Fristående på befintliga ärenden (via popup "Använd")
-  - Som referenser i ärendemallar (väljs från sparade mallar)
-  - Redigeras via egen sida `dokument-mall.html`
-
-**Implementerat:**
-
-- ✅ Ärendedokument-sektion i mallredigeraren (mall.html/mall.js) – väljer bland
-  sparade dokumentmallar istället för inline-redigering.
-- ✅ Automatiskt skapande av ärendedokument (`page-document-create.js`) som del av
-  mallflödet – efter att ärendet skapats sparas pending-dokument i
-  `chrome.storage.local`, och efter navigering till ärendesidan skapas dokumenten
-  ett i taget med statusfält.
-- ✅ Fristående dokumentskapande från popup på befintligt ärende.
-- ✅ Instansmodell – dokumentmallar som läggs till i en ärendemall djupkopieras som
-  oberoende instanser. Varje instans kan redigeras utan att påverka originalmallen.
-  Redigering sker via `dokument-mall.html?instans=1` med temp-storage-kommunikation.
-- ✅ Drag-and-drop – externa kontakter och ärendedokument kan sorteras via DnD.
-- ✅ Index-numrering på ärendedokument (:1, :2 …) som motsvarar dokumentnumret i 360°.
-- ✅ Live-validering av handlingstyp mot klassificering vid ändring.
-
-**Långsiktigt:**
-
-1. **Filuppladdning** – möjlighet att ladda upp en fil (t.ex. PDF) till ett
-   ärendedokument. Kräver kartläggning av hur 360° hanterar fil-upload
-   (troligen multipart/form-data eller en separat dialog).
-
-2. **Arbetsdokument och Avtalsdokument** – utöka stödet till fler dokumenttyper
-   (andra subtype-värden än 61000).
-
-3. **Kontakter från ärende/projekt i ärendedokument** – när stöd för registrerade
-   kontakter (Kontaktperson, Organisation) läggs till på ärendenivå, bör man även
-   kunna välja "Hämta kontakt från ärende" i dokumentmallen. Då väljs en eller
-   flera av de kontakter som definierats i ärendemallen som avsändare/mottagare
-   på dokumentnivå. Se även notering nedan om oregistrerade kontakter.
-
----
-
 ## Planerat / Prioriterat
-
----
-
-### Mall-ärenden med förifyllda fält
-
-Möjlighet att skapa nya ärenden utifrån sparade mallar där fält som ärendetyp, status,
-handläggare, enhet m.m. redan är förifyllda. Användaren väljer en mall i popupen och
-tillägget fyller i formuläret automatiskt.
-
-- Mallarna lagras lokalt i `chrome.storage.local` (inga externa API-anrop)
-- Gränssnitt för att skapa, redigera och ta bort mallar (inställningssida)
-- Stöd för valfritt antal mallar med egna namn
-
-**Teknisk ansats (kartlagd 2026-03-20):**
-Formuläret öppnas via dialog-iframe, fält fylls med `element.selectize.setValue()` och
-`textarea.value`, sedan anropas `__doPostBack('...WizardNavigationButton', 'finish')` i
-iframe-kontexten. Se CLAUDE.md → "Skapa nytt ärende" för komplett teknisk spec.
 
 ### Massregistrering av in-/utträdesärenden från Excel/CSV
 
@@ -103,8 +32,6 @@ Primär användning: utträdesärenden (och inträden) från exportfiler ur past
    `Förnamn, Efternamn, In/utträde, Diarienummer, Skapad`
 
 **Tekniska utmaningar att lösa:**
-- Identifiera hur 360° returnerar det nya diarienumret efter att ett ärende skapats
-  (URL-redirect, DOM-element eller response-header)
 - Bifoga PDF-filer programmatiskt (kräver troligen access till File API + formulär-upload)
 - Hantera fel per rad utan att avbryta hela batchen
 - Köhantering så att 360° inte överbelastas (fördröjning mellan ärenden)
@@ -139,22 +66,45 @@ skyddskod, ansvarig enhet osv.).
 
 ---
 
-## Kända begränsningar / ej testat
+## Långsiktigt
+
+### Filuppladdning till ärendedokument
+
+Möjlighet att ladda upp en fil (t.ex. PDF) till ett ärendedokument. Kräver
+kartläggning av hur 360° hanterar fil-upload (troligen multipart/form-data
+eller en separat dialog).
+
+### Arbetsdokument och Avtalsdokument
+
+Utöka stödet till fler dokumenttyper (andra subtype-värden än 61000).
+
+### Kontakter från ärende/projekt i ärendedokument
+
+När stöd för registrerade kontakter (Kontaktperson, Organisation) läggs till
+på ärendenivå, bör man även kunna välja "Hämta kontakt från ärende" i
+dokumentmallen. Då väljs en eller flera av de kontakter som definierats i
+ärendemallen som avsändare/mottagare på dokumentnivå.
+
+### Stöd för registrerade kontakter (Kontaktperson/Organisation)
+
+Externa kontakter stöder för närvarande bara typen Oregistrerad kontakt.
+Kontaktperson och Organisation kräver ytterligare kartläggning och
+implementation. Registrerade kontakter delar samma post och uppdateras
+centralt, vilket löser problemet med att oregistrerade kontakter är
+fristående kopior.
+
+---
+
+## Kända begränsningar
 
 - **Testad roll:** Tillägget är hittills enbart testat med rollen **registrator /
   huvudregistrator**. Beteendet för rollerna **Handläggare**, **Handläggare+**,
   **Mötessekreterare** och **Ansökan KAE** är okänt – dessa kan ha annorlunda
   behörigheter, andra tillgängliga fält eller annorlunda PostBack-nycklar.
-- **Kontakttyp:** Externa kontakter stöder för närvarande bara typen
-  **Oregistrerad kontakt**. Kontaktperson och Organisation kräver ytterligare
-  kartläggning och implementation.
 - **Oregistrerade kontakter är fristående kopior:** En oregistrerad kontakt som
   skapas på ärendenivå och sedan hämtas in som avsändare/mottagare på ett
   ärendedokument blir en helt separat kopia. Ändringar på ärendenivån påverkar
-  inte dokumentkontakten och vice versa. Detta är en begränsning i 360° som
-  inte kan kringgås. Registrerade kontakter (Kontaktperson/Organisation) delar
-  däremot samma post och uppdateras centralt – framtida stöd för dessa
-  kontakttyper löser problemet.
+  inte dokumentkontakten och vice versa. Detta är en begränsning i 360°.
 - **Dubblettvarning:** Om namnet liknar en befintlig kontakt i 360° visas dialogen
   "Möjliga dubbletter i kontaktlistan". Tillägget svarar alltid med "Spara/Skapa ny"
   och skapar alltså alltid en ny oregistrerad kontakt, oavsett om en matchande
@@ -189,12 +139,18 @@ Funktioner som diskuterats men ännu inte prioriterats.
 | Redigera egenskaper, utlåning, gallring, spara som nytt, kopiera hyperlänk, ärendesammanfattning, processplan | 2025 |
 | Växla status (Öppet ↔ Avslutat) + snabbkommando Alt+Shift+S | 2026-03-20 |
 | Inbyggd hjälpsida (help.html) | 2026-03-20 |
+| Mall-ärenden med förifyllda fält (mallredigerare, popup, automatisk formulärifyllning) | 2026-03-20 |
+| Sekretessfält i mallredigeraren (skyddskod, paragraf, offentlig titel) | 2026-03-20 |
 | Mall-ärenden: stöd för externa kontakter (oregistrerade) | 2026-03-24 |
-| Buggfix: andra kontakten lades inte till vid flera kontakter i mall | 2026-03-24 |
-| Ärendedokument-formuläret kartlagt i CLAUDE.md | 2026-03-24 |
-| Passiv caching av Handlingstyp-alternativ (page-document-options.js) | 2026-03-24 |
+| Ärendedokument – fristående dokumentmallar med egen redigeringssida | 2026-03-24 |
+| Ärendedokument – instansmodell (djupkopierade dokumentmallar i ärendemallar) | 2026-03-24 |
+| Passiv caching av handlingstyper, åtkomstgrupper, enheter och personer | 2026-03-24 |
+| Automatiskt skapande av ärendedokument som del av ärendeskapandeflödet | 2026-03-24 |
+| Fristående dokumentskapande från popup på befintligt ärende | 2026-03-24 |
+| Drag-and-drop-sortering av externa kontakter och ärendedokument | 2026-03-24 |
 | Stöd för Utgående, Upprättat och Protokoll i dokumentskapande | 2026-03-25 |
 | Explicit skyddskod (Offentlig) när ärendet har annan default | 2026-03-25 |
 | Validering av handlingstyp mot ärendets klassificering (popup + formulär) | 2026-03-25 |
+| Projekt och Fastighet i ärendemallar och dokumentmallar (typeahead med %-sökning) | 2026-03-25 |
+| Polling istället för fasta väntetider mellan ärendedokument | 2026-03-25 |
 | Fullständigt flöde ärendeskapande → ärendedokument testat och verifierat | 2026-03-25 |
-| Projekt och Fastighet i mallredigeraren (typeahead med %-sökning) | 2026-03-25 |
