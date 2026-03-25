@@ -269,9 +269,10 @@ async function läsIn() {
   }
 
   const delarkivAntal = inlästaAlternativ.delarkiv?.length ?? 0;
+  const personAntal = inlästaAlternativ.ansvarigaPersoner?.length ?? 0;
   const projektAntal = inlästaAlternativ.projekt?.length ?? 0;
   const fastighetsAntal = inlästaAlternativ.fastigheter?.length ?? 0;
-  status.textContent = `✓ Inläst: ${inlästaAlternativ.diarieenheter.length} diarieenheter, ${delarkivAntal} delarkiv, ${inlästaAlternativ.ansvarigaEnheter.length} enheter, ${projektAntal} projekt, ${fastighetsAntal} fastigheter.`;
+  status.textContent = `✓ Inläst: ${inlästaAlternativ.diarieenheter.length} diarieenheter, ${delarkivAntal} delarkiv, ${inlästaAlternativ.ansvarigaEnheter.length} enheter, ${personAntal} personer, ${projektAntal} projekt, ${fastighetsAntal} fastigheter.`;
   knapp.disabled = false;
   knapp.textContent = 'Läs in igen';
 }

@@ -142,10 +142,19 @@ async function försökLäsTypeahead(doc, win, prefix) {
     }
   }
 
-  // Trigga OnClick_PostBack som startar AJAX-sökningen
-  const postBackId = 'ctl00$PlaceHolderMain$MainView$' +
-    prefix.replace('PlaceHolderMain_MainView_', '') + '_OnClick_PostBack';
-  try { win.__doPostBack(postBackId, ''); } catch { /* PostBack ej tillgänglig */ }
+  // Strategi 1: Anropa QuickSearchOnClick om den finns (Projekt/Fastighet)
+  // Strategi 2: Klicka OnClick_PostBack-länken direkt
+  // Strategi 3: __doPostBack som fallback (Klassificering)
+  const onClickLink = doc.getElementById(prefix + '_OnClick_PostBack');
+  if (win.QuickSearchOnClick && visFält) {
+    try { win.QuickSearchOnClick(visFält); } catch { /* */ }
+  } else if (onClickLink) {
+    try { onClickLink.click(); } catch { /* */ }
+  } else {
+    const postBackId = 'ctl00$PlaceHolderMain$MainView$' +
+      prefix.replace('PlaceHolderMain_MainView_', '') + '_OnClick_PostBack';
+    try { win.__doPostBack(postBackId, ''); } catch { /* */ }
+  }
 
   // Vänta tills _dropDownList har fått alternativ via AJAX
   await new Promise(resolve => {
