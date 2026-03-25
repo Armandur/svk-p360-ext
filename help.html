@@ -5,7 +5,7 @@
   <title>360° Hjälptillägg – Hjälp</title>
   <style>
     body {
-      max-width: 640px;
+      max-width: 680px;
       margin: 0 auto;
       padding: 24px 20px 40px;
       font-family: sans-serif;
@@ -30,7 +30,12 @@
       color: #555;
       border-bottom: 1px solid #ddd;
       padding-bottom: 4px;
-      margin: 24px 0 10px;
+      margin: 28px 0 10px;
+    }
+    h3 {
+      font-size: 13px;
+      color: #333;
+      margin: 16px 0 6px;
     }
     table {
       width: 100%;
@@ -68,17 +73,48 @@
       margin: 12px 0;
       font-size: 13px;
     }
+    .steg {
+      counter-reset: steg;
+      padding-left: 0;
+      list-style: none;
+    }
+    .steg li {
+      counter-increment: steg;
+      margin-bottom: 6px;
+      padding-left: 28px;
+      position: relative;
+    }
+    .steg li::before {
+      content: counter(steg);
+      position: absolute;
+      left: 0;
+      width: 20px;
+      height: 20px;
+      background: #0078d4;
+      color: #fff;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
     .footer {
       margin-top: 32px;
       font-size: 12px;
       color: #aaa;
       text-align: center;
     }
+    code {
+      background: #f3f3f3;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
   <h1>360° Hjälptillägg</h1>
-  <div class="version">Svenska kyrkan &mdash; Hjälpmedel för P360/360°</div>
+  <div class="version">Svenska kyrkan &mdash; Hjälpmedel för P360/360° &mdash; v1.1</div>
 
   <h2>Om tillägget</h2>
   <p>
@@ -130,20 +166,31 @@
     Med mallar kan du skapa nya ärenden med förifyllda fält – klassificering, skyddskod,
     ansvarig enhet, status med mera – med ett enda knapptryck.
   </p>
-  <p>
-    Klicka på <strong>＋ Ny mall</strong> i popup-menyn för att öppna mallinställningarna.
-    Där fyller du i de fält som alltid ska vara desamma och sparar mallen med ett namn.
-  </p>
-  <p>
-    När du vill skapa ett ärende: klicka på <strong>Använd</strong> bredvid mallen,
-    justera ärendetiteln och klicka <strong>Skapa ärende</strong>. Tillägget öppnar
-    formuläret i 360°, fyller i alla fält och skickar det – du hamnar direkt på det
-    nya ärendet.
-  </p>
-  <p>
-    En mall kan också ha inställningen <em>"Pausa innan skicka"</em> – då stannar
+  <ol class="steg">
+    <li>Klicka <strong>＋ Ny mall</strong> i popup-menyn för att öppna mallredigeraren.</li>
+    <li>Fyll i fälten som alltid ska vara desamma (klassificering, åtkomstgrupp, ansvarig enhet m.m.) och spara med ett namn.</li>
+    <li>Klicka <strong>Använd</strong> bredvid mallen i popupen, justera ärendetiteln och klicka <strong>Skapa ärende</strong>.</li>
+    <li>Tillägget öppnar formuläret i 360°, fyller i alla fält och skickar – du hamnar direkt på det nya ärendet.</li>
+  </ol>
+  <div class="notera">
+    <strong>Tips:</strong> Med inställningen <em>"Pausa innan skicka"</em> stannar
     tillägget efter att fälten fyllts i så att du kan granska formuläret manuellt
     innan det skickas.
+  </div>
+
+  <h3>Externa kontakter i mallar</h3>
+  <p>
+    En mall kan inkludera oregistrerade externa kontakter (ärendepart). Kontakternas
+    uppgifter (namn, adress, personnummer m.m.) sparas i mallen och läggs till
+    automatiskt vid ärendeskapande. Kontakterna kan sorteras med dra-och-släpp.
+  </p>
+
+  <h3>Ärendedokument i mallar</h3>
+  <p>
+    Dokumentmallar kan läggas till i en ärendemall. Då skapas en oberoende
+    <em>instans</em> (kopia) som kan redigeras utan att påverka originalmallen.
+    Dokumenten skapas automatiskt efter att ärendet skapats. Du kan även bifoga
+    filer till varje dokumentinstans.
   </p>
 
   <h2>Dokumentmallar</h2>
@@ -152,7 +199,7 @@
     förifyllda fält som handlingstyp, dokumentkategori, skyddskod, datum m.m.
   </p>
   <p>
-    Klicka på <strong>＋ Ny dokumentmall</strong> i popup-menyn för att skapa en mall.
+    Klicka <strong>＋ Ny dokumentmall</strong> i popup-menyn för att skapa en mall.
     Du kan sedan använda mallen direkt på ett öppet ärende via <strong>Använd</strong>.
   </p>
 
@@ -165,22 +212,22 @@
       <tr>
         <td>Inkommande</td>
         <td>Ankomstdatum</td>
-        <td>Avsändare (oregistrerad kontakt)</td>
+        <td>Avsändare</td>
       </tr>
       <tr>
         <td>Utgående</td>
         <td>Färdigst/exp-datum</td>
-        <td>Mottagare (oregistrerad kontakt)</td>
+        <td>Mottagare</td>
       </tr>
       <tr>
         <td>Upprättat</td>
         <td>Färdigst/exp-datum</td>
-        <td>Oregistrerad kontakt</td>
+        <td>–</td>
       </tr>
       <tr>
         <td>Protokoll</td>
         <td>Färdigst/exp-datum</td>
-        <td>Mottagare (oregistrerad kontakt)</td>
+        <td>Mottagare</td>
       </tr>
     </tbody>
   </table>
@@ -197,12 +244,78 @@
     ihopfälld visas varningen först när du klickar "Använd".
   </div>
 
-  <h3>Dokumentmallar i ärendemallar</h3>
+  <h3>Filuppladdning</h3>
   <p>
-    Dokumentmallar kan även läggas till i en ärendemall. Då skapas en oberoende
-    <em>instans</em> (kopia) av mallen som kan redigeras utan att påverka
-    originalmallen. Dokumenten skapas automatiskt efter att ärendet skapats.
+    Du kan bifoga filer till ärendedokument på två sätt:
   </p>
+  <ul>
+    <li><strong>Ladda upp fil(er) till nytt ärendedokument</strong> – öppnar dokumentformuläret
+      med filerna redan uppladdade. Välj valfri dokumentmall.</li>
+    <li><strong>Batch: en fil per ärendedokument</strong> – välj flera filer; varje fil skapar
+      ett eget ärendedokument med valfri dokumentmall.</li>
+  </ul>
+
+  <h2>Massregistrering</h2>
+  <p>
+    Massregistrering skapar många ärenden i batch utifrån en CSV-fil eller manuellt
+    tillagda rader. Varje rad blir ett ärende med kontaktperson, ärendedokument och
+    valfri statusändring.
+  </p>
+  <ol class="steg">
+    <li><strong>Välj ärendemall</strong> – gemensam grund för alla ärenden (klassificering, åtkomstgrupp, ansvarig enhet m.m.).</li>
+    <li><strong>Konfigurera dokumentslotsar</strong> – koppla varje <code>Fil_N</code>-kolumn till en dokumentmall. Kontaktrollen (avsändare/mottagare) bestäms av dokumentmallens kategori.</li>
+    <li><strong>Importera CSV</strong> eller lägg till rader manuellt i tabellen. Kolumner: Titel, Förnamn, Efternamn, Personnummer, Adress, Fil_1, Fil_2 m.m.</li>
+    <li><strong>Koppla filer</strong> – klicka "Koppla filer" och välj de PDF:er/filer som nämns i Fil-kolumnerna. Tillägget matchar filnamn automatiskt.</li>
+    <li><strong>Starta batch</strong> – ärendena skapas sekventiellt. Du kan avbryta när som helst.</li>
+  </ol>
+
+  <h3>CSV-format</h3>
+  <p>
+    CSV-filen ska vara semikolon- eller kommaseparerad. Första raden är kolumnrubriker.
+  </p>
+  <table>
+    <thead>
+      <tr><th>Kolumn</th><th>Obligatorisk</th><th>Beskrivning</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Titel</td><td>Ja</td><td>Ärendetitel</td></tr>
+      <tr><td>Förnamn</td><td>Ja</td><td>Kontaktpersonens förnamn</td></tr>
+      <tr><td>Efternamn</td><td>Ja</td><td>Kontaktpersonens efternamn</td></tr>
+      <tr><td>Personnummer</td><td>Nej</td><td>Pers/org-nummer</td></tr>
+      <tr><td>Adress</td><td>Nej</td><td>Postadress</td></tr>
+      <tr><td>Postnummer</td><td>Nej</td><td>Postnummer</td></tr>
+      <tr><td>Ort</td><td>Nej</td><td>Ort</td></tr>
+      <tr><td>Epost</td><td>Nej</td><td>E-postadress</td></tr>
+      <tr><td>Telefon</td><td>Nej</td><td>Telefonnummer</td></tr>
+      <tr><td>Fil_1, Fil_2, …</td><td>Nej</td><td>Filnamn som kopplas till dokumentslotsar</td></tr>
+      <tr><td>Kommentar</td><td>Nej</td><td>Ärendekommentar (flik 5 i formuläret)</td></tr>
+      <tr><td>Ankomstdatum</td><td>Nej</td><td>Datum för inkommande dokument</td></tr>
+      <tr><td>Status</td><td>Nej</td><td>Överstyr status (t.ex. "Avslutat")</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Filkoppling</h3>
+  <p>
+    CSV-filen innehåller bara filnamn (t.ex. <code>ansökan_eriksson.pdf</code>), inte
+    filerna själva. Använd knappen <strong>Koppla filer</strong> för att välja de faktiska
+    filerna. Tillägget matchar filnamn i tabellen mot de valda filerna.
+  </p>
+  <ul>
+    <li>📄 = fil kopplad</li>
+    <li>⚠ = filnamn i tabellen men ingen fil kopplad (varnar vid start)</li>
+  </ul>
+
+  <h3>Under körning</h3>
+  <p>
+    Batchkörningen sker sekventiellt – ett ärende i taget. Håll 360°-fliken synlig
+    under körningen. Om obligatoriska fält saknar värden pausar körningen och
+    väntar på att du fyller i manuellt i 360°.
+  </p>
+  <div class="notera">
+    <strong>Avbryta:</strong> Klicka <strong>Avbryt</strong> för att stoppa efter nästa ärende.
+    Redan skapade ärenden och dokument finns kvar i 360° och måste makuleras manuellt
+    om de inte ska behållas.
+  </div>
 
   <h2>Funktioner i popup-menyn</h2>
   <p>Klicka på tilläggsikonen i verktygsfältet för att öppna popup-menyn.</p>
@@ -216,20 +329,19 @@
         <td><strong>Dagboksblad</strong></td>
         <td>
           Öppnar dagboksbladet i ett popup-fönster och visar utskriftsdialogen automatiskt.
-          Kräver att popup-fönster är tillåtna för p360.svenskakyrkan.se i webbläsaren.
+          Kräver att popup-fönster är tillåtna för p360.svenskakyrkan.se.
         </td>
       </tr>
       <tr>
         <td><strong>Växla status</strong></td>
         <td>
           Växlar automatiskt ärendets status: Öppet → Avslutat, Avslutat → Öppet.
-          Dialogen öppnas och stängs utan manuell interaktion.
         </td>
       </tr>
       <tr>
         <td><strong>Sätt status</strong></td>
         <td>
-          Välj ett specifikt statusvärde i listan (Öppet, Avslutat, Avslutat från
+          Välj ett specifikt statusvärde (Öppet, Avslutat, Avslutat från
           handläggare, Makulerat) och klicka "Sätt status".
         </td>
       </tr>
@@ -261,6 +373,10 @@
         <td><strong>Tilldela processplan</strong></td>
         <td>Öppnar dialogen för att tilldela en processplan till ärendet.</td>
       </tr>
+      <tr>
+        <td><strong>Massregistrering</strong></td>
+        <td>Öppnar massregistreringssidan för batch-skapande av ärenden från CSV.</td>
+      </tr>
     </tbody>
   </table>
 
@@ -271,11 +387,13 @@
   </div>
   <ul>
     <li>Dagboksbladsfunktionen kräver att popup-fönster är tillåtna för <code>p360.svenskakyrkan.se</code>.</li>
+    <li>Massregistrering kräver att 360° är öppet i en annan flik.</li>
     <li>
       Efter en uppdatering av tillägget kan det behöva laddas om via
       <code>chrome://extensions</code> (klicka på uppdateringsikonen).
     </li>
     <li>Tillägget lagrar eller skickar aldrig känslig information utanför webbläsaren.</li>
+    <li>Tillägget är testat med rollen registrator/huvudregistrator. Andra roller kan ha annorlunda beteende.</li>
   </ul>
 
   <div class="footer">360° Hjälptillägg &mdash; Svenska kyrkan</div>
