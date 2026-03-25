@@ -137,7 +137,6 @@ async function läsIn() {
     svar = await chrome.tabs.sendMessage(tab.id, { action: 'läsInAlternativ' });
   } catch {
     try {
-      await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['page.js'], world: 'MAIN' });
       await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'], world: 'ISOLATED' });
       await new Promise(r => setTimeout(r, 400));
       svar = await chrome.tabs.sendMessage(tab.id, { action: 'läsInAlternativ' });

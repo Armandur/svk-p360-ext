@@ -50,32 +50,13 @@ async function skicka(meddelande) {
   try {
     svar = await chrome.tabs.sendMessage(tab.id, meddelande);
   } catch {
-    // Content script saknas – injicera alla MAIN-world-filer + content.js
+    // Content script saknas – injicera content.js (MAIN-world-filer laddas av manifest)
     try {
-      await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: [
-          'page-utils.js',
-          'page-dagboksblad.js',
-          'page-status.js',
-          'page-arende-options.js',
-          'page-arende-contacts.js',
-          'page-arende-create.js',
-          'page-document-options.js',
-          'page-document-validate.js',
-          'page-document-fill.js',
-          'page-document-upload.js',
-          'page-document-create.js',
-          'page.js',
-        ],
-        world: 'MAIN',
-      });
       await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         files: ['content.js'],
         world: 'ISOLATED',
       });
-      // Ge scripts tid att registrera sina lyssnare
       await new Promise(r => setTimeout(r, 300));
       svar = await chrome.tabs.sendMessage(tab.id, meddelande);
     } catch {
@@ -217,7 +198,6 @@ document.getElementById('btn-skapa-ärende').addEventListener('click', async () 
     await chrome.tabs.sendMessage(tab.id, { action: 'skapaFrånMall', mall: mallMedTitel });
   } catch {
     try {
-      await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['page.js'], world: 'MAIN' });
       await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content.js'], world: 'ISOLATED' });
       await new Promise(r => setTimeout(r, 400));
       chrome.tabs.sendMessage(tab.id, { action: 'skapaFrånMall', mall: mallMedTitel });
