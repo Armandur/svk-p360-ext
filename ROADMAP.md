@@ -32,7 +32,7 @@ Primär användning: utträdesärenden (och inträden) från exportfiler ur past
    `Förnamn, Efternamn, In/utträde, Diarienummer, Skapad`
 
 **Tekniska utmaningar att lösa:**
-- Bifoga PDF-filer programmatiskt (kräver troligen access till File API + formulär-upload)
+- ~~Bifoga PDF-filer programmatiskt~~ → Löst (filuppladdning via FileUpload.ashx + eval i iframe-kontext)
 - Hantera fel per rad utan att avbryta hela batchen
 - Köhantering så att 360° inte överbelastas (fördröjning mellan ärenden)
 
@@ -68,11 +68,11 @@ skyddskod, ansvarig enhet osv.).
 
 ## Långsiktigt
 
-### Filuppladdning till ärendedokument
+### Batchuppladdning (mapp → ett ärendedokument per fil)
 
-Möjlighet att ladda upp en fil (t.ex. PDF) till ett ärendedokument. Kräver
-kartläggning av hur 360° hanterar fil-upload (troligen multipart/form-data
-eller en separat dialog).
+Möjlighet att välja en mapp i popup och automatiskt skapa ett ärendedokument
+per fil. Varje fil skapar ett nytt dokument med filen bifogad. Kräver
+filuppladdning (implementerad) och en loop i popup som itererar filerna.
 
 ### Arbetsdokument och Avtalsdokument
 
@@ -154,3 +154,6 @@ Funktioner som diskuterats men ännu inte prioriterats.
 | Projekt och Fastighet i ärendemallar och dokumentmallar (typeahead med %-sökning) | 2026-03-25 |
 | Polling istället för fasta väntetider mellan ärendedokument | 2026-03-25 |
 | Fullständigt flöde ärendeskapande → ärendedokument testat och verifierat | 2026-03-25 |
+| Filuppladdning till ärendedokument (popup + ärendemallsflöde) | 2026-03-25 |
+| Refaktorering: page-document-create.js → validate/fill/upload/create | 2026-03-25 |
+| Refaktorering: mall.js → mall-data/mall-kontakter/mall-dokument/mall | 2026-03-25 |
