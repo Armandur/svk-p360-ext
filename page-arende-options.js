@@ -169,43 +169,46 @@ async function försökLäsTypeahead(doc, win, prefix) {
   if (!dropDown) return [];
 
   const visFält = doc.getElementById(prefix + '_DISPLAY');
-  if (visFält) {
-    visFält.value = '%';
-    for (const t of ['focus', 'input', 'keydown', 'keyup']) {
-      try { visFält.dispatchEvent(new Event(t, { bubbles: true })); } catch { /* */ }
-    }
+  if (!visFält) return [];
+
+  // Sätt söktext och trigga events
+  visFält.value = '%';
+  for (const t of ['focus', 'input', 'keydown', 'keyup']) {
+    try { visFält.dispatchEvent(new Event(t, { bubbles: true })); } catch { /* */ }
   }
 
-  // Strategi 1: Anropa QuickSearchOnClick om den finns (Projekt/Fastighet)
-  // Strategi 2: Klicka OnClick_PostBack-länken direkt
-  // Strategi 3: __doPostBack som fallback (Klassificering)
-  const onClickLink = doc.getElementById(prefix + '_OnClick_PostBack');
-  if (win.QuickSearchOnClick && visFält) {
-    try { win.QuickSearchOnClick(visFält); } catch { /* */ }
-  } else if (onClickLink) {
-    try { onClickLink.click(); } catch { /* */ }
-  } else {
-    const postBackId = 'ctl00$PlaceHolderMain$MainView$' +
-      prefix.replace('PlaceHolderMain_MainView_', '') + '_OnClick_PostBack';
-    try { win.__doPostBack(postBackId, ''); } catch { /* */ }
-  }
+  // Sökning triggas av HiddenButton-postback (inte OnClick_PostBack).
+  // UpdatePanel ersätter hela formuläret – _dropDownList återskapas i DOM:en.
+  // Använd PageRequestManager för att vänta på att UpdatePanel-svaret kommit.
+  const hiddenBtnId = 'ctl00$PlaceHolderMain$MainView$' +
+    prefix.replace('PlaceHolderMain_MainView_', '') + 'HiddenButton';
 
-  // Vänta tills _dropDownList har fått alternativ via AJAX
   await new Promise(resolve => {
-    const start = Date.now();
-    const check = setInterval(() => {
-      const antal = dropDown.options?.length ?? 0;
-      if (antal > 0 || Date.now() - start > 12000) { clearInterval(check); resolve(); }
-    }, 300);
+    let done = false;
+    const finish = () => { if (!done) { done = true; resolve(); } };
+    const prm = win.Sys?.WebForms?.PageRequestManager?.getInstance();
+    if (prm) {
+      const handler = () => { prm.remove_endRequest(handler); finish(); };
+      prm.add_endRequest(handler);
+      try { win.__doPostBack(hiddenBtnId, ''); } catch { finish(); }
+      setTimeout(finish, 12000);
+    } else {
+      try { win.__doPostBack(hiddenBtnId, ''); } catch { /* */ }
+      setTimeout(finish, 3000);
+    }
   });
 
-  // Läs från _dropDownList (native select)
-  const resultat = Array.from(dropDown.options)
+  // Hämta det NYA _dropDownList-elementet (gammalt kan ha ersatts av UpdatePanel)
+  const nyDropDown = doc.getElementById(prefix + '_dropDownList');
+  if (!nyDropDown) return [];
+
+  const resultat = Array.from(nyDropDown.options)
     .filter(o => o.value && o.value !== '0' && o.value !== '')
     .map(o => ({ display: o.text.trim(), value: o.value }));
 
-  // Rensa söktexten så att nästa typeahead inte störs
-  if (visFält) visFält.value = '';
+  // Rensa söktexten
+  const nyVisFält = doc.getElementById(prefix + '_DISPLAY');
+  if (nyVisFält) nyVisFält.value = '';
 
   return resultat;
 }
