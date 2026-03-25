@@ -1001,12 +1001,17 @@ För att ladda upp filer programmatiskt behöver man:
 ├── page-arende-options.js # Inläsning av formuläralternativ (NY_ÄRENDE_URL, läsInAlternativ)
 ├── page-arende-contacts.js # Lägg till oregistrerade externa kontakter
 ├── page-arende-create.js  # Skapa ärende från mall (skapaFrånMall)
-├── page-document-options.js # Passiv caching av Handlingstyp-alternativ m.m.
-├── page-document-create.js  # Skapa ärendedokument från mall (skapaÄrendedokument)
-├── page.js                # Router i MAIN world (lyssnar på p360-anrop och dispatchar)
-├── background.js          # Service worker – hanterar tangentbordskommandon
-├── mall.html              # Redigeringssida för ärendemallar
-├── mall.js                # Logik för ärendemallredigeraren
+├── page-document-options.js  # Passiv caching av Handlingstyp-alternativ m.m.
+├── page-document-validate.js # Validering av dokumentformulär (obligatoriska fält, handlingstyp)
+├── page-document-fill.js    # Fyller i dokumentformulärets fält från mall
+├── page-document-create.js  # Orkestrering av ärendedokumentskapande
+├── page.js                  # Router i MAIN world (lyssnar på p360-anrop och dispatchar)
+├── background.js            # Service worker – hanterar tangentbordskommandon
+├── mall.html                # Redigeringssida för ärendemallar
+├── mall-data.js             # Konstanter, hjälpfunktioner, typeahead, spara mall
+├── mall-kontakter.js        # Rendering och formulär för externa kontakter
+├── mall-dokument.js         # Rendering och väljare för ärendedokument
+├── mall.js                  # Init, händelsehanterare, läsIn, laddaMall
 ├── dokument-mall.html     # Redigeringssida för dokumentmallar och instanser
 ├── dokument-mall.js       # Logik för dokumentmallredigeraren (stöder instansläge via ?instans=1)
 ├── help.html              # Inbyggd hjälpsida (öppnas via "? Hjälp" i popup)
@@ -1031,8 +1036,10 @@ Filerna injiceras i denna ordning:
 5. `page-arende-contacts.js`
 6. `page-arende-create.js`
 7. `page-document-options.js`
-8. `page-document-create.js`
-9. `page.js` (router)
+8. `page-document-validate.js`
+9. `page-document-fill.js`
+10. `page-document-create.js`
+11. `page.js` (router)
 
 ## Dokumentmallar och instansmodell
 
