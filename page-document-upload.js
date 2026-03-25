@@ -109,27 +109,28 @@ async function laddaUppEnFil(iframe, fil) {
     xhr.send(formData);
   });
 
-  console.log('[p360-upload] Steg 2: Sätter hidden field');
+  console.log('[p360-upload] Steg 2+3: Sätter hidden field och triggar PostBack via iframe-kontext');
 
-  // Steg 2: Sätt hidden field med session|filnamn
-  const hiddenPath = iDoc.getElementById(
-    'PlaceHolderMain_MainView_DocumentMultiFileUploadControl_hiddenUploadedFilesPath'
-  );
-  console.log('[p360-upload] hiddenPath element:', hiddenPath ? 'hittad' : 'SAKNAS');
-  if (!hiddenPath) throw new Error('Hidden upload path-fält hittades inte.');
-  hiddenPath.value = `${userSession}|${fil.name}`;
-  console.log('[p360-upload] hiddenPath.value satt till:', hiddenPath.value);
+  // Steg 2+3: Kör inuti iframe-fönstrets JS-kontext.
+  // ASP.NET PageRequestManager serialiserar formuläret vid PostBack –
+  // hidden field-värdet måste sättas från samma kontext som klicket sker.
+  const iWin = iframe.contentWindow;
+  const pathId = 'PlaceHolderMain_MainView_DocumentMultiFileUploadControl_hiddenUploadedFilesPath';
+  const btnId = 'PlaceHolderMain_MainView_DocumentMultiFileUploadControl_hiddenUploadButton';
 
-  // Steg 3: Trigga PostBack via klick på den dolda länken.
-  // .click() fungerar inte på display:none – visa tillfälligt, klicka, dölj.
-  console.log('[p360-upload] Steg 3: Klickar hiddenUploadButton');
-  const hiddenBtn = iDoc.getElementById(
-    'PlaceHolderMain_MainView_DocumentMultiFileUploadControl_hiddenUploadButton'
-  );
-  if (!hiddenBtn) throw new Error('Hidden upload-knapp hittades inte.');
-  hiddenBtn.style.display = '';
-  hiddenBtn.click();
-  hiddenBtn.style.display = 'none';
+  // Escape filnamn för säker stränginterpolering
+  const säkertFilnamn = fil.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+
+  iWin.eval(`
+    (function() {
+      var hp = document.getElementById('${pathId}');
+      hp.value = '${userSession}|${säkertFilnamn}';
+      var btn = document.getElementById('${btnId}');
+      btn.style.display = '';
+      btn.click();
+      btn.style.display = 'none';
+    })();
+  `);
 
   // Vänta på att PostBack-svaret kommit.
   // ASP.NET PageRequestManager hanterar postbacken asynkront.
