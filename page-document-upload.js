@@ -5,28 +5,41 @@
 /**
  * Laddar upp filer till ett öppet dokumentformulär.
  * Navigerar till Filer-fliken, laddar upp via XHR till FileUpload.ashx,
- * sätter hidden field och triggar PostBack.
+ * sätter hidden field och triggar PostBack. Navigerar sedan tillbaka till
+ * Generellt-fliken.
  *
- * @param {Document} iDoc - iframe-dokumentet (dokumentformuläret)
- * @param {Window} iWin - iframe-fönstret
+ * VIKTIGT: Anropa FÖRE formulärifyllning – flikbyte via PostBack kan
+ * nollställa fält som redan fyllts i.
+ *
+ * @param {HTMLIFrameElement} iframe - dokumentformulärets iframe-element
  * @param {File[]} filer - Array av File-objekt att ladda upp
  * @param {Function} visaStatus - Callback för statustext
  * @returns {Promise<{ lyckade: string[], misslyckade: string[] }>}
  */
-async function laddaUppFiler(iDoc, iWin, filer, visaStatus) {
+async function laddaUppFiler(iframe, filer, visaStatus) {
   if (!filer || filer.length === 0) return { lyckade: [], misslyckade: [] };
 
-  visaStatus(`Navigerar till Filer-fliken…`);
+  // Använd alltid färska referenser till iframe-dokumentet
+  const hämtaDoc = () => iframe.contentDocument;
+  const hämtaWin = () => iframe.contentWindow;
+
+  visaStatus('Navigerar till Filer-fliken…');
 
   // Navigera till Filer-fliken
-  iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'FileStep');
+  hämtaWin().__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'FileStep');
 
-  // Vänta på att drag-drop-containern dyker upp (indikerar att Filer-fliken laddats)
-  const dragDrop = await waitForElement(
-    iDoc,
-    '[id$="DocumentMultiFileUploadControl_dragdropContainer"]',
-    10000
-  );
+  // Vänta på att drag-drop-containern dyker upp (Filer-fliken laddad)
+  // Polla med färsk doc-referens vid varje kontroll
+  let dragDrop = null;
+  for (let poll = 0; poll < 60; poll++) {
+    await sleep(200);
+    try {
+      dragDrop = hämtaDoc().querySelector(
+        '[id$="DocumentMultiFileUploadControl_dragdropContainer"]'
+      );
+      if (dragDrop) break;
+    } catch { /* iframe kan vara i loading-state */ }
+  }
   if (!dragDrop) throw new Error('Filer-fliken laddades inte.');
 
   const lyckade = [];
@@ -37,7 +50,7 @@ async function laddaUppFiler(iDoc, iWin, filer, visaStatus) {
     visaStatus(`Laddar upp fil ${i + 1}/${filer.length}: ${fil.name}…`);
 
     try {
-      await laddaUppEnFil(iDoc, iWin, fil);
+      await laddaUppEnFil(iframe, fil);
       lyckade.push(fil.name);
     } catch (err) {
       console.error(`[p360-upload] Misslyckades ladda upp ${fil.name}:`, err.message);
@@ -45,24 +58,33 @@ async function laddaUppFiler(iDoc, iWin, filer, visaStatus) {
     }
   }
 
-  // Navigera tillbaka till Generellt-fliken så att Slutför-knappen fungerar
+  // Navigera tillbaka till Generellt-fliken
   visaStatus('Återgår till Generellt-fliken…');
-  iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'GeneralStep');
+  hämtaWin().__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'GeneralStep');
 
-  // Vänta på att titelfältet finns (Generellt-fliken laddad)
-  await waitForElement(iDoc, '#PlaceHolderMain_MainView_TitleTextBoxControl', 10000);
+  // Polla tills titelfältet finns (Generellt-fliken laddad)
+  for (let poll = 0; poll < 60; poll++) {
+    await sleep(200);
+    try {
+      if (hämtaDoc().getElementById('PlaceHolderMain_MainView_TitleTextBoxControl')) break;
+    } catch { /* loading */ }
+  }
 
   return { lyckade, misslyckade };
 }
 
 /**
  * Laddar upp en enskild fil via XHR och registrerar den i formuläret.
+ *
+ * @param {HTMLIFrameElement} iframe - dokumentformulärets iframe-element
+ * @param {File} fil - File-objekt att ladda upp
  */
-async function laddaUppEnFil(iDoc, iWin, fil) {
+async function laddaUppEnFil(iframe, fil) {
+  const iDoc = iframe.contentDocument;
   const userSession = Math.floor(Math.random() * 1000000000);
 
   // Steg 1: POST filen till FileUpload.ashx
-  const uploadResult = await new Promise((resolve, reject) => {
+  await new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `/FileUpload.ashx?userSession=${userSession}`);
     xhr.onload = () => {
@@ -96,17 +118,17 @@ async function laddaUppEnFil(iDoc, iWin, fil) {
   hiddenBtn.click();
 
   // Vänta på att PostBack-svaret kommit (fillistan uppdateras)
-  // Polla tills ImportFileListControl innehåller filnamnet
-  for (let poll = 0; poll < 30; poll++) {
+  for (let poll = 0; poll < 40; poll++) {
     await sleep(200);
-    const filLista = iDoc.getElementById(
-      'PlaceHolderMain_MainView_ImportFileListControl'
-    );
-    if (filLista && filLista.textContent.includes(fil.name)) {
-      return;
-    }
+    try {
+      const filLista = iframe.contentDocument.getElementById(
+        'PlaceHolderMain_MainView_ImportFileListControl'
+      );
+      if (filLista && filLista.textContent.includes(fil.name)) {
+        return;
+      }
+    } catch { /* iframe kan vara i loading-state */ }
   }
 
-  // Om vi kommer hit kan filen ändå ha laddats upp – logga varning
   console.warn(`[p360-upload] Kunde inte bekräfta att ${fil.name} registrerades i fillistan.`);
 }

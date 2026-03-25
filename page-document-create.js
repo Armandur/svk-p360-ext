@@ -288,8 +288,8 @@ async function skapaÄrendedokument(dok, visaStatus) {
               || await waitForNyIframe('70158b84-a8eb-492a-a546-277ee96e16f9', 5000);
   if (!iframe) throw new Error('Dokumentformuläret öppnades inte.');
 
-  const iDoc = iframe.contentDocument;
-  const iWin = iframe.contentWindow;
+  let iDoc = iframe.contentDocument;
+  let iWin = iframe.contentWindow;
 
   // Vänta på att formuläret laddats
   const titelFält = await waitForElement(
@@ -298,12 +298,9 @@ async function skapaÄrendedokument(dok, visaStatus) {
   if (!titelFält) throw new Error('Dokumentformuläret laddades inte korrekt.');
 
   // ---------------------------------------------------------------
-  // 2. Fyll i fält (delegerat till page-document-fill.js)
-  // ---------------------------------------------------------------
-  const { kontaktLagdTill } = await fyllDokumentFormulär(iDoc, iWin, dok, visaStatus);
-
-  // ---------------------------------------------------------------
-  // 2b. Ladda upp filer om sådana finns
+  // 2. Ladda upp filer FÖRST (före formulärifyllning)
+  //    Flikbyte till Filer → Generellt nollställer fält, så upload
+  //    måste ske innan vi fyller i något.
   // ---------------------------------------------------------------
   // Konvertera base64-filer (från popup) till File-objekt
   if (dok.filerBase64 && dok.filerBase64.length > 0 && (!dok.filer || dok.filer.length === 0)) {
@@ -317,14 +314,22 @@ async function skapaÄrendedokument(dok, visaStatus) {
 
   if (dok.filer && dok.filer.length > 0) {
     visaStatus('Laddar upp filer…');
-    const uploadRes = await laddaUppFiler(iDoc, iWin, dok.filer, visaStatus);
+    const uploadRes = await laddaUppFiler(iframe, dok.filer, visaStatus);
     if (uploadRes.misslyckade.length > 0) {
       console.warn('[p360-dok] Misslyckade filuppladdningar:', uploadRes.misslyckade);
     }
+    // Hämta färska referenser efter flikbytet tillbaka
+    iDoc = iframe.contentDocument;
+    iWin = iframe.contentWindow;
   }
 
   // ---------------------------------------------------------------
-  // 3. Kontrollera obligatoriska fält – pausa om något saknas
+  // 3. Fyll i fält (delegerat till page-document-fill.js)
+  // ---------------------------------------------------------------
+  const { kontaktLagdTill } = await fyllDokumentFormulär(iDoc, iWin, dok, visaStatus);
+
+  // ---------------------------------------------------------------
+  // 4. Kontrollera obligatoriska fält – pausa om något saknas
   // ---------------------------------------------------------------
   const tommaObl = kontrolleraObligatoriskaFält(iDoc, { kontaktLagdTill });
   if (tommaObl.length > 0) {
