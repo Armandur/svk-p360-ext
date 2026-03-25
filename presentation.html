@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>360° Hjälptillägg – Presentation</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --svk-blue:  #003D87;
+      --svk-light: #0066CC;
+      --svk-gold:  #C8A84B;
+      --svk-bg:    #F4F6FA;
+      --done:      #1A7F4A;
+      --wip:       #B36800;
+      --plan:      #5A5A8A;
+      --text:      #1A1A2E;
+      --muted:     #6B7280;
+      --card-bg:   #FFFFFF;
+      --radius:    12px;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--svk-bg);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, var(--svk-blue) 0%, #001f4d 100%);
+      color: #fff;
+      padding: 64px 24px 56px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(200,168,75,0.25);
+      border: 1px solid var(--svk-gold);
+      color: var(--svk-gold);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 18px;
+    }
+    .hero h1 {
+      font-size: clamp(26px, 4vw, 42px);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+    .hero h1 span { color: var(--svk-gold); }
+    .hero p {
+      font-size: 17px;
+      color: rgba(255,255,255,0.8);
+      max-width: 580px;
+      margin: 0 auto 28px;
+    }
+    .hero-meta {
+      display: flex;
+      justify-content: center;
+      gap: 28px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+    }
+    .hero-meta span { display: flex; align-items: center; gap: 6px; }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* ── Sections ── */
+    section { padding: 56px 0; }
+    section + section { border-top: 1px solid #E5E7EB; }
+
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--svk-light);
+      margin-bottom: 10px;
+    }
+    .section-label::before {
+      content: '';
+      display: inline-block;
+      width: 20px;
+      height: 2px;
+      background: var(--svk-light);
+      border-radius: 2px;
+    }
+    .section-title {
+      font-size: clamp(22px, 3vw, 30px);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 8px;
+    }
+    .section-sub {
+      color: var(--muted);
+      font-size: 15px;
+      max-width: 600px;
+      margin-bottom: 36px;
+    }
+
+    /* ── Benefit cards ── */
+    .benefit-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 20px;
+    }
+    .benefit-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+      border: 1px solid #E8EDF5;
+      transition: transform 0.18s, box-shadow 0.18s;
+    }
+    .benefit-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 20px rgba(0,61,135,0.1);
+    }
+    .benefit-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 16px;
+      background: #EEF3FB;
+    }
+    .benefit-card h3 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .benefit-card p {
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    /* ── Feature list ── */
+    .feature-cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+    }
+    @media (max-width: 640px) { .feature-cols { grid-template-columns: 1fr; } }
+
+    .feature-group h3 {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #E5E7EB;
+    }
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid #F0F2F5;
+      font-size: 14px;
+    }
+    .feature-item:last-child { border-bottom: none; }
+    .feature-check {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      margin-top: 1px;
+    }
+    .check-done  { background: #D1FAE5; color: var(--done); }
+    .check-wip   { background: #FEF3C7; color: var(--wip); }
+    .check-plan  { background: #EDE9FE; color: var(--plan); }
+    .check-done::before  { content: '✓'; }
+    .check-wip::before   { content: '▶'; }
+    .check-plan::before  { content: '◇'; }
+
+    /* ── Workflow steps ── */
+    .steps {
+      display: flex;
+      gap: 0;
+      position: relative;
+      flex-wrap: wrap;
+    }
+    .steps::before {
+      content: '';
+      position: absolute;
+      top: 22px;
+      left: 22px;
+      right: 22px;
+      height: 2px;
+      background: #E5E7EB;
+      z-index: 0;
+    }
+    .step {
+      flex: 1;
+      min-width: 140px;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      padding: 0 8px;
+    }
+    .step-num {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--svk-blue);
+      color: #fff;
+      font-weight: 700;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+      box-shadow: 0 0 0 4px var(--svk-bg);
+    }
+    .step p { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .step strong { font-size: 14px; display: block; margin-bottom: 2px; }
+
+    /* ── Status badges ── */
+    .status-bar {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--card-bg);
+      border: 1px solid #E5E7EB;
+      border-radius: 20px;
+      padding: 6px 16px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+    }
+    .dot-done { background: var(--done); }
+    .dot-wip  { background: var(--wip); }
+    .dot-plan { background: var(--plan); }
+
+    /* ── Roadmap timeline ── */
+    .timeline { display: flex; flex-direction: column; gap: 16px; }
+    .timeline-item {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .timeline-dot {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      margin-top: 2px;
+    }
+    .td-wip  { background: #FEF3C7; }
+    .td-plan { background: #EDE9FE; }
+    .td-idea { background: #F0F9FF; }
+    .timeline-body h4 { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+    .timeline-body p  { font-size: 13.5px; color: var(--muted); }
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .tag-wip  { background: #FEF3C7; color: var(--wip); }
+    .tag-plan { background: #EDE9FE; color: var(--plan); }
+    .tag-idea { background: #F0F9FF; color: #1D6FA4; }
+
+    /* ── Keyboard ── */
+    kbd {
+      display: inline-block;
+      background: #F3F4F6;
+      border: 1px solid #D1D5DB;
+      border-bottom-width: 2px;
+      border-radius: 5px;
+      padding: 2px 7px;
+      font-family: monospace;
+      font-size: 12px;
+      color: #374151;
+    }
+    .shortcut-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: var(--card-bg);
+      border: 1px solid #E5E7EB;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    .shortcut-row:last-child { margin-bottom: 0; }
+
+    /* ── Quote ── */
+    .quote-block {
+      background: linear-gradient(135deg, #EEF3FB 0%, #F4F0FB 100%);
+      border-left: 4px solid var(--svk-blue);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 24px 28px;
+      margin: 36px 0;
+    }
+    .quote-block p {
+      font-size: 16px;
+      font-style: italic;
+      color: var(--text);
+      line-height: 1.65;
+    }
+    .quote-block cite {
+      display: block;
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--muted);
+      font-style: normal;
+    }
+
+    /* ── Stats strip ── */
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1px;
+      background: #E5E7EB;
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 40px;
+    }
+    .stat {
+      background: var(--card-bg);
+      padding: 24px 20px;
+      text-align: center;
+    }
+    .stat-num {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--svk-blue);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .stat-label { font-size: 12px; color: var(--muted); }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--text);
+      color: rgba(255,255,255,0.5);
+      text-align: center;
+      padding: 28px 20px;
+      font-size: 13px;
+    }
+    footer strong { color: rgba(255,255,255,0.85); }
+
+    /* ── Print ── */
+    @media print {
+      .hero { background: var(--svk-blue) !important; print-color-adjust: exact; }
+      body { background: #fff; }
+      .benefit-card, .shortcut-row { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ HERO ══════════════════════════════════════════════════════════════════ -->
+<div class="hero">
+  <div class="hero-badge">Chrome-tillägg · Svenska kyrkan</div>
+  <h1>360° <span>Hjälptillägg</span></h1>
+  <p>Automatiserar repetitiva arbetsmoment i P360 för registratorer och handläggare
+     inom Svenska kyrkans pastorat och stift.</p>
+  <div class="hero-meta">
+    <span>📅 Status mars 2026</span>
+    <span>🏛 p360.svenskakyrkan.se</span>
+    <span>🔒 Ingen data lämnar webbläsaren</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ══ VARFÖR ════════════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="section-label">Varför tillägget</div>
+    <h2 class="section-title">360° är kraftfullt – men manuellt arbete tar tid</h2>
+    <p class="section-sub">
+      Registratorer lägger varje dag tid på att fylla i samma fält om och om igen,
+      navigera i menyer och klicka sig fram i formulär. Det här tillägget tar hand
+      om det repetitiva.
+    </p>
+
+    <div class="benefit-grid">
+      <div class="benefit-card">
+        <div class="benefit-icon">⚡</div>
+        <h3>Dramatiskt snabbare ärendeskapande</h3>
+        <p>Spara inställningar som mallar. Nästa gång: välj mall → ange titel → klicka.
+           Klassificering, åtkomstgrupp, ansvarig enhet m.m. fylls i automatiskt.</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">📋</div>
+        <h3>Massregistrering via CSV</h3>
+        <p>Registrera hundratals ärenden från en Excel/CSV-fil med ett knapptryck.
+           Kontakter, ärendedokument och filer bifogas automatiskt per rad.</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">⌨️</div>
+        <h3>Snabbkommandon utan popup</h3>
+        <p>Växla status, öppna dagboksblad eller redigera egenskaper direkt med
+           tangentbordsgenvägar – utan att behöva klicka i menyer.</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">📄</div>
+        <h3>Ärendedokument i ett steg</h3>
+        <p>Dokumentmallar (inkommande, utgående, upprättat, protokoll) med
+           förifyllda fält, kontakter och bifogade filer – skapas automatiskt
+           som del av ärendeflödet.</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">🔒</div>
+        <h3>Fullständigt sekretessstöd</h3>
+        <p>Skyddskod, KO/OSL-paragraf, offentlig titel och skyddade kontakter
+           hanteras korrekt i alla formulärflöden – inklusive UpdatePanel-sekvenser.</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">🛡️</div>
+        <h3>Säkert och lokalt</h3>
+        <p>All data stannar i webbläsaren. Inga externa API-anrop, ingen inloggning
+           och inga tredjepartstjänster. Mallar sparas i <code>chrome.storage.local</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ SÅ HÄR FUNGERAR DET ══════════════════════════════════════════════════ -->
+  <section>
+    <div class="section-label">Arbetsflöde</div>
+    <h2 class="section-title">Från mall till färdigt ärende – fyra steg</h2>
+    <p class="section-sub">Det fullständiga flödet från mall till ärendesida med dokument
+       och kontakter tar under tio sekunder.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <strong>Välj mall</strong>
+        <p>Klicka på "Använd" i popup-menyn bredvid önskad mall</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <strong>Ange titel</strong>
+        <p>Fyll i ärendetiteln (övriga fält är redan ifyllda)</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <strong>Klicka Skapa</strong>
+        <p>Tillägget fyller i formuläret och skickar</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <strong>Klart!</strong>
+        <p>Direkt på ärendesidan, dokument och kontakter tillagda</p>
+      </div>
+    </div>
+
+    <div class="quote-block" style="margin-top:40px;">
+      <p>"Istället för att navigera i menyer, klicka sig fram i formulär och komma ihåg
+         vilka fält som ska fyllas i – kan registratorn lägga sin tid på det som faktiskt
+         kräver mänsklig bedömning."</p>
+      <cite>— Målbilden för tillägget</cite>
+    </div>
+  </section>
+
+  <!-- ══ NULÄGE ════════════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="section-label">Nuläge</div>
+    <h2 class="section-title">Vad som finns idag</h2>
+    <p class="section-sub">Alla funktioner nedan är implementerade och testade med rollen
+       registrator/huvudregistrator i Svenska kyrkans installation.</p>
+
+    <div class="stats-strip">
+      <div class="stat">
+        <div class="stat-num">30+</div>
+        <div class="stat-label">Levererade funktioner</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">4</div>
+        <div class="stat-label">Tangentbordsgenvägar</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">4</div>
+        <div class="stat-label">Dokumentkategorier</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">∞</div>
+        <div class="stat-label">Ärenden i batch</div>
+      </div>
+    </div>
+
+    <div class="feature-cols">
+      <div class="feature-group">
+        <h3>Snabbåtgärder på ärende</h3>
+        <div class="feature-item">
+          <span class="feature-check check-done"></span>
+          Dagboksblad – öppna PDF och utskriftsdialog automatiskt
+        </div>
+        <div class="feature-item">
+          <span class="feature-check check-done"></span>
+          Växla status Öppet ↔ Avslutat med ett klick
+        </div>
+        <div class="feature-item">
+          <span class="feature-check check-done"></span>
+          Sätt valfritt statusvärde (inkl. Makulerat, AH)
+        </div>
+        <div class="feature-item">
+          <span class="feature-check check-done"></span>
+          Redigera egenskaper, gallring, registrera utlåning
+        </div>
+        <div class="feature-item">
+          <span class="feature-check check-done"></span>
+          Spara som nytt ärende, kopiera hyperlänk
+        </div>
+        <div class="feature-item">
+          <span class="feature-check check-done"></span>
+          Ärendesammanfattning, processplan
+        </div>
+
+        <h3 style="margin-top:28px;">Ärendemallar</h3>
+        <div class="feature-item">
+          <span class="feature-check check-done"></span>
+          Förifyllda fält: klassificering, åtkomstgrupp, ansvarig enhet/person, status
+        </div>
+        <div class="feature-item">
+          <span class="feature-check check-done"></span>
+          Skyddskod (Offentlig / KO / OSL) med paragraf och offentlig titel
+        </div>
+        <div class="feature-item">
+          <span class="feature-check check-done"></span>
+          Projekt och Fastighet (typeahead med sökning)
+        </div>
+        <div class="feature-item">
+          <span class="feature-check check-done"></span>
+          Externa kontakter (oregistrerade) med dra-och-släpp-sortering
+        </div>
+        <div class="feature-item">
+          <span class="feature-check check-done"></span>
+          Ärendedokument i mallar – instansmodell med egna fält
+        </div>
+        <div class="feature-item">
+          <span class="feature-check check-done"></span>
+          Pausa-läge för manuell granskning före skicka
+        </div>
+      </div>
+
+      <div class="feature-group">
+        <h3>Dokumentmallar</h3>
+        <div class="feature-item">
+          <span class="feature-check check-done"></span>
+          Inkommande (avsändare + ankomstdatum)
+        </div>
+        <div class="feature-item">
+          <span class="feature-check check-done"></span>
+          Utgående (mottagare + expedieringsdatum)
+        </div>
+        <div class="feature-item">
+          <span class="feature-check check-done"></span>
+          Upprättat och Protokoll
+        </div>
+        <div class="feature-item">
+          <span class="feature-check check-done"></span>
+          Handlingstyp med validering mot ärendets klassificering
+        </div>
+        <div class="feature-item">
+          <span class="feature-check check-done"></span>
+          Filuppladdning – en fil per dokument eller batch-läge
+        </div>
+        <div class="feature-item">
+          <span class="feature-check check-done"></span>
+          Fristående dokumentskapande direkt från popup på befintligt ärende
+        </div>
+
+        <h3 style="margin-top:28px;">Massregistrering</h3>
+        <div class="feature-item">
+          <span class="feature-check check-done"></span>
+          Import av CSV (semikolon- eller kommaseparerad)
+        </div>
+        <div class="feature-item">
+          <span class="feature-check check-done"></span>
+          Redigerbar tabell med kolumntogglar
+        </div>
+        <div class="feature-item">
+          <span class="feature-check check-done"></span>
+          Dokumentslotsar: Fil_1, Fil_2 … kopplade till dokumentmallar
+        </div>
+        <div class="feature-item">
+          <span class="feature-check check-done"></span>
+          Automatisk filkoppling via filnamn (Koppla filer-knapp)
+        </div>
+        <div class="feature-item">
+          <span class="feature-check check-done"></span>
+          Avbryt-signal som propageras hela kedjan
+        </div>
+        <div class="feature-item">
+          <span class="feature-check check-done"></span>
+          Resultatrapport med CSV-nedladdning
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ SNABBKOMMANDON ════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="section-label">Tangentbordsgenvägar</div>
+    <h2 class="section-title">Utan händerna från tangentbordet</h2>
+    <p class="section-sub">Fungerar direkt på en ärendesida – utan att öppna popup-menyn.
+       Kan anpassas i webbläsarens tilläggsinställningar.</p>
+
+    <div style="max-width: 520px;">
+      <div class="shortcut-row">
+        <span>Öppna dagboksblad och skriv ut</span>
+        <span><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd></span>
+      </div>
+      <div class="shortcut-row">
+        <span>Växla status Öppet ↔ Avslutat</span>
+        <span><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd></span>
+      </div>
+      <div class="shortcut-row">
+        <span>Redigera egenskaper</span>
+        <span><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd></span>
+      </div>
+      <div class="shortcut-row">
+        <span>Öppna statusdialog (förifylld: Makulerat)</span>
+        <span><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ MASSREGISTRERING ══════════════════════════════════════════════════════ -->
+  <section>
+    <div class="section-label">Massregistrering</div>
+    <h2 class="section-title">Hundratals ärenden på minuter</h2>
+    <p class="section-sub">Perfekt för digitalisering av pappersärenden, migrering
+       från andra system eller periodisk massregistrering av liknande ärenden.</p>
+
+    <div class="benefit-grid">
+      <div class="benefit-card">
+        <div class="benefit-icon">📊</div>
+        <h3>CSV-import</h3>
+        <p>Importera en semikolon- eller kommaseparerad fil. Tillägget läser kolumnerna
+           Titel, Förnamn, Efternamn, Personnummer, Adress, Fil_1 m.fl.</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">🗂️</div>
+        <h3>Dokumentslotsar</h3>
+        <p>Koppla varje Fil-kolumn i CSV:en till en dokumentmall. Filen bifogas
+           automatiskt till rätt dokumenttyp (inkommande, utgående, upprättat).</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">📎</div>
+        <h3>Automatisk filkoppling</h3>
+        <p>CSV:en anger filnamn, inte filer. Klicka "Koppla filer" och välj PDF:erna
+           – tillägget matchar filnamn mot tabellens värden.</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">📝</div>
+        <h3>Resultatrapport</h3>
+        <p>Efter körningen visas en sammanfattning med diarienummer per rad.
+           Ladda ner rapporten som CSV för vidare bearbetning.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ ROADMAP ═══════════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="section-label">Framtida planer</div>
+    <h2 class="section-title">Vad som kommer härnäst</h2>
+    <p class="section-sub">Prioriterade funktioner och idéer – uppdateras löpande.</p>
+
+    <div class="status-bar">
+      <div class="status-pill"><span class="dot dot-wip"></span> Pågående</div>
+      <div class="status-pill"><span class="dot dot-plan"></span> Planerat långsiktigt</div>
+      <div class="status-pill"><span class="dot dot-done" style="background:#1D6FA4;"></span> Idé / förslag</div>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-dot td-wip">📊</div>
+        <div class="timeline-body">
+          <div class="tag tag-wip">Pågående</div>
+          <h4>Massregistrering – filuppladdning i fillistan</h4>
+          <p>XHR-uppladdningen och filkopplingen fungerar – filen hamnar i dokumentet.
+             Visuell bekräftelse i Filer-fliken (ImportFileListControl) återstår att fixa.</p>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot td-wip">📥</div>
+        <div class="timeline-body">
+          <div class="tag tag-wip">Pågående</div>
+          <h4>Import av mallar från fil (TSV/CSV)</h4>
+          <p>Dela mallkonfigurationer med kollegor via fil. Exportera befintliga mallar,
+             skicka filen, importera – samma inställningar utan att klicka om allt.</p>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot td-plan">👤</div>
+        <div class="timeline-body">
+          <div class="tag tag-plan">Långsiktigt</div>
+          <h4>Stöd för registrerade kontakter</h4>
+          <p>Kontaktperson och Organisation ur 360°:s kontaktregister, inte bara
+             oregistrerade kopior. Ändringar på källkontakten slår igenom överallt.</p>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot td-plan">📁</div>
+        <div class="timeline-body">
+          <div class="tag tag-plan">Långsiktigt</div>
+          <h4>Fler dokumenttyper (subtype)</h4>
+          <p>Utöka stödet till Arbetsdokument, Avtalsdokument och andra subtype-värden
+             utöver det nuvarande Ärende (61000).</p>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot td-idea">💡</div>
+        <div class="timeline-body">
+          <div class="tag tag-idea">Idé</div>
+          <h4>Snabbsökning och ärendeinfo i popup</h4>
+          <p>Sökfält direkt i popup-menyn, visa ärendets titel och diarienummer
+             utan att navigera till sökformuläret. En-knapps-kopiering av diarienummer.</p>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot td-idea">⚙️</div>
+        <div class="timeline-body">
+          <div class="tag tag-idea">Idé</div>
+          <h4>Inställningssida och konfigurerbar statusväxling</h4>
+          <p>En dedikerad inställningssida i Chrome. Möjlighet att konfigurera
+             vilka statusvärden som ingår i växlingen (t.ex. Öppet ↔ AH).</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ TEKNISKA FAKTA ════════════════════════════════════════════════════════ -->
+  <section>
+    <div class="section-label">Teknik och säkerhet</div>
+    <h2 class="section-title">Hur det är byggt</h2>
+    <p class="section-sub">Vanilla JavaScript, Chrome Manifest V3 – inga externa beroenden.</p>
+
+    <div class="benefit-grid">
+      <div class="benefit-card">
+        <div class="benefit-icon">🔧</div>
+        <h3>Chrome Manifest V3</h3>
+        <p>Moderna säkerhetsmodellen för Chrome-tillägg. Content scripts injiceras
+           enbart på <code>p360.svenskakyrkan.se</code>.</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">💾</div>
+        <h3>Lokal datalagring</h3>
+        <p>Mallar sparas i <code>chrome.storage.local</code> – stannar på datorn,
+           aldrig synkroniseras utan att du väljer det.</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">🤖</div>
+        <h3>Ingen server, ingen inloggning</h3>
+        <p>Tillägget har ingen backend. Alla åtgärder sker direkt mot 360°:s egna
+           formulär via <code>__doPostBack</code> och ASP.NET WebForms.</p>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /container -->
+
+<footer>
+  <strong>360° Hjälptillägg</strong> &mdash; Svenska kyrkan &mdash; mars 2026
+  &nbsp;·&nbsp; Utvecklat i dialog med Claude Code (Anthropic)
+</footer>
+
+</body>
+</html>
