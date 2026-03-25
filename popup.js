@@ -50,11 +50,24 @@ async function skicka(meddelande) {
   try {
     svar = await chrome.tabs.sendMessage(tab.id, meddelande);
   } catch {
-    // Content script saknas – injicera och försök en gång till
+    // Content script saknas – injicera alla MAIN-world-filer + content.js
     try {
       await chrome.scripting.executeScript({
         target: { tabId: tab.id },
-        files: ['page.js'],
+        files: [
+          'page-utils.js',
+          'page-dagboksblad.js',
+          'page-status.js',
+          'page-arende-options.js',
+          'page-arende-contacts.js',
+          'page-arende-create.js',
+          'page-document-options.js',
+          'page-document-validate.js',
+          'page-document-fill.js',
+          'page-document-upload.js',
+          'page-document-create.js',
+          'page.js',
+        ],
         world: 'MAIN',
       });
       await chrome.scripting.executeScript({
