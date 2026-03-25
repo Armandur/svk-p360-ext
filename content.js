@@ -106,9 +106,16 @@ if (!window.__p360PendingChecked) {
 
     // Hämta fildata från storage (batch sparar filer separat)
     for (const dok of pendingÄrendedokument.dokument) {
+      console.log('[p360] Pending dok:', dok.titel,
+        'filerStorageNyckel:', dok.filerStorageNyckel,
+        'filerBase64:', dok.filerBase64?.length || 0,
+        'filer:', dok.filer?.length || 0);
       if (dok.filerStorageNyckel) {
         const stored = await chrome.storage.local.get(dok.filerStorageNyckel);
         dok.filerBase64 = stored[dok.filerStorageNyckel] || [];
+        console.log('[p360] Hämtade filer från storage:', dok.filerStorageNyckel,
+          '→', dok.filerBase64.length, 'filer',
+          dok.filerBase64.map(f => f.namn + ' base64:' + (f.base64 ? f.base64.length + ' tecken' : 'SAKNAS')));
         await chrome.storage.local.remove(dok.filerStorageNyckel);
         delete dok.filerStorageNyckel;
       }

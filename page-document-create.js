@@ -302,14 +302,19 @@ async function skapaÄrendedokument(dok, visaStatus) {
   //    Flikbyte till Filer → Generellt nollställer fält, så upload
   //    måste ske innan vi fyller i något.
   // ---------------------------------------------------------------
-  // Konvertera base64-filer (från popup) till File-objekt
+  // Konvertera base64-filer (från popup/batch) till File-objekt
+  console.log('[p360-dok] Filstatus:', 'filerBase64:', dok.filerBase64?.length || 0,
+    'filer:', dok.filer?.length || 0, 'titel:', dok.titel);
   if (dok.filerBase64 && dok.filerBase64.length > 0 && (!dok.filer || dok.filer.length === 0)) {
+    console.log('[p360-dok] Konverterar base64 → File:', dok.filerBase64.map(f =>
+      f.namn + ' base64:' + (f.base64 ? f.base64.length + ' tecken' : 'SAKNAS')));
     dok.filer = dok.filerBase64.map(f => {
       const binär = atob(f.base64);
       const bytes = new Uint8Array(binär.length);
       for (let j = 0; j < binär.length; j++) bytes[j] = binär.charCodeAt(j);
       return new File([bytes], f.namn, { type: f.typ || 'application/octet-stream' });
     });
+    console.log('[p360-dok] File-objekt skapade:', dok.filer.map(f => f.name + ' (' + f.size + ' bytes)'));
   }
 
   if (dok.filer && dok.filer.length > 0) {
