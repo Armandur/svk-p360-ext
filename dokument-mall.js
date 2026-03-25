@@ -148,11 +148,15 @@ function kopplaHändelser() {
       document.getElementById('dok-off-titel-val').value === '3' ? '' : 'none';
   });
 
-  // Ankomstdatum – visa/dölj datumfält
-  document.getElementById('dok-ankomstdatum-typ').addEventListener('change', () => {
-    const typ = document.getElementById('dok-ankomstdatum-typ').value;
-    document.getElementById('dok-ankomstdatum-värde').style.display = typ === 'datum' ? '' : 'none';
+  // Datum – visa/dölj datumfält
+  document.getElementById('dok-datum-typ').addEventListener('change', () => {
+    const typ = document.getElementById('dok-datum-typ').value;
+    document.getElementById('dok-datum-värde').style.display = typ === 'datum' ? '' : 'none';
   });
+
+  // Kategori – uppdatera etiketter för datum och kontakt
+  document.getElementById('dok-kategori').addEventListener('change', uppdateraKategoriEtiketter);
+  uppdateraKategoriEtiketter();
 
   // Återställ bekräftelse vid fältändringar
   for (const el of document.querySelectorAll('input, select, textarea')) {
@@ -169,6 +173,29 @@ function uppdateraSekretessFält() {
   const block = document.getElementById('sekretess-falt');
   block.style.display = kod !== '0' ? '' : 'none';
   if (kod !== '0') fyllParagrafer(kod);
+}
+
+function uppdateraKategoriEtiketter() {
+  const kat = document.getElementById('dok-kategori').value;
+  const datumEtikett = document.getElementById('dok-datum-etikett');
+  const kontaktEtikett = document.getElementById('dok-kontakt-etikett');
+
+  if (kat === '110') {
+    datumEtikett.textContent = 'Ankomstdatum';
+    kontaktEtikett.textContent = 'Oregistrerad kontakt (avsändare)';
+  } else if (kat === '111') {
+    datumEtikett.textContent = 'Färdigst/exp-datum';
+    kontaktEtikett.textContent = 'Oregistrerad kontakt (mottagare)';
+  } else if (kat === '60005') {
+    datumEtikett.textContent = 'Färdigst/exp-datum';
+    kontaktEtikett.textContent = 'Oregistrerad kontakt';
+  } else if (kat === '112') {
+    datumEtikett.textContent = 'Färdigst/exp-datum';
+    kontaktEtikett.textContent = 'Oregistrerad kontakt (mottagare)';
+  } else {
+    datumEtikett.textContent = 'Datum';
+    kontaktEtikett.textContent = 'Oregistrerad kontakt (avsändare/mottagare)';
+  }
 }
 
 function fyllParagrafer(kod) {
@@ -288,10 +315,10 @@ function hämtaFormulärData(namn) {
       ? { value: atkomstgruppSel.value, label: atkomstgruppSel.options[atkomstgruppSel.selectedIndex]?.text || '' }
       : null,
     oregistreradKontakt: document.getElementById('dok-oregistrerad-kontakt').value.trim(),
-    ankomstdatum: (() => {
-      const typ = document.getElementById('dok-ankomstdatum-typ').value;
+    datum: (() => {
+      const typ = document.getElementById('dok-datum-typ').value;
       if (typ === 'idag') return 'idag';
-      if (typ === 'datum') return document.getElementById('dok-ankomstdatum-värde').value || '';
+      if (typ === 'datum') return document.getElementById('dok-datum-värde').value || '';
       return '';
     })(),
     ansvarigEnhet: ansvarigEnhetSel.value
@@ -329,17 +356,20 @@ function fyllFormulärFrånData(d) {
   document.getElementById('dok-kategori').value = d.kategori || '';
   document.getElementById('dok-skyddskod').value = d.skyddskod || '0';
   document.getElementById('dok-oregistrerad-kontakt').value = d.oregistreradKontakt || '';
-  // Ankomstdatum – "idag", "YYYY-MM-DD" eller ""
-  const ankomst = d.ankomstdatum || '';
-  if (ankomst === 'idag') {
-    document.getElementById('dok-ankomstdatum-typ').value = 'idag';
-  } else if (/^\d{4}-\d{2}-\d{2}$/.test(ankomst)) {
-    document.getElementById('dok-ankomstdatum-typ').value = 'datum';
-    document.getElementById('dok-ankomstdatum-värde').value = ankomst;
-    document.getElementById('dok-ankomstdatum-värde').style.display = '';
+  // Datum – "idag", "YYYY-MM-DD" eller "" (bakåtkompatibel med ankomstdatum)
+  const datumVärde = d.datum || d.ankomstdatum || '';
+  if (datumVärde === 'idag') {
+    document.getElementById('dok-datum-typ').value = 'idag';
+  } else if (/^\d{4}-\d{2}-\d{2}$/.test(datumVärde)) {
+    document.getElementById('dok-datum-typ').value = 'datum';
+    document.getElementById('dok-datum-värde').value = datumVärde;
+    document.getElementById('dok-datum-värde').style.display = '';
   } else {
-    document.getElementById('dok-ankomstdatum-typ').value = '';
+    document.getElementById('dok-datum-typ').value = '';
   }
+
+  // Uppdatera etiketter baserat på kategori
+  uppdateraKategoriEtiketter();
 
   if (d.handlingstyp?.value) {
     säkertVälj('dok-handlingstyp', d.handlingstyp.value, d.handlingstyp.text);

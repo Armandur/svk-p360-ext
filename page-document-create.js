@@ -296,7 +296,7 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
  * @param {Object} dok  – Dokumentmall med fält:
  *   titel, handlingstyp, kategori, skyddskod, sekretessParag,
  *   offentligTitelVal, offentligTitel, atkomstgrupp, oregistreradKontakt,
- *   ankomstdatum, ansvarigEnhet, ansvarigPerson
+ *   datum (eller ankomstdatum för bakåtkompatibilitet), ansvarigEnhet, ansvarigPerson
  * @param {Function} visaStatus – Callback för statustext
  * @returns {string|null} Dokumentnumret (t.ex. "KHS 2026-0062:1") eller null
  */
@@ -453,6 +453,8 @@ async function skapaÄrendedokument(dok, visaStatus) {
   // Oregistrerad kontakt – sätts EFTER alla UpdatePanel-postbacks (kategori,
   // skyddskod) men FÖRE datum och titel, eftersom kontakt-knappen triggar
   // en egen UpdatePanel som nollställer datumfältet.
+  // OBS: För Upprättat (60005) finns inget ToContactQuickSearchControl,
+  // men QuickUnregContactText finns för alla kategorier.
   let kontaktLagdTill = false;
   if (dok.oregistreradKontakt) {
     const kontaktFält = iDoc.getElementById(
@@ -472,42 +474,45 @@ async function skapaÄrendedokument(dok, visaStatus) {
     }
   }
 
-  // Ankomstdatum – sätts EFTER alla UpdatePanel-postbacks.
+  // Datum – sätts EFTER alla UpdatePanel-postbacks.
+  // Inkommande (110) → ReceivedDateControl (Ankomstdatum)
+  // Övriga (111, 60005, 112) → DispatchedDateControl (Färdigst/exp-datum)
   // SI-datepicker har tre element:
   //   _si_datepicker        = synligt textfält (name tom, postas EJ)
   //   _si_datepicker_hidden = dolt fält (name=ctl00$..., postas till server)
-  //   OnReceivedDateChangeControl = knapp som triggar postback vid ändring
-  if (dok.ankomstdatum) {
+  const datumVärde = dok.datum || dok.ankomstdatum || ''; // bakåtkompatibel
+  if (datumVärde) {
     let dd, mm, yyyy;
-    if (dok.ankomstdatum === 'idag') {
+    if (datumVärde === 'idag') {
       const idag = new Date();
       dd = String(idag.getDate()).padStart(2, '0');
       mm = String(idag.getMonth() + 1).padStart(2, '0');
       yyyy = idag.getFullYear();
     } else {
-      const delar = dok.ankomstdatum.split('-');
+      const delar = datumVärde.split('-');
       yyyy = delar[0]; mm = delar[1]; dd = delar[2];
     }
     const datumISO = `${yyyy}-${mm}-${dd}`;
-    const datumDisplay = `${dd}.${mm}.${yyyy}`;
+
+    // Välj rätt datumkontroll beroende på kategori
+    const datumPrefix = dok.kategori === '110'
+      ? 'PlaceHolderMain_MainView_ReceivedDateControl'
+      : 'PlaceHolderMain_MainView_DispatchedDateControl';
 
     // Synligt fält (visar datumet för användaren)
-    const datumFält = iDoc.getElementById(
-      'PlaceHolderMain_MainView_ReceivedDateControl_si_datepicker'
-    );
+    const datumFält = iDoc.getElementById(datumPrefix + '_si_datepicker');
     if (datumFält) {
       datumFält.value = datumISO;
     }
 
     // Dolt fält som faktiskt postas – YYYY-MM-DD (ISO-format)
-    const doltFält = iDoc.getElementById(
-      'PlaceHolderMain_MainView_ReceivedDateControl_si_datepicker_hidden'
-    );
+    const doltFält = iDoc.getElementById(datumPrefix + '_si_datepicker_hidden');
     if (doltFält) {
       doltFält.value = datumISO;
     }
 
-    console.log('[p360-dok] Ankomstdatum satt: synligt=', datumFält?.value,
+    const datumTyp = dok.kategori === '110' ? 'Ankomstdatum' : 'Färdigst/exp-datum';
+    console.log(`[p360-dok] ${datumTyp} satt: synligt=`, datumFält?.value,
       'dolt=', doltFält?.value);
   }
 
