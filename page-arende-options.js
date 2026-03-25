@@ -168,39 +168,35 @@ async function försökLäsTypeahead(doc, win, prefix) {
   const visFält = doc.getElementById(prefix + '_DISPLAY');
   if (!visFält) return [];
 
-  // Sätt söktext och trigga events
+  // Sätt söktext och trigga events (samma mönster som klassificering)
   visFält.value = '%';
   for (const t of ['focus', 'input', 'keydown', 'keyup']) {
     try { visFält.dispatchEvent(new Event(t, { bubbles: true })); } catch { /* */ }
   }
 
-  // Sökning triggas av HiddenButton-postback. UpdatePanel ersätter hela
-  // formuläret – vänta via PageRequestManager.
-  const hiddenBtnId = 'ctl00$PlaceHolderMain$MainView$' +
-    prefix.replace('PlaceHolderMain_MainView_', '') + 'HiddenButton';
+  // Trigga OnClick_PostBack (startar AJAX-sökningen, samma mekanism som klassificering)
+  const postBackId = 'ctl00$PlaceHolderMain$MainView$' +
+    prefix.replace('PlaceHolderMain_MainView_', '') + '_OnClick_PostBack';
+  try { win.__doPostBack(postBackId, ''); } catch { /* */ }
 
+  // Resultaten hamnar i Selectize-dropdown inuti TD#{prefix}_xyPoint.
+  // Polla tills .option[data-value] dyker upp (samma approach som klassificering).
+  const xyPointId = prefix + '_xyPoint';
   await new Promise(resolve => {
-    let done = false;
-    const finish = () => { if (!done) { done = true; resolve(); } };
-    const prm = win.Sys?.WebForms?.PageRequestManager?.getInstance();
-    if (prm) {
-      const handler = () => { prm.remove_endRequest(handler); finish(); };
-      prm.add_endRequest(handler);
-      try { win.__doPostBack(hiddenBtnId, ''); } catch { finish(); }
-      setTimeout(finish, 12000);
-    } else {
-      try { win.__doPostBack(hiddenBtnId, ''); } catch { /* */ }
-      setTimeout(finish, 3000);
-    }
+    const start = Date.now();
+    const check = setInterval(() => {
+      const container = doc.getElementById(xyPointId);
+      const antal = container
+        ? container.querySelectorAll('.selectize-dropdown-content .option[data-value]').length
+        : 0;
+      if (antal > 0 || Date.now() - start > 12000) { clearInterval(check); resolve(); }
+    }, 300);
   });
 
-  // Resultaten hamnar i Selectize-dropdown inuti TD#{prefix}_xyPoint
-  // (inte i _dropDownList). Avgränsa per fält via xyPoint-containern.
-  const container = doc.getElementById(prefix + '_xyPoint');
-  const selector = '.selectize-dropdown-content .option[data-value]';
+  const container = doc.getElementById(xyPointId);
   const items = container
-    ? container.querySelectorAll(selector)
-    : doc.querySelectorAll(selector);
+    ? container.querySelectorAll('.selectize-dropdown-content .option[data-value]')
+    : [];
 
   const resultat = Array.from(items)
     .filter(el => el.dataset.value && el.dataset.value !== '0')
