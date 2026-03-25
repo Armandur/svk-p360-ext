@@ -92,11 +92,10 @@ async function läsInAlternativ() {
         .map(o => ({ value: o.value, label: o.text.trim() }));
     }
 
-    // Klassificeringar, projekt och fastigheter kräver wildcard-sökning (%)
-    // för att populera _dropDownList. Kör alla tre sekventiellt (delar samma
-    // UpdatePanel-mekanism – parallella postbacks krockar).
-    const klassificeringar = await försökLäsTypeahead(doc, iWin,
-      'PlaceHolderMain_MainView_ClassificationCode1ComboControl');
+    // Klassificeringar kräver wildcard-sökning via __doPostBack + Selectize-dropdown.
+    // Projekt och Fastighet kräver wildcard-sökning via QuickSearch-mekanismen.
+    // Kör alla sekventiellt (delar UpdatePanel – parallella postbacks krockar).
+    const klassificeringar = await försökLäsKlassificeringar(doc, iWin);
     const projekt = await försökLäsTypeahead(doc, iWin,
       'PlaceHolderMain_MainView_ProjectQuickSearchControl');
     const fastigheter = await försökLäsTypeahead(doc, iWin,
@@ -115,6 +114,41 @@ async function läsInAlternativ() {
   } finally {
     iframe.remove();
   }
+}
+
+/**
+ * Läser klassificeringsalternativ via __doPostBack + Selectize-dropdown.
+ * Klassificering har en annan mekanism än Projekt/Fastighet – resultaten
+ * hamnar i Selectize:s dropdown-content, inte i _dropDownList.
+ */
+async function försökLäsKlassificeringar(doc, win) {
+  const visFält = doc.getElementById(
+    'PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY'
+  );
+  if (visFält) {
+    visFält.value = '%';
+    for (const t of ['focus', 'input', 'keydown', 'keyup']) {
+      try { visFält.dispatchEvent(new Event(t, { bubbles: true })); } catch { /* */ }
+    }
+  }
+  try {
+    win.__doPostBack(
+      'ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_OnClick_PostBack', ''
+    );
+  } catch { /* PostBack ej tillgänglig */ }
+
+  await new Promise(resolve => {
+    const start = Date.now();
+    const check = setInterval(() => {
+      const antal = doc.querySelectorAll('.selectize-dropdown-content .option[data-value]').length;
+      if (antal > 0 || Date.now() - start > 12000) { clearInterval(check); resolve(); }
+    }, 300);
+  });
+
+  const items = doc.querySelectorAll('.selectize-dropdown-content .option[data-value]');
+  return Array.from(items)
+    .filter(el => el.dataset.value && el.dataset.value !== '0')
+    .map(el => ({ display: (el.title || el.textContent).trim(), value: el.dataset.value }));
 }
 
 /**
