@@ -267,10 +267,11 @@ function byggMallFrånRad(baseMall, rad, slots) {
       dokMall.titel = rad[dokTitelKolumn];
     }
 
-    // Lägg till kontaktperson som avsändare/mottagare
-    // Inkommande (110) = avsändare, Utgående (111) = mottagare
-    dokMall._kontaktNamn = kontakt.namn;
-    dokMall._kontaktRoll = slot.dokumentmall.kategori === '110' ? 'avsändare' : 'mottagare';
+    // Lägg till kontaktperson som avsändare/mottagare via oregistreradKontakt
+    // (fyllDokumentFormulär använder dok.oregistreradKontakt för snabb-fältet)
+    if (kontakt.namn) {
+      dokMall.oregistreradKontakt = kontakt.namn;
+    }
 
     // Ankomstdatum för inkommande
     if (dokMall.kategori === '110' && (rad.Ankomstdatum || rad.ankomstdatum)) {
