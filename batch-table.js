@@ -5,6 +5,7 @@
 let batchRader = [];
 let synligaKolumner = new Set(['Titel', 'Namn']);
 let filKolumner = ['Fil_1']; // Standard: en filkolumn
+let dokTitelKolumner = ['DokTitel_1']; // Överlagring av dokumenttitel per slot
 
 /**
  * Returnerar aktuella rader (för exekvering).
@@ -19,8 +20,10 @@ function hämtaBatchRader() {
  */
 function uppdateraFilKolumner(antalSlots) {
   filKolumner = [];
+  dokTitelKolumner = [];
   for (let i = 1; i <= Math.max(antalSlots, 1); i++) {
     filKolumner.push(`Fil_${i}`);
+    dokTitelKolumner.push(`DokTitel_${i}`);
   }
   renderaTabell();
 }
@@ -36,6 +39,9 @@ function läggTillRad(data) {
   }
   for (const fk of filKolumner) {
     rad[fk] = data?.[fk] || '';
+  }
+  for (const dk of dokTitelKolumner) {
+    rad[dk] = data?.[dk] || '';
   }
   if (data?._filer) rad._filer = data._filer;
   batchRader.push(rad);
@@ -63,6 +69,9 @@ function importeraRader(csvRader) {
     }
     for (const fk of filKolumner) {
       ny[fk] = rad[fk] || '';
+    }
+    for (const dk of dokTitelKolumner) {
+      ny[dk] = rad[dk] || '';
     }
     batchRader.push(ny);
   }
@@ -142,10 +151,13 @@ function renderaTabell() {
     th.textContent = kol;
     huvud.appendChild(th);
   }
-  for (const fk of filKolumner) {
-    const th = document.createElement('th');
-    th.textContent = fk;
-    huvud.appendChild(th);
+  for (let fi = 0; fi < filKolumner.length; fi++) {
+    const thTitel = document.createElement('th');
+    thTitel.textContent = dokTitelKolumner[fi];
+    huvud.appendChild(thTitel);
+    const thFil = document.createElement('th');
+    thFil.textContent = filKolumner[fi];
+    huvud.appendChild(thFil);
   }
   huvud.innerHTML += '<th>Status</th><th></th>';
 
@@ -192,8 +204,20 @@ function renderaTabell() {
       tr.appendChild(td);
     }
 
-    // Fil-celler
+    // Dokumenttitel + Fil-celler (parvis)
     for (let fi = 0; fi < filKolumner.length; fi++) {
+      // DokTitel_N – textinput för titelöverstyrning
+      const dk = dokTitelKolumner[fi];
+      const tdTitel = document.createElement('td');
+      const titelInp = document.createElement('input');
+      titelInp.type = 'text';
+      titelInp.dataset.kol = dk;
+      titelInp.value = rad[dk] || '';
+      titelInp.placeholder = 'Dokumenttitel…';
+      tdTitel.appendChild(titelInp);
+      tr.appendChild(tdTitel);
+
+      // Fil_N – filväljare
       const fk = filKolumner[fi];
       const td = document.createElement('td');
       td.className = 'fil-cell';
@@ -322,6 +346,9 @@ function initDragZon() {
       rad.Titel = fil.name.replace(/\.[^.]+$/, '');
       for (const fk of filKolumner) {
         rad[fk] = '';
+      }
+      for (const dk of dokTitelKolumner) {
+        rad[dk] = '';
       }
       rad[filKolumner[0]] = fil.name;
       batchRader.push(rad);

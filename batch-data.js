@@ -151,6 +151,18 @@ function detekteraFilKolumner(headers) {
 }
 
 /**
+ * Identifierar DokTitel_N-kolumner i CSV-headers.
+ * @returns {string[]} T.ex. ['DokTitel_1', 'DokTitel_2']
+ */
+function detekteraDokTitelKolumner(headers) {
+  return headers.filter(h => /^DokTitel_\d+$/i.test(h)).sort((a, b) => {
+    const na = parseInt(a.split('_')[1]);
+    const nb = parseInt(b.split('_')[1]);
+    return na - nb;
+  });
+}
+
+/**
  * Validerar en rad mot ärendemallen och dokumentslotsar.
  * @returns {string[]} Lista med felmeddelanden (tom = OK)
  */
@@ -248,6 +260,12 @@ function byggMallFrånRad(baseMall, rad, slots) {
     if (!filnamn && !filObj) continue;
 
     const dokMall = JSON.parse(JSON.stringify(slot.dokumentmall));
+
+    // Överlagra dokumenttitel per rad (DokTitel_N-kolumn)
+    const dokTitelKolumn = `DokTitel_${s + 1}`;
+    if (rad[dokTitelKolumn]) {
+      dokMall.titel = rad[dokTitelKolumn];
+    }
 
     // Lägg till kontaktperson som avsändare/mottagare
     // Inkommande (110) = avsändare, Utgående (111) = mottagare

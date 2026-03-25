@@ -214,13 +214,15 @@
       const { headers, rader } = parsCSV(reader.result);
       // Detektera filkolumner i CSV
       const csvFilKol = detekteraFilKolumner(headers);
-      if (csvFilKol.length > 0) {
-        // Uppdatera antal slots om CSV har fler filkolumner
-        while (slotsar.length < csvFilKol.length) {
+      const csvDokTitelKol = detekteraDokTitelKolumner(headers);
+      const maxSlots = Math.max(csvFilKol.length, csvDokTitelKol.length);
+      if (maxSlots > 0) {
+        // Uppdatera antal slots om CSV har fler fil-/titelkolumner
+        while (slotsar.length < maxSlots) {
           slotsar.push({ dokumentmall: null, namn: `Dokument ${slotsar.length + 1}` });
         }
         renderaSlotsar();
-        uppdateraFilKolumner(Math.max(slotsar.length, csvFilKol.length));
+        uppdateraFilKolumner(Math.max(slotsar.length, maxSlots));
       }
       importeraRader(rader);
     };
