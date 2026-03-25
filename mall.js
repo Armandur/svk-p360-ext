@@ -244,9 +244,15 @@ async function läsIn() {
     await chrome.storage.local.set(cacheUppdatering);
   }
 
-  // Klassificeringar – visa dropdown om vi fick in data, annars behåll manuella fält
+  // Typeahead-fält – visa dropdown om vi fick in data, annars behåll manuella fält
   if (inlästaAlternativ.klassificeringar?.length > 0) {
-    fyllKlassificeringSelect(inlästaAlternativ.klassificeringar);
+    fyllTypeaheadSelect(TYPEAHEAD_KLASS, inlästaAlternativ.klassificeringar);
+  }
+  if (inlästaAlternativ.projekt?.length > 0) {
+    fyllTypeaheadSelect(TYPEAHEAD_PROJEKT, inlästaAlternativ.projekt);
+  }
+  if (inlästaAlternativ.fastigheter?.length > 0) {
+    fyllTypeaheadSelect(TYPEAHEAD_FASTIGHET, inlästaAlternativ.fastigheter);
   }
 
   // Återställ sparade val om vi redigerar
@@ -263,36 +269,45 @@ async function läsIn() {
   }
 
   const delarkivAntal = inlästaAlternativ.delarkiv?.length ?? 0;
-  status.textContent = `✓ Inläst: ${inlästaAlternativ.diarieenheter.length} diarieenheter, ${delarkivAntal} delarkiv, ${inlästaAlternativ.ansvarigaEnheter.length} enheter.`;
+  const projektAntal = inlästaAlternativ.projekt?.length ?? 0;
+  const fastighetsAntal = inlästaAlternativ.fastigheter?.length ?? 0;
+  status.textContent = `✓ Inläst: ${inlästaAlternativ.diarieenheter.length} diarieenheter, ${delarkivAntal} delarkiv, ${inlästaAlternativ.ansvarigaEnheter.length} enheter, ${projektAntal} projekt, ${fastighetsAntal} fastigheter.`;
   knapp.disabled = false;
   knapp.textContent = 'Läs in igen';
 }
 
 /**
- * Visar klassificerings-dropdown och döljer de manuella textfälten.
- * Bevarar eventuellt redan valt värde (vid redigering).
+ * Generisk funktion: fyller en typeahead-dropdown och döljer manuella textfält.
+ * Används för klassificering, projekt och fastighet.
+ *
+ * @param {Object} config
+ * @param {string} config.selectId     – ID för dropdown-elementet
+ * @param {string} config.manuellRadId – ID för div med manuella fält
+ * @param {string} config.displayId    – ID för manuellt display-fält
+ * @param {string} config.recnoId      – ID för manuellt recno-fält
+ * @param {string} config.hjalpId      – ID för hjälptext-span
+ * @param {string} config.tomOption    – Text för tom-alternativet
+ * @param {string} config.etikett      – Etikett för statustext (t.ex. "klassificeringar")
+ * @param {Array}  items               – Array av { display, value }
  */
-function fyllKlassificeringSelect(klassificeringar) {
-  const sel = document.getElementById('mall-klass-select');
-  const manuellRad = document.getElementById('klass-manuell-rad');
-  const hjalp = document.getElementById('klass-hjalp');
+function fyllTypeaheadSelect(config, items) {
+  const sel = document.getElementById(config.selectId);
+  const manuellRad = document.getElementById(config.manuellRadId);
+  const hjalp = document.getElementById(config.hjalpId);
 
-  // Hämta nuvarande manuella värden för att kunna förväljas i dropdown
-  const nuvarandeDisplay = document.getElementById('mall-klass-display').value.trim();
-  const nuvarandeRecno  = document.getElementById('mall-klass-recno').value.trim();
+  const nuvarandeDisplay = document.getElementById(config.displayId).value.trim();
+  const nuvarandeRecno  = document.getElementById(config.recnoId).value.trim();
 
-  sel.innerHTML = '<option value="">– välj klassificering –</option>';
-  klassificeringar.forEach(k => {
+  sel.innerHTML = `<option value="">${config.tomOption}</option>`;
+  items.forEach(k => {
     const opt = document.createElement('option');
-    // value-formatet: "recno||display" – lätt att dela upp vid inläsning
     opt.value = (k.value || '') + '||' + (k.display || '');
     opt.textContent = k.display;
     sel.appendChild(opt);
   });
 
-  // Förvälj om vi redigerar och redan har ett värde
   if (nuvarandeRecno || nuvarandeDisplay) {
-    const träff = klassificeringar.find(
+    const träff = items.find(
       k => k.value === nuvarandeRecno || k.display === nuvarandeDisplay
     );
     if (träff) sel.value = (träff.value || '') + '||' + (träff.display || '');
@@ -300,8 +315,25 @@ function fyllKlassificeringSelect(klassificeringar) {
 
   sel.style.display = '';
   manuellRad.style.display = 'none';
-  hjalp.textContent = `${klassificeringar.length} klassificeringar inlästa.`;
+  hjalp.textContent = `${items.length} ${config.etikett} inlästa.`;
 }
+
+// Konfigurationer för de tre typeahead-fälten
+const TYPEAHEAD_KLASS = {
+  selectId: 'mall-klass-select', manuellRadId: 'klass-manuell-rad',
+  displayId: 'mall-klass-display', recnoId: 'mall-klass-recno',
+  hjalpId: 'klass-hjalp', tomOption: '– välj klassificering –', etikett: 'klassificeringar',
+};
+const TYPEAHEAD_PROJEKT = {
+  selectId: 'mall-projekt-select', manuellRadId: 'projekt-manuell-rad',
+  displayId: 'mall-projekt-display', recnoId: 'mall-projekt-recno',
+  hjalpId: 'projekt-hjalp', tomOption: '– välj projekt –', etikett: 'projekt',
+};
+const TYPEAHEAD_FASTIGHET = {
+  selectId: 'mall-fastighet-select', manuellRadId: 'fastighet-manuell-rad',
+  displayId: 'mall-fastighet-display', recnoId: 'mall-fastighet-recno',
+  hjalpId: 'fastighet-hjalp', tomOption: '– välj fastighet –', etikett: 'fastigheter',
+};
 
 function fyllSelectFrånAlternativ(elId, alternativ, läggTillTom = false) {
   const sel = document.getElementById(elId);
@@ -644,6 +676,8 @@ async function sparaMall() {
     ansvarigEnhet: ansvarigEnhetVärde ? { value: ansvarigEnhetVärde, label: ansvarigEnhetLabel } : null,
     ansvarigPerson: ansvarigPersonVärde ? { value: ansvarigPersonVärde, label: ansvarigPersonLabel } : null,
     klassificering: läsKlassificering(),
+    projekt: läsTypeahead(TYPEAHEAD_PROJEKT),
+    fastighet: läsTypeahead(TYPEAHEAD_FASTIGHET),
     sparatPaPapper: document.getElementById('mall-sparat-papper').value,
     skyddskod,
     sekretessParag: skyddskod !== '0' ? document.getElementById('mall-paragraf').value : '',
@@ -674,18 +708,21 @@ async function sparaMall() {
 }
 
 /**
- * Läser klassificeringsvärdet från antingen dropdown (om inläst) eller manuella fält.
+ * Generisk funktion: läser typeahead-värde från dropdown eller manuella fält.
  */
-function läsKlassificering() {
-  const sel = document.getElementById('mall-klass-select');
+function läsTypeahead(config) {
+  const sel = document.getElementById(config.selectId);
   if (sel.style.display !== 'none' && sel.value) {
     const [value, ...rest] = sel.value.split('||');
     return { value: value.trim(), display: rest.join('||').trim() };
   }
-  const recno   = document.getElementById('mall-klass-recno').value.trim();
-  const display = document.getElementById('mall-klass-display').value.trim();
+  const recno   = document.getElementById(config.recnoId).value.trim();
+  const display = document.getElementById(config.displayId).value.trim();
   return recno ? { value: recno, display } : null;
 }
+
+/** Läser klassificeringsvärdet. */
+function läsKlassificering() { return läsTypeahead(TYPEAHEAD_KLASS); }
 
 /**
  * Hämtar klassificeringskoden (t.ex. "2.7") från mallens klassificering.
@@ -722,6 +759,14 @@ async function laddaMall(id) {
   if (mall.klassificering) {
     document.getElementById('mall-klass-display').value = mall.klassificering.display || '';
     document.getElementById('mall-klass-recno').value = mall.klassificering.value || '';
+  }
+  if (mall.projekt) {
+    document.getElementById('mall-projekt-display').value = mall.projekt.display || '';
+    document.getElementById('mall-projekt-recno').value = mall.projekt.value || '';
+  }
+  if (mall.fastighet) {
+    document.getElementById('mall-fastighet-display').value = mall.fastighet.display || '';
+    document.getElementById('mall-fastighet-recno').value = mall.fastighet.value || '';
   }
 
   if (mall.diarieenhet?.value) {

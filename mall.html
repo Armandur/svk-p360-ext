@@ -96,12 +96,12 @@
       color: #555;
       flex: 1;
     }
-    .klassificering-rad {
+    .typeahead-rad {
       display: grid;
       grid-template-columns: 1fr auto;
       gap: 6px;
     }
-    .klassificering-rad input:last-child { width: 120px; }
+    .typeahead-rad input:last-child { width: 120px; }
 
     /* Knapprad längst ner */
     .knappar-fast {
@@ -449,11 +449,39 @@
           <option value="">– välj klassificering –</option>
         </select>
         <!-- Manuella inmatningsfält – visas om klassificeringar EJ laddats in -->
-        <div id="klass-manuell-rad" class="klassificering-rad">
+        <div id="klass-manuell-rad" class="typeahead-rad">
           <input type="text" id="mall-klass-display" placeholder="Visningstext (t.ex. 2.5 - Ge internt verksamhetsstöd)">
           <input type="text" id="mall-klass-recno" placeholder="Recno-kod" style="width:120px">
         </div>
         <span id="klass-hjalp" style="font-size:11px;color:#888">
+          Klicka "Läs in fältalternativ" för att hämta listan, eller ange recno-kod manuellt.
+        </span>
+      </div>
+
+      <div class="faltrad">
+        <label for="mall-projekt-select">Projekt</label>
+        <select id="mall-projekt-select" style="display:none;">
+          <option value="">– välj projekt –</option>
+        </select>
+        <div id="projekt-manuell-rad" class="typeahead-rad">
+          <input type="text" id="mall-projekt-display" placeholder="Visningstext (t.ex. Kyrkobyggnadsprojekt 2026)">
+          <input type="text" id="mall-projekt-recno" placeholder="Recno-kod" style="width:120px">
+        </div>
+        <span id="projekt-hjalp" style="font-size:11px;color:#888">
+          Klicka "Läs in fältalternativ" för att hämta listan, eller ange recno-kod manuellt.
+        </span>
+      </div>
+
+      <div class="faltrad">
+        <label for="mall-fastighet-select">Fastighet</label>
+        <select id="mall-fastighet-select" style="display:none;">
+          <option value="">– välj fastighet –</option>
+        </select>
+        <div id="fastighet-manuell-rad" class="typeahead-rad">
+          <input type="text" id="mall-fastighet-display" placeholder="Visningstext (t.ex. Kyrka 1:2)">
+          <input type="text" id="mall-fastighet-recno" placeholder="Recno-kod" style="width:120px">
+        </div>
+        <span id="fastighet-hjalp" style="font-size:11px;color:#888">
           Klicka "Läs in fältalternativ" för att hämta listan, eller ange recno-kod manuellt.
         </span>
       </div>

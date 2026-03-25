@@ -122,6 +122,60 @@ async function skapaFrånMall(mall) {
       sättKlassificering();
     }
 
+    // Projekt – typeahead-fält likt klassificering
+    if (mall.projekt?.value) {
+      const sättProjekt = () => {
+        const vis = iDoc.getElementById('PlaceHolderMain_MainView_ProjectQuickSearchControl_DISPLAY');
+        const dolt = iDoc.getElementById('PlaceHolderMain_MainView_ProjectQuickSearchControl');
+        const lista = iDoc.getElementById('PlaceHolderMain_MainView_ProjectQuickSearchControl_dropDownList');
+        if (vis) vis.value = mall.projekt.display || '';
+        if (dolt) dolt.value = mall.projekt.value;
+        if (lista) {
+          if (!Array.from(lista.options).some(o => o.value === mall.projekt.value)) {
+            const opt = iDoc.createElement('option');
+            opt.value = mall.projekt.value;
+            opt.text = mall.projekt.display || mall.projekt.value;
+            lista.appendChild(opt);
+          }
+          lista.value = mall.projekt.value;
+        }
+      };
+
+      const visInit = iDoc.getElementById('PlaceHolderMain_MainView_ProjectQuickSearchControl_DISPLAY');
+      if (visInit) visInit.value = (mall.projekt.display || '').split(' ')[0].trim() || mall.projekt.display || '';
+
+      await väntalPåUpdatePanel(() =>
+        pb('ctl00$PlaceHolderMain$MainView$ProjectQuickSearchControlHiddenButton', ''));
+      sättProjekt();
+    }
+
+    // Fastighet – typeahead-fält likt klassificering
+    if (mall.fastighet?.value) {
+      const sättFastighet = () => {
+        const vis = iDoc.getElementById('PlaceHolderMain_MainView_EstateGeneralTabSearchControl_DISPLAY');
+        const dolt = iDoc.getElementById('PlaceHolderMain_MainView_EstateGeneralTabSearchControl');
+        const lista = iDoc.getElementById('PlaceHolderMain_MainView_EstateGeneralTabSearchControl_dropDownList');
+        if (vis) vis.value = mall.fastighet.display || '';
+        if (dolt) dolt.value = mall.fastighet.value;
+        if (lista) {
+          if (!Array.from(lista.options).some(o => o.value === mall.fastighet.value)) {
+            const opt = iDoc.createElement('option');
+            opt.value = mall.fastighet.value;
+            opt.text = mall.fastighet.display || mall.fastighet.value;
+            lista.appendChild(opt);
+          }
+          lista.value = mall.fastighet.value;
+        }
+      };
+
+      const visInit = iDoc.getElementById('PlaceHolderMain_MainView_EstateGeneralTabSearchControl_DISPLAY');
+      if (visInit) visInit.value = (mall.fastighet.display || '').split(' ')[0].trim() || mall.fastighet.display || '';
+
+      await väntalPåUpdatePanel(() =>
+        pb('ctl00$PlaceHolderMain$MainView$EstateGeneralTabSearchControlHiddenButton', ''));
+      sättFastighet();
+    }
+
     if (mall.skyddskod && mall.skyddskod !== '0') {
       await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', mall.skyddskod);
 

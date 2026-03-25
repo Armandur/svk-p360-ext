@@ -92,9 +92,15 @@ async function läsInAlternativ() {
         .map(o => ({ value: o.value, label: o.text.trim() }));
     }
 
-    // Klassificeringar kräver en wildcard-sökning (%) för att populera _dropDownList.
-    // Trigga sökning och vänta tills select-elementet fyllts av AJAX-svaret.
-    const klassificeringar = await försökLäsKlassificeringar(doc, iWin);
+    // Klassificeringar, projekt och fastigheter kräver wildcard-sökning (%)
+    // för att populera _dropDownList. Kör alla tre sekventiellt (delar samma
+    // UpdatePanel-mekanism – parallella postbacks krockar).
+    const klassificeringar = await försökLäsTypeahead(doc, iWin,
+      'PlaceHolderMain_MainView_ClassificationCode1ComboControl');
+    const projekt = await försökLäsTypeahead(doc, iWin,
+      'PlaceHolderMain_MainView_ProjectQuickSearchControl');
+    const fastigheter = await försökLäsTypeahead(doc, iWin,
+      'PlaceHolderMain_MainView_EstateGeneralTabSearchControl');
 
     return {
       diarieenheter:     läsOptions('PlaceHolderMain_MainView_JournalUnitComboControl'),
@@ -103,6 +109,8 @@ async function läsInAlternativ() {
       ansvarigaEnheter:  läsOptions('PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl'),
       ansvarigaPersoner: läsOptions('PlaceHolderMain_MainView_ResponsibleUserComboControl'),
       klassificeringar,
+      projekt,
+      fastigheter,
     };
   } finally {
     iframe.remove();
@@ -110,40 +118,51 @@ async function läsInAlternativ() {
 }
 
 /**
- * Försöker läsa alla klassificeringsalternativ från formulärets typeahead
- * genom att söka med jokertecknet %.
+ * Generisk funktion för att läsa typeahead-alternativ från ett QuickSearch-fält.
+ * Fungerar för Klassificering, Projekt och Fastighet – alla har samma mönster:
+ *   {prefix}_DISPLAY (synligt textfält)
+ *   {prefix}         (hidden value-fält)
+ *   {prefix}_dropDownList (native select som fylls via AJAX)
+ *   {prefix}_OnClick_PostBack (dold postback-länk som triggar sökning)
+ *
+ * @param {Document} doc  iframe-dokumentet
+ * @param {Window} win    iframe-fönstret
+ * @param {string} prefix element-ID-prefix (utan suffix)
+ * @returns {Array<{display: string, value: string}>}
  */
-async function försökLäsKlassificeringar(doc, win) {
-  const dropDown = doc.getElementById(
-    'PlaceHolderMain_MainView_ClassificationCode1ComboControl_dropDownList'
-  );
+async function försökLäsTypeahead(doc, win, prefix) {
+  const dropDown = doc.getElementById(prefix + '_dropDownList');
   if (!dropDown) return [];
 
-  const visFält = doc.getElementById(
-    'PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY'
-  );
+  const visFält = doc.getElementById(prefix + '_DISPLAY');
   if (visFält) {
     visFält.value = '%';
     for (const t of ['focus', 'input', 'keydown', 'keyup']) {
       try { visFält.dispatchEvent(new Event(t, { bubbles: true })); } catch { /* */ }
     }
   }
-  try {
-    win.__doPostBack(
-      'ctl00$PlaceHolderMain$MainView$ClassificationCode1ComboControl_OnClick_PostBack', ''
-    );
-  } catch { /* PostBack ej tillgänglig */ }
 
+  // Trigga OnClick_PostBack som startar AJAX-sökningen
+  const postBackId = 'ctl00$PlaceHolderMain$MainView$' +
+    prefix.replace('PlaceHolderMain_MainView_', '') + '_OnClick_PostBack';
+  try { win.__doPostBack(postBackId, ''); } catch { /* PostBack ej tillgänglig */ }
+
+  // Vänta tills _dropDownList har fått alternativ via AJAX
   await new Promise(resolve => {
     const start = Date.now();
     const check = setInterval(() => {
-      const antal = doc.querySelectorAll('.selectize-dropdown-content .option[data-value]').length;
+      const antal = dropDown.options?.length ?? 0;
       if (antal > 0 || Date.now() - start > 12000) { clearInterval(check); resolve(); }
     }, 300);
   });
 
-  const items = doc.querySelectorAll('.selectize-dropdown-content .option[data-value]');
-  return Array.from(items)
-    .filter(el => el.dataset.value && el.dataset.value !== '0')
-    .map(el => ({ display: (el.title || el.textContent).trim(), value: el.dataset.value }));
+  // Läs från _dropDownList (native select)
+  const resultat = Array.from(dropDown.options)
+    .filter(o => o.value && o.value !== '0' && o.value !== '')
+    .map(o => ({ display: o.text.trim(), value: o.value }));
+
+  // Rensa söktexten så att nästa typeahead inte störs
+  if (visFält) visFält.value = '';
+
+  return resultat;
 }

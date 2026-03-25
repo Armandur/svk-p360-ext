@@ -311,6 +311,34 @@ som vid fel ordning nollställer paragraf-fältet (`AccessCodeAuthorizationCombo
 om skyddskod redan satts. Sätt klassificering via det dolda fältet + dropDownList-elementet
 och kör HiddenButton-postbacken *innan* `AccessCodeComboControl` sätts.
 
+### Projekt och Fastighet (typeahead)
+
+Projekt och Fastighet är typeahead-fält med identiskt mönster som Klassificering.
+Båda finns på Generellt-fliken i ärendeformuläret. Sökning med `%` ger alla alternativ.
+
+**Projekt:**
+
+| Element-ID | Typ | Syfte |
+|---|---|---|
+| `PlaceHolderMain_MainView_ProjectQuickSearchControl_DISPLAY` | INPUT text | Synligt sökfält |
+| `PlaceHolderMain_MainView_ProjectQuickSearchControl` | INPUT hidden | Recno-värde |
+| `PlaceHolderMain_MainView_ProjectQuickSearchControl_dropDownList` | SELECT | Native select (fylls via AJAX) |
+| `PlaceHolderMain_MainView_ProjectQuickSearchControl_OnClick_PostBack` | Dold länk | Triggar AJAX-sökning |
+| `PlaceHolderMain_MainView_ProjectQuickSearchControlHiddenButton` | Dold knapp | Bekräftar valet via PostBack |
+
+**Fastighet:**
+
+| Element-ID | Typ | Syfte |
+|---|---|---|
+| `PlaceHolderMain_MainView_EstateGeneralTabSearchControl_DISPLAY` | INPUT text | Synligt sökfält |
+| `PlaceHolderMain_MainView_EstateGeneralTabSearchControl` | INPUT hidden | Recno-värde |
+| `PlaceHolderMain_MainView_EstateGeneralTabSearchControl_dropDownList` | SELECT | Native select (fylls via AJAX) |
+| `PlaceHolderMain_MainView_EstateGeneralTabSearchControl_OnClick_PostBack` | Dold länk | Triggar AJAX-sökning |
+| `PlaceHolderMain_MainView_EstateGeneralTabSearchControlHiddenButton` | Dold knapp | Bekräftar valet via PostBack |
+
+> **Ordning:** Projekt och Fastighet sätts **efter** klassificering och **före**
+> skyddskod-blocket i fyll-i-flödet, för att undvika UpdatePanel-konflikter.
+
 ### Spara-knappen
 
 Knappen "Slutför" har element-ID `PlaceHolderMain_MainView_WizardFinishButton` och

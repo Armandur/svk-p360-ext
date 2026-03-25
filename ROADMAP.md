@@ -78,14 +78,6 @@ Formuläret öppnas via dialog-iframe, fält fylls med `element.selectize.setVal
 `textarea.value`, sedan anropas `__doPostBack('...WizardNavigationButton', 'finish')` i
 iframe-kontexten. Se CLAUDE.md → "Skapa nytt ärende" för komplett teknisk spec.
 
-**Återstår att kartlägga / implementera:**
-- **Projekt och Fastighet i mallredigeraren** – fälten finns på respektive flik i
-  ärendeformuläret och ser ut som klassificering (typeahead med synligt visningsvärde
-  + dolt recno-fält). Inläsning av tillgängliga alternativ och sättning av värdet
-  bör kunna göras på samma sätt som klassificering (PostBack + hidden field + display
-  field). Kartlägg element-ID:n och PostBack-nycklar, lägg sedan till stöd i
-  mallredigeraren och i fyll-i-flödet.
-
 ### Massregistrering av in-/utträdesärenden från Excel/CSV
 
 Funktion för att skapa ett stort antal ärenden i batch utifrån en Excel- eller CSV-fil.
@@ -205,3 +197,4 @@ Funktioner som diskuterats men ännu inte prioriterats.
 | Explicit skyddskod (Offentlig) när ärendet har annan default | 2026-03-25 |
 | Validering av handlingstyp mot ärendets klassificering (popup + formulär) | 2026-03-25 |
 | Fullständigt flöde ärendeskapande → ärendedokument testat och verifierat | 2026-03-25 |
+| Projekt och Fastighet i mallredigeraren (typeahead med %-sökning) | 2026-03-25 |
