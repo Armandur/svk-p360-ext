@@ -865,6 +865,30 @@ Därefter triggar formulär-iframen automatiskt (i tur och ordning):
 2. `NewDocumentOperation_POSTBACK` — uppdaterar ärendesidan (top-frame)
 3. `NewDocumentCaseBrokerListener` — laddar om ärendets dokumentlista
 
+### Fältskillnader per dokumentkategori (verifierat 2026-03-25)
+
+Dokumentkategorin (`TypeJournalDocumentInsertComboControl`) triggar en UpdatePanel som
+visar/döljer fält. Alla kategorier har samma grund av fält (titel, handlingstyp, skyddskod,
+åtkomstgrupp, ansvarig enhet/person m.m.). Skillnaderna:
+
+| Fält | Inkommande (110) | Utgående (111) | Upprättat (60005) | Protokoll (112) |
+|---|:---:|:---:|:---:|:---:|
+| `ReceivedDateControl` (Ankomstdatum) | **Ja** | Nej | Nej | Nej |
+| `DispatchedDateControl` (Färdigst/exp-datum) | Ja | **Ja** (ej obl.) | **Ja** (ej obl.) | **Ja** (ej obl.) |
+| `ProcessRecordTypeControl` (Handlingstyp) | Ja | **Ja** | **Ja** | **Ja** |
+| `ToContactQuickSearchControl` (mottagare/avsändare-sökning) | Ja | Ja | **Nej** | Ja |
+| `Custom_QuickUnregContactText` (oregistrerad kontakt) | Ja | Ja | Ja | Ja |
+| `DocumentTemplateComboControl` (dokumentmall) | ? | Ja | Ja | Nej |
+
+> **Handlingstyp** finns för alla kategorier men servern byter automatiskt default-värde
+> vid kategori-byte (t.ex. `101634` för Utgående, `101636` för Upprättat/Protokoll).
+> Värdet är instansspecifikt och måste läsas dynamiskt eller konfigureras per mall.
+>
+> **Färdigst/exp-datum** (`DispatchedDateControl`) är **inte obligatoriskt** för
+> Utgående, Upprättat eller Protokoll, men bra att kunna ange i mallen.
+>
+> **Ankomstdatum** (`ReceivedDateControl`) visas **enbart** för Inkommande.
+
 ### Återstår att kartlägga
 
 - ~~Titelfältets element-ID~~ ✓ `TitleTextBoxControl` (TEXTAREA, maxlength 254)
