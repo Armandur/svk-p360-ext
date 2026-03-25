@@ -165,9 +165,6 @@ async function försökLäsKlassificeringar(doc, win) {
  * @returns {Array<{display: string, value: string}>}
  */
 async function försökLäsTypeahead(doc, win, prefix) {
-  const dropDown = doc.getElementById(prefix + '_dropDownList');
-  if (!dropDown) return [];
-
   const visFält = doc.getElementById(prefix + '_DISPLAY');
   if (!visFält) return [];
 
@@ -177,9 +174,8 @@ async function försökLäsTypeahead(doc, win, prefix) {
     try { visFält.dispatchEvent(new Event(t, { bubbles: true })); } catch { /* */ }
   }
 
-  // Sökning triggas av HiddenButton-postback (inte OnClick_PostBack).
-  // UpdatePanel ersätter hela formuläret – _dropDownList återskapas i DOM:en.
-  // Använd PageRequestManager för att vänta på att UpdatePanel-svaret kommit.
+  // Sökning triggas av HiddenButton-postback. UpdatePanel ersätter hela
+  // formuläret – vänta via PageRequestManager.
   const hiddenBtnId = 'ctl00$PlaceHolderMain$MainView$' +
     prefix.replace('PlaceHolderMain_MainView_', '') + 'HiddenButton';
 
@@ -198,13 +194,17 @@ async function försökLäsTypeahead(doc, win, prefix) {
     }
   });
 
-  // Hämta det NYA _dropDownList-elementet (gammalt kan ha ersatts av UpdatePanel)
-  const nyDropDown = doc.getElementById(prefix + '_dropDownList');
-  if (!nyDropDown) return [];
+  // Resultaten hamnar i Selectize-dropdown inuti TD#{prefix}_xyPoint
+  // (inte i _dropDownList). Avgränsa per fält via xyPoint-containern.
+  const container = doc.getElementById(prefix + '_xyPoint');
+  const selector = '.selectize-dropdown-content .option[data-value]';
+  const items = container
+    ? container.querySelectorAll(selector)
+    : doc.querySelectorAll(selector);
 
-  const resultat = Array.from(nyDropDown.options)
-    .filter(o => o.value && o.value !== '0' && o.value !== '')
-    .map(o => ({ display: o.text.trim(), value: o.value }));
+  const resultat = Array.from(items)
+    .filter(el => el.dataset.value && el.dataset.value !== '0')
+    .map(el => ({ display: (el.title || el.textContent).trim(), value: el.dataset.value }));
 
   // Rensa söktexten
   const nyVisFält = doc.getElementById(prefix + '_DISPLAY');
