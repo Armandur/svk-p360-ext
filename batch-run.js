@@ -5,6 +5,26 @@
 let batchAvbruten = false;
 let batchKör = false;
 let batchResultat = [];
+let _avbrytResolve = null; // Resolve-funktion för att avbryta pågående väntan
+
+/**
+ * Returnerar ett Promise som resolvar när batch avbryts.
+ * Används för att race:a mot långa await-anrop.
+ */
+function avbrytPromise() {
+  return new Promise(resolve => { _avbrytResolve = resolve; });
+}
+
+/**
+ * Race:ar ett promise mot avbryt-flaggan.
+ * Returnerar { avbruten: true } om batch avbröts, annars det ursprungliga värdet.
+ */
+function medAvbryt(promise) {
+  return Promise.race([
+    promise,
+    avbrytPromise().then(() => ({ _avbruten: true })),
+  ]);
+}
 
 /**
  * Hittar en öppen 360°-flik.
@@ -47,26 +67,69 @@ function väntaPåNavigation(tabId, urlMönster, timeout = 45000) {
 
 /**
  * Skickar meddelande till en flik och väntar på svar.
+ * Injicerar content scripts om de saknas (t.ex. efter tilläggs-reload).
  * Returnerar null om fliken navigerade bort (connection lost).
  */
-function skickaTillFlik(tabId, message, timeout = 120000) {
-  return new Promise((resolve) => {
-    const timer = setTimeout(() => resolve(null), timeout);
-    try {
-      chrome.tabs.sendMessage(tabId, message, (response) => {
+async function skickaTillFlik(tabId, message, timeout = 120000) {
+  // Försök skicka – om content.js saknas, injicera och försök igen
+  for (let försök = 0; försök < 2; försök++) {
+    const resultat = await new Promise((resolve) => {
+      const timer = setTimeout(() => {
+        console.log(`[batch] skickaTillFlik: Timeout (${timeout} ms) för action=${message.action}`);
+        resolve(null);
+      }, timeout);
+      try {
+        chrome.tabs.sendMessage(tabId, message, (response) => {
+          clearTimeout(timer);
+          if (chrome.runtime.lastError) {
+            const err = chrome.runtime.lastError.message || 'Okänt fel';
+            console.warn(`[batch] skickaTillFlik: lastError (försök ${försök + 1}):`, err);
+            resolve({ _sendError: true, message: err });
+          } else {
+            resolve(response);
+          }
+        });
+      } catch (e) {
         clearTimeout(timer);
-        if (chrome.runtime.lastError) {
-          // Fliken navigerade bort eller content.js ej redo – förväntat vid skapaFrånMall
-          resolve(null);
-        } else {
-          resolve(response);
-        }
-      });
-    } catch {
-      clearTimeout(timer);
-      resolve(null);
+        console.warn(`[batch] skickaTillFlik: catch-fel (försök ${försök + 1}):`, e);
+        resolve({ _sendError: true, message: e.message });
+      }
+    });
+
+    // Om meddelandet gick fram → returnera svaret
+    if (resultat && !resultat._sendError) return resultat;
+    if (resultat === null) return null; // Timeout
+
+    // Första försöket misslyckades (content.js saknas) – injicera scripts
+    if (försök === 0) {
+      console.log(`[batch] skickaTillFlik: Injicerar content scripts i flik ${tabId}…`);
+      try {
+        // Injicera ISOLATED world (content.js)
+        await chrome.scripting.executeScript({
+          target: { tabId },
+          files: ['content.js'],
+        });
+        // Injicera MAIN world scripts
+        await chrome.scripting.executeScript({
+          target: { tabId },
+          files: [
+            'page-utils.js', 'page-dagboksblad.js', 'page-status.js',
+            'page-arende-options.js', 'page-arende-contacts.js', 'page-arende-create.js',
+            'page-document-options.js', 'page-document-validate.js', 'page-document-fill.js',
+            'page-document-upload.js', 'page-document-create.js', 'page.js',
+          ],
+          world: 'MAIN',
+        });
+        // Ge scripts lite tid att initialiseras
+        await new Promise(r => setTimeout(r, 500));
+        console.log(`[batch] skickaTillFlik: Scripts injicerade, försöker igen…`);
+      } catch (injErr) {
+        console.error(`[batch] skickaTillFlik: Kunde inte injicera scripts:`, injErr);
+        return null;
+      }
     }
-  });
+  }
+  return null;
 }
 
 /**
@@ -233,11 +296,12 @@ async function startaBatch(baseMall, slots, inställningar) {
       // Skicka skapaFrånMall till 360°-fliken
       // OBS: skapaFrånMall navigerar sidan – svaret kommer troligen aldrig tillbaka.
       // Timeout 120s: formuläret kan ta lång tid (fyllning + postbacks + submit).
-      const svar = await skickaTillFlik(tabId, {
+      const svar = await medAvbryt(skickaTillFlik(tabId, {
         action: 'skapaFrånMall',
         mall: mall,
-      }, 120000);
+      }, 120000));
 
+      if (svar?._avbruten) throw new Error('Avbruten av användaren');
       console.log(`[batch] Rad ${idx + 1}: skickaTillFlik svar:`, svar);
 
       // Om vi fick ett explicit felsvar (innan navigering) – avbryt
@@ -249,7 +313,8 @@ async function startaBatch(baseMall, slots, inställningar) {
       sättRadStatus(idx, 'pågår', 'Väntar på ärende…');
       visaBatchProgress(`Rad ${idx + 1}/${antalRader}: Väntar på ärende…`);
 
-      const nyUrl = await navigeringsPromise;
+      const nyUrl = await medAvbryt(navigeringsPromise);
+      if (nyUrl?._avbruten) throw new Error('Avbruten av användaren');
       console.log(`[batch] Rad ${idx + 1}: Navigering resultat:`, nyUrl);
       if (!nyUrl) {
         // Kolla om fliken redan är på en ärendesida (navigeringen kan ha skett
@@ -286,7 +351,8 @@ async function startaBatch(baseMall, slots, inställningar) {
         visaBatchProgress(`Rad ${idx + 1}/${antalRader}: Skapar dokument…`);
         console.log(`[batch] Rad ${idx + 1}: Väntar på batchRadKlar-signal (${mall.ärendedokument.length} dokument)…`);
 
-        const signal = await väntaPåBatchSignal(300000);
+        const signal = await medAvbryt(väntaPåBatchSignal(300000));
+        if (signal?._avbruten) throw new Error('Avbruten av användaren');
         console.log(`[batch] Rad ${idx + 1}: batchRadKlar-signal:`, signal);
         if (!signal) {
           throw new Error('Dokumentskapande tog för lång tid (timeout 5 min)');
@@ -380,6 +446,11 @@ async function startaBatch(baseMall, slots, inställningar) {
  */
 function avbrytBatch() {
   batchAvbruten = true;
+  // Avbryt pågående väntan (race mot avbrytPromise)
+  if (_avbrytResolve) {
+    _avbrytResolve();
+    _avbrytResolve = null;
+  }
 }
 
 /**
