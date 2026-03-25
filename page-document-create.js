@@ -461,8 +461,13 @@ async function skapaÄrendedokument(dok, visaStatus) {
       'PlaceHolderMain_MainView_TypeJournalDocumentInsertComboControl',
       dok.kategori
     );
-    // Vänta på UpdatePanel-svar (datumfält, kontaktfält m.m. laddas)
-    await sleep(1500);
+    // Polla tills UpdatePanel svarat (titelfältet finns kvar efter uppdatering)
+    for (let poll = 0; poll < 20; poll++) {
+      await sleep(150);
+      const titelFinns = iDoc.getElementById('PlaceHolderMain_MainView_TitleTextBoxControl');
+      const kontaktFält = iDoc.getElementById('PlaceHolderMain_MainView_Custom_QuickUnregContactText');
+      if (titelFinns && kontaktFält) break;
+    }
   }
 
   // Åtkomstgrupp
@@ -747,8 +752,14 @@ async function skapaÄrendedokument(dok, visaStatus) {
       rWin.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish');
     } catch { /* ignorera */ }
 
-    // Vänta på att dialogen stängs och ärendesidan uppdateras
-    await sleep(2000);
+    // Polla tills RepeatWizardDialog-iframen försvinner ur DOM
+    for (let poll = 0; poll < 40; poll++) {
+      await sleep(150);
+      const kvarvarande = Array.from(document.querySelectorAll('iframe')).some(f => {
+        try { return (f.src || '').includes('RepeatWizardDialog'); } catch { return false; }
+      });
+      if (!kvarvarande) break;
+    }
   } else {
     // Ingen RepeatWizardDialog – kontrollera valideringsfel
     let valideringsfel = [];
@@ -821,9 +832,13 @@ async function skapaAllaÄrendedokument(dokument, options) {
       console.error(`[p360] Ärendedokument ${nr}/${dokument.length} misslyckades:`, err.message);
     }
 
-    // Vänta mellan dokument så att 360° hinner uppdatera sidan
+    // Polla tills alla dialoger stängts innan nästa dokument
     if (i < dokument.length - 1) {
-      await sleep(1500);
+      for (let poll = 0; poll < 40; poll++) {
+        await sleep(150);
+        const öppnaDialoger = document.querySelectorAll('dialog[open], dialog.is-open');
+        if (öppnaDialoger.length === 0) break;
+      }
     }
   }
 
