@@ -120,12 +120,16 @@ async function laddaUppEnFil(iframe, fil) {
   hiddenPath.value = `${userSession}|${fil.name}`;
   console.log('[p360-upload] hiddenPath.value satt till:', hiddenPath.value);
 
-  // Steg 3: Trigga PostBack direkt via __doPostBack
-  console.log('[p360-upload] Steg 3: Triggar __doPostBack');
-  const iWin = iframe.contentWindow;
-  iWin.__doPostBack(
-    'ctl00$PlaceHolderMain$MainView$DocumentMultiFileUploadControl_hiddenUploadButton', ''
+  // Steg 3: Trigga PostBack via klick på den dolda länken.
+  // .click() fungerar inte på display:none – visa tillfälligt, klicka, dölj.
+  console.log('[p360-upload] Steg 3: Klickar hiddenUploadButton');
+  const hiddenBtn = iDoc.getElementById(
+    'PlaceHolderMain_MainView_DocumentMultiFileUploadControl_hiddenUploadButton'
   );
+  if (!hiddenBtn) throw new Error('Hidden upload-knapp hittades inte.');
+  hiddenBtn.style.display = '';
+  hiddenBtn.click();
+  hiddenBtn.style.display = 'none';
 
   // Vänta på att PostBack-svaret kommit.
   // ASP.NET PageRequestManager hanterar postbacken asynkront.
