@@ -83,34 +83,45 @@ async function laddaUppEnFil(iframe, fil) {
   const iDoc = iframe.contentDocument;
   const userSession = Math.floor(Math.random() * 1000000000);
 
+  console.log('[p360-upload] Steg 1: POST till FileUpload.ashx, userSession=', userSession, 'fil=', fil.name, 'storlek=', fil.size);
+
   // Steg 1: POST filen till FileUpload.ashx
-  await new Promise((resolve, reject) => {
+  const uploadSvar = await new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `/FileUpload.ashx?userSession=${userSession}`);
     xhr.onload = () => {
+      console.log('[p360-upload] XHR klar, status=', xhr.status, 'response=', xhr.responseText?.substring(0, 200));
       if (xhr.status === 200) {
         resolve(xhr.responseText);
       } else {
         reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
       }
     };
-    xhr.onerror = () => reject(new Error('Nätverksfel vid uppladdning'));
+    xhr.onerror = (e) => {
+      console.error('[p360-upload] XHR error:', e);
+      reject(new Error('Nätverksfel vid uppladdning'));
+    };
     xhr.ontimeout = () => reject(new Error('Timeout vid uppladdning'));
-    xhr.timeout = 120000; // 2 minuter
+    xhr.timeout = 120000;
 
     const formData = new FormData();
     formData.append(fil.name, fil);
     xhr.send(formData);
   });
 
+  console.log('[p360-upload] Steg 2: Sätter hidden field');
+
   // Steg 2: Sätt hidden field med session|filnamn
   const hiddenPath = iDoc.getElementById(
     'PlaceHolderMain_MainView_DocumentMultiFileUploadControl_hiddenUploadedFilesPath'
   );
+  console.log('[p360-upload] hiddenPath element:', hiddenPath ? 'hittad' : 'SAKNAS');
   if (!hiddenPath) throw new Error('Hidden upload path-fält hittades inte.');
   hiddenPath.value = `${userSession}|${fil.name}`;
+  console.log('[p360-upload] hiddenPath.value satt till:', hiddenPath.value);
 
-  // Steg 3: Trigga PostBack direkt via __doPostBack (inte .click() på display:none <a>)
+  // Steg 3: Trigga PostBack direkt via __doPostBack
+  console.log('[p360-upload] Steg 3: Triggar __doPostBack');
   const iWin = iframe.contentWindow;
   iWin.__doPostBack(
     'ctl00$PlaceHolderMain$MainView$DocumentMultiFileUploadControl_hiddenUploadButton', ''
