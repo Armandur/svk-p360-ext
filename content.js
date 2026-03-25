@@ -97,7 +97,7 @@ if (!window.__p360PendingChecked) {
       if (batchKörning) {
         const diarienummer = läsDiarienummerFrånDOM();
         await chrome.storage.local.set({
-          batchRadKlar: { diarienummer, dokument: [], tid: Date.now() }
+          batchRadKlar: { radIdx: batchKörning.radIdx, diarienummer, dokument: [], tid: Date.now() }
         });
       }
       return;
@@ -126,7 +126,7 @@ if (!window.__p360PendingChecked) {
       if (batchKörning) {
         const diarienummer = läsDiarienummerFrånDOM();
         await chrome.storage.local.set({
-          batchRadKlar: { diarienummer, dokument: [], tid: Date.now() }
+          batchRadKlar: { radIdx: batchKörning.radIdx, diarienummer, dokument: [], tid: Date.now() }
         });
       }
       return;
@@ -151,6 +151,7 @@ if (!window.__p360PendingChecked) {
           }
           await chrome.storage.local.set({
             batchRadKlar: {
+              radIdx: bk.radIdx,
               diarienummer,
               dokument: resultat.map(d => d.dokumentNr || d.dokumentNummer || ''),
               avbruten: avbrutna.length > 0,
@@ -165,7 +166,7 @@ if (!window.__p360PendingChecked) {
         const { batchKörning: bk } = await chrome.storage.local.get('batchKörning');
         if (bk) {
           await chrome.storage.local.set({
-            batchRadKlar: { fel: err.message, tid: Date.now() }
+            batchRadKlar: { radIdx: bk.radIdx, fel: err.message, tid: Date.now() }
           });
         }
       });

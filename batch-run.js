@@ -136,26 +136,40 @@ async function skickaTillFlik(tabId, message, timeout = 120000) {
  * Väntar på att content.js signalerar att batchsteget är klart.
  * Signalen skrivs till chrome.storage.local av content.js efter
  * att ärendedokument skapats.
+ *
+ * @param {number} radIdx – Förväntat radindex (filtrerar bort stale-signaler)
+ * @param {number} timeout – Max väntetid i ms
  */
-function väntaPåBatchSignal(timeout = 300000) {
+function väntaPåBatchSignal(radIdx, timeout = 300000) {
   return new Promise((resolve) => {
     const timer = setTimeout(() => {
       chrome.storage.onChanged.removeListener(lyssnare);
       resolve(null);
     }, timeout);
 
+    function godkännSignal(signal) {
+      // Acceptera signal om radIdx matchar, eller om signalen inte har radIdx (bakåtkompatibilitet)
+      if (signal.radIdx !== undefined && signal.radIdx !== radIdx) {
+        console.log(`[batch] väntaPåBatchSignal: Ignorerar stale signal (radIdx=${signal.radIdx}, förväntat=${radIdx})`);
+        return false;
+      }
+      return true;
+    }
+
     function lyssnare(changes) {
-      if (changes.batchRadKlar) {
+      if (changes.batchRadKlar?.newValue) {
+        const signal = changes.batchRadKlar.newValue;
+        if (!godkännSignal(signal)) return; // Ignorera stale signal
         clearTimeout(timer);
         chrome.storage.onChanged.removeListener(lyssnare);
-        resolve(changes.batchRadKlar.newValue);
+        resolve(signal);
       }
     }
     chrome.storage.onChanged.addListener(lyssnare);
 
     // Kolla om signalen redan finns (race condition)
     chrome.storage.local.get('batchRadKlar', (data) => {
-      if (data.batchRadKlar) {
+      if (data.batchRadKlar && godkännSignal(data.batchRadKlar)) {
         clearTimeout(timer);
         chrome.storage.onChanged.removeListener(lyssnare);
         resolve(data.batchRadKlar);
@@ -375,7 +389,7 @@ async function startaBatch(baseMall, slots, inställningar) {
         visaBatchProgress(`Rad ${idx + 1}/${antalRader}: Skapar dokument…`);
         console.log(`[batch] Rad ${idx + 1}: Väntar på batchRadKlar-signal (${mall.ärendedokument.length} dokument)…`);
 
-        const signal = await medAvbryt(väntaPåBatchSignal(300000));
+        const signal = await medAvbryt(väntaPåBatchSignal(idx, 300000));
         if (signal?._avbruten) throw new Error('Avbruten av användaren');
         console.log(`[batch] Rad ${idx + 1}: batchRadKlar-signal:`, signal);
         if (!signal) {

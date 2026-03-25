@@ -258,7 +258,11 @@ function renderaFilCell(td, rad, filIdx, filKolumn) {
   if (filnamn) {
     const div = document.createElement('div');
     div.className = 'fil-cell-innehåll';
+    // Visa varningsikon om filnamn finns men ingen File-objekt (enbart text från CSV)
+    const ikon = filObj ? '📄' : '⚠';
+    const ikonTitle = filObj ? 'Fil kopplad' : 'Filnamn utan fildata – använd "Koppla filer" för att koppla';
     div.innerHTML = `
+      <span title="${ikonTitle}" style="font-size:12px;${filObj ? '' : 'color:#e67e22;cursor:help;'}">${ikon}</span>
       <span class="filnamn" title="${escBatchHtml(filnamn)}">${escBatchHtml(filnamn)}</span>
       <button class="ta-bort-fil" title="Ta bort fil">✕</button>
     `;
@@ -399,4 +403,51 @@ function escBatchHtml(str) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+/**
+ * Kopplar valda filer till befintliga rader baserat på filnamn i Fil_N-kolumner.
+ * Returnerar { matchade, omatchade } för feedback.
+ */
+function kopplaFiler(filer) {
+  sparaFrånTabell();
+  let matchade = 0;
+  const omatchade = [];
+
+  for (const fil of filer) {
+    let hittad = false;
+    for (const rad of batchRader) {
+      for (let fi = 0; fi < filKolumner.length; fi++) {
+        const filnamn = rad[filKolumner[fi]] || '';
+        // Matcha exakt filnamn eller utan sökväg
+        if (filnamn && filnamn === fil.name) {
+          if (!rad._filer) rad._filer = [];
+          rad._filer[fi] = fil;
+          matchade++;
+          hittad = true;
+          break;
+        }
+      }
+      if (hittad) break;
+    }
+    if (!hittad) omatchade.push(fil.name);
+  }
+
+  renderaTabell();
+  return { matchade, omatchade };
+}
+
+/**
+ * Returnerar antal filnamn i tabellen som saknar File-objekt (enbart textnamn).
+ */
+function räknaOkoppladeFilnamn() {
+  let antal = 0;
+  for (const rad of batchRader) {
+    for (let fi = 0; fi < filKolumner.length; fi++) {
+      const filnamn = rad[filKolumner[fi]] || '';
+      const filObj = rad._filer?.[fi];
+      if (filnamn && !filObj) antal++;
+    }
+  }
+  return antal;
 }

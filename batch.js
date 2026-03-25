@@ -252,6 +252,30 @@
     csvInput.value = ''; // Tillåt att samma fil väljs igen
   });
 
+  // Koppla filer – matchar valda filer till rader baserat på filnamn
+  const kopplaInput = document.getElementById('koppla-filer-input');
+  document.getElementById('btn-koppla-filer').addEventListener('click', () => {
+    kopplaInput.click();
+  });
+  kopplaInput.addEventListener('change', () => {
+    const filer = Array.from(kopplaInput.files);
+    if (filer.length === 0) return;
+    const { matchade, omatchade } = kopplaFiler(filer);
+    const info = document.getElementById('koppla-filer-info');
+    info.style.display = '';
+    const delar = [];
+    if (matchade > 0) delar.push(`${matchade} kopplad(e)`);
+    if (omatchade.length > 0) delar.push(`${omatchade.length} utan match`);
+    info.textContent = delar.join(', ');
+    info.style.color = omatchade.length > 0 ? '#e67e22' : '#27ae60';
+    if (omatchade.length > 0) {
+      info.title = 'Omatchade filer: ' + omatchade.join(', ');
+    } else {
+      info.title = '';
+    }
+    kopplaInput.value = '';
+  });
+
   // Lägg till rad
   document.getElementById('btn-lägg-till-rad').addEventListener('click', () => {
     läggTillRad();
@@ -278,6 +302,18 @@
       const svar = confirm(
         `${filSlotarUtanMall.length} dokumentslot(ar) saknar dokumentmall. ` +
         `Filer i dessa kolumner ignoreras. Fortsätta?`
+      );
+      if (!svar) return;
+    }
+
+    // Kontrollera om det finns filnamn utan faktiska filer (bara text från CSV)
+    const okopplade = räknaOkoppladeFilnamn();
+    if (okopplade > 0) {
+      const svar = confirm(
+        `${okopplade} fil(er) i tabellen har enbart filnamn men saknar faktisk fildata.\n\n` +
+        `Använd "Koppla filer" för att välja och matcha filerna, ` +
+        `eller dra filer direkt till Fil-cellerna.\n\n` +
+        `Vill du fortsätta ändå? Dokument skapas utan bifogade filer.`
       );
       if (!svar) return;
     }
