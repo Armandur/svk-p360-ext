@@ -298,6 +298,81 @@ laddaMallar();
 laddaDokumentmallar();
 
 // ------------------------------------------------------------------
+// Klassificeringsvalidering för dokumentmallar
+// ------------------------------------------------------------------
+
+/**
+ * Läser ärendets klassificering från den aktiva 360°-fliken.
+ * Kör ett litet script i sidans DOM för att hämta texten.
+ * @returns {string|null} Klassificeringskod (t.ex. "2.4") eller null.
+ */
+async function hämtaÄrendeKlassificering() {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab?.url?.startsWith('https://p360.svenskakyrkan.se/')) return null;
+
+    const [result] = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: () => {
+        const el = document.getElementById(
+          'PlaceHolderMain_MainView_RightFolderView1_ViewControl_EditClassCodeTextFieldControl'
+        );
+        return el ? el.textContent.trim() : null;
+      },
+    });
+    if (!result?.result) return null;
+
+    // "2.4 - Administrera IT och telefoni" → "2.4"
+    const match = result.result.match(/^([\d.]+)/);
+    return match ? match[1] : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Uppdaterar dokumentmallistan med varningar om handlingstypen
+ * inte matchar ärendets klassificering.
+ */
+async function visaKlassificeringsvarningar() {
+  const ärendeKlass = await hämtaÄrendeKlassificering();
+  if (!ärendeKlass) return; // Detaljpanelen ihopfälld eller inte på ärendesida
+
+  const { dokumentmallar = [] } = await chrome.storage.local.get('dokumentmallar');
+  const lista = document.getElementById('dokumentmalllista');
+
+  for (const dm of dokumentmallar) {
+    if (!dm.handlingstyp?.text) continue;
+
+    // Extrahera klassificeringskod ur handlingstyp-text: "2.4-8 (...)" → "2.4"
+    const match = dm.handlingstyp.text.match(/^([\d.]+)/);
+    const mallKlass = match ? match[1] : null;
+    if (!mallKlass || mallKlass === ärendeKlass) continue;
+
+    // Hitta raden för denna mall
+    const btn = lista.querySelector(`[data-dokmall-id="${dm.id}"]`);
+    if (!btn) continue;
+    const rad = btn.closest('.mall-rad');
+    if (!rad) continue;
+
+    // Lägg till varningsrad under mallnamnet
+    if (!rad.querySelector('.ht-varning')) {
+      const varning = document.createElement('div');
+      varning.className = 'ht-varning';
+      varning.style.cssText =
+        'font-size:11px;color:#b36b00;margin-top:2px;line-height:1.3;';
+      varning.textContent =
+        `⚠ Handlingstyp (${mallKlass}) matchar inte ärendet (${ärendeKlass})`;
+      const namnEl = rad.querySelector('.mall-namn');
+      if (namnEl) namnEl.appendChild(varning);
+    }
+  }
+}
+
+// Kör klassificeringsvalidering efter att dokumentmallar laddats
+setTimeout(visaKlassificeringsvarningar, 100);
+
+// ------------------------------------------------------------------
 // Hjälpfunktion
 // ------------------------------------------------------------------
 /**
