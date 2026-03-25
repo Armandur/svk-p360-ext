@@ -81,9 +81,10 @@ async function laddaUppFiler(iframe, filer, visaStatus) {
  */
 async function laddaUppEnFil(iframe, fil) {
   const userSession = Math.floor(Math.random() * 1000000000);
+  console.log(`[p360-upload] Steg 1: POST ${fil.name} (${fil.size} bytes) till FileUpload.ashx (session=${userSession})`);
 
   // Steg 1: POST filen till FileUpload.ashx
-  await new Promise((resolve, reject) => {
+  const xhrSvar = await new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `/FileUpload.ashx?userSession=${userSession}`);
     xhr.onload = () => {
@@ -101,39 +102,55 @@ async function laddaUppEnFil(iframe, fil) {
     formData.append(fil.name, fil);
     xhr.send(formData);
   });
+  console.log(`[p360-upload] Steg 1 OK: XHR-svar="${xhrSvar?.substring(0, 100)}"`);
 
   // Steg 2+3: Sätt hidden field och klicka hidden button – i iframe-kontexten.
+  const iDoc = iframe.contentDocument;
   const iWin = iframe.contentWindow;
   const pathId = 'PlaceHolderMain_MainView_DocumentMultiFileUploadControl_hiddenUploadedFilesPath';
   const btnId = 'PlaceHolderMain_MainView_DocumentMultiFileUploadControl_hiddenUploadButton';
-  const säkertFilnamn = fil.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 
-  iWin.eval(`
-    (function() {
-      var hp = document.getElementById('${pathId}');
-      hp.value = '${userSession}|${säkertFilnamn}';
-      var btn = document.getElementById('${btnId}');
-      btn.style.display = '';
-      btn.click();
-      btn.style.display = 'none';
-    })();
-  `);
+  const hp = iDoc.getElementById(pathId);
+  const btn = iDoc.getElementById(btnId);
+  console.log(`[p360-upload] Steg 2: hiddenPath=${!!hp}, hiddenBtn=${!!btn}`);
+
+  if (!hp || !btn) {
+    console.error('[p360-upload] Hidden field eller button saknas – kan inte registrera filen.');
+    return;
+  }
+
+  hp.value = `${userSession}|${fil.name}`;
+  console.log(`[p360-upload] Steg 2: Satte hiddenPath="${hp.value}"`);
+
+  // Klicka via __doPostBack i iframe-kontexten (säkrare än eval)
+  const onclickAttr = btn.getAttribute('onclick') || btn.getAttribute('href') || '';
+  console.log(`[p360-upload] Steg 3: Klickar hiddenBtn (onclick/href="${onclickAttr?.substring(0, 80)}")`);
+  btn.click();
 
   // Vänta på att PostBack-svaret kommit (ScannedFilepath eller fillistan)
-  for (let poll = 0; poll < 60; poll++) {
+  for (let poll = 0; poll < 80; poll++) {
     await sleep(300);
     try {
       const doc = iframe.contentDocument;
       const scanned = doc.querySelector('[name*="ScannedFilepath"]');
       if (scanned && scanned.value && scanned.value.includes(String(userSession))) {
+        console.log(`[p360-upload] Bekräftad: ScannedFilepath innehåller session ${userSession}`);
         return;
       }
       const filLista = doc.getElementById('PlaceHolderMain_MainView_ImportFileListControl');
       if (filLista && filLista.textContent.includes(fil.name)) {
+        console.log(`[p360-upload] Bekräftad: ImportFileListControl innehåller ${fil.name}`);
         return;
       }
-    } catch { /* iframe kan vara i loading-state */ }
+      // Logga var 5:e poll för diagnostik
+      if (poll > 0 && poll % 10 === 0) {
+        console.log(`[p360-upload] Poll ${poll}: ScannedFilepath="${scanned?.value?.substring(0, 60) || '(ej hittat)'}",`,
+          `filLista=${filLista ? 'finns' : 'saknas'}`);
+      }
+    } catch (e) {
+      if (poll % 10 === 0) console.log(`[p360-upload] Poll ${poll}: fel vid åtkomst:`, e.message);
+    }
   }
 
-  console.warn(`[p360-upload] Timeout – kunde inte bekräfta att ${fil.name} registrerades.`);
+  console.warn(`[p360-upload] Timeout – kunde inte bekräfta att ${fil.name} registrerades (session=${userSession}).`);
 }
