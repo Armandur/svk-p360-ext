@@ -300,8 +300,116 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
  * @param {Function} visaStatus – Callback för statustext
  * @returns {string|null} Dokumentnumret (t.ex. "KHS 2026-0062:1") eller null
  */
+function escHtml(str) {
+  return String(str ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+/**
+ * Läser ärendets klassificering från detaljpanelen på ärendesidan.
+ * Panelens fält finns bara i DOM:en när den är utfälld – om den är ihopfälld
+ * fälls den ut tillfälligt och fälls sedan ihop igen.
+ * @returns {Promise<string|null>} Klassificeringskod (t.ex. "2.4") eller null.
+ */
+async function läsKlassificeringFrånÄrende() {
+  const KLASS_ID = 'PlaceHolderMain_MainView_RightFolderView1_ViewControl_EditClassCodeTextFieldControl';
+  let el = document.getElementById(KLASS_ID);
+
+  if (!el) {
+    // Panelen kan vara ihopfälld – fäll ut den tillfälligt
+    const expandBtn = document.getElementById(
+      'PlaceHolderMain_MainView_RightFolderView1_ExpandCollapse'
+    );
+    if (expandBtn) {
+      expandBtn.click();
+      // Vänta på att DOM:en uppdateras
+      for (let i = 0; i < 20; i++) {
+        await sleep(200);
+        el = document.getElementById(KLASS_ID);
+        if (el) break;
+      }
+      // Fäll ihop igen
+      if (el) {
+        setTimeout(() => expandBtn.click(), 300);
+      }
+    }
+  }
+
+  if (el) {
+    // "2.4 - Administrera IT och telefoni" → "2.4"
+    const text = el.textContent.trim();
+    const match = text.match(/^([\d.]+)/);
+    return match ? match[1] : text;
+  }
+  return null;
+}
+
+/**
+ * Kontrollerar om mallens handlingstyp matchar ärendets klassificering.
+ * Handlingstyp-text har formen "2.4-8 (Korrespondens...)" där "2.4" är
+ * klassificeringskoden.
+ * @returns {{ ok: boolean, ärendeKlass?: string, mallKlass?: string, mallText?: string }}
+ */
+async function valideraHandlingstyp(dok) {
+  if (!dok.handlingstyp?.text) return { ok: true };
+
+  const ärendeKlass = await läsKlassificeringFrånÄrende();
+  if (!ärendeKlass) return { ok: true }; // Kan inte validera – fortsätt ändå
+
+  // Extrahera klassificeringskod ur handlingstyp-text: "2.4-8 (...)" → "2.4"
+  const match = dok.handlingstyp.text.match(/^([\d.]+)/);
+  const mallKlass = match ? match[1] : null;
+  if (!mallKlass) return { ok: true }; // Okänt format – fortsätt ändå
+
+  return {
+    ok: ärendeKlass === mallKlass,
+    ärendeKlass,
+    mallKlass,
+    mallText: dok.handlingstyp.text,
+  };
+}
+
 async function skapaÄrendedokument(dok, visaStatus) {
   visaStatus = visaStatus || (() => {});
+
+  // ---------------------------------------------------------------
+  // 0. Validera handlingstyp mot ärendets klassificering
+  // ---------------------------------------------------------------
+  const htVal = await valideraHandlingstyp(dok);
+  if (!htVal.ok) {
+    const msg = `Mallens handlingstyp "${htVal.mallText}" tillhör klassificering ${htVal.mallKlass}, ` +
+      `men ärendet har klassificering ${htVal.ärendeKlass}. ` +
+      `Handlingstypen kommer troligen inte finnas i formuläret.`;
+    console.warn('[p360-dok]', msg);
+    visaStatus(msg);
+
+    // Fråga användaren om de vill fortsätta
+    const fortsätt = await new Promise(resolve => {
+      const bar = document.createElement('div');
+      bar.style.cssText =
+        'position:fixed;top:0;left:0;right:0;z-index:99999;' +
+        'background:#b35900;color:#fff;font-family:sans-serif;font-size:13px;' +
+        'padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,0.3);' +
+        'display:flex;flex-direction:column;gap:8px;';
+      bar.innerHTML =
+        `<strong>Handlingstypen matchar inte ärendets klassificering</strong>` +
+        `<div>Mallen har handlingstyp <strong>${escHtml(htVal.mallText)}</strong> (klass ${escHtml(htVal.mallKlass)}), ` +
+        `men ärendet har klassificering <strong>${escHtml(htVal.ärendeKlass)}</strong>.</div>` +
+        `<div>Du kan fortsätta ändå – handlingstypen hoppas över och du får välja manuellt i formuläret.</div>` +
+        `<div style="display:flex;gap:8px;margin-top:4px;">` +
+        `<button id="p360-ht-fortsätt" style="padding:5px 14px;background:#fff;color:#333;border:1px solid #ccc;border-radius:4px;cursor:pointer;font-size:12px;">Fortsätt utan handlingstyp</button>` +
+        `<button id="p360-ht-avbryt" style="padding:5px 14px;background:#c0392b;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px;">Avbryt</button>` +
+        `</div>`;
+      document.body.appendChild(bar);
+      bar.querySelector('#p360-ht-fortsätt').addEventListener('click', () => { bar.remove(); resolve(true); });
+      bar.querySelector('#p360-ht-avbryt').addEventListener('click', () => { bar.remove(); resolve(false); });
+    });
+
+    if (!fortsätt) return { cancelled: true };
+
+    // Nollställ handlingstyp i dok så att den hoppas över
+    dok = { ...dok, handlingstyp: null };
+  }
 
   // ---------------------------------------------------------------
   // 1. Öppna dokumentformuläret via PostBack
