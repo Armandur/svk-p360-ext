@@ -236,11 +236,29 @@ async function startaBatch(baseMall, slots, inställningar) {
   const tabId = flik.id;
 
   // Rensa eventuell gammal batch-signal
-  await chrome.storage.local.remove(['batchRadKlar', 'batchKörning']);
+  await chrome.storage.local.remove(['batchRadKlar', 'batchKörning', 'batchManuellPaus']);
 
   visaBatchProgress(`Startar batch (0/${antalRader})…`);
 
+  // Lyssna på manuell paus-signal (360°-fliken väntar på användarinmatning)
+  let aktuelltIdx = 0;
+  function manuellPausLyssnare(changes) {
+    if (changes.batchManuellPaus?.newValue) {
+      const paus = changes.batchManuellPaus.newValue;
+      const fältText = (paus.fält || []).join(', ');
+      const typText = paus.typ === 'dokument' ? 'Dokumentformulär' : 'Ärendeformulär';
+      sättRadStatus(aktuelltIdx, 'pågår', `Manuell inmatning krävs`);
+      visaBatchProgress(
+        `Rad ${aktuelltIdx + 1}/${antalRader}: ${typText} väntar på manuell inmatning` +
+        (fältText ? ` (${fältText})` : '') +
+        ' – fyll i fälten i 360°-fliken'
+      );
+    }
+  }
+  chrome.storage.onChanged.addListener(manuellPausLyssnare);
+
   for (let idx = 0; idx < antalRader; idx++) {
+    aktuelltIdx = idx;
     if (batchAvbruten) {
       sättRadStatus(idx, 'avbruten', 'Avbruten');
       for (let j = idx + 1; j < antalRader; j++) {
@@ -269,6 +287,9 @@ async function startaBatch(baseMall, slots, inställningar) {
     }
 
     try {
+      // Rensa manuell-paus-signal från föregående rad
+      await chrome.storage.local.remove('batchManuellPaus');
+
       // Bygg mallobjekt
       sättRadStatus(idx, 'pågår', 'Skapar ärende…');
       visaBatchProgress(`Rad ${idx + 1}/${antalRader}: Skapar ärende…`);
@@ -436,7 +457,8 @@ async function startaBatch(baseMall, slots, inställningar) {
   }
 
   // Rensa batch-körningsdata
-  await chrome.storage.local.remove(['batchKörning', 'batchRadKlar']);
+  chrome.storage.onChanged.removeListener(manuellPausLyssnare);
+  await chrome.storage.local.remove(['batchKörning', 'batchRadKlar', 'batchManuellPaus']);
   batchKör = false;
 
   visaBatchProgress(`Klart! ${batchResultat.filter(r => r.status === 'klar').length}/${antalRader} lyckades.`);

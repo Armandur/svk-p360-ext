@@ -334,6 +334,10 @@ async function skapaÄrendedokument(dok, visaStatus) {
   const tommaObl = kontrolleraObligatoriskaFält(iDoc, { kontaktLagdTill });
   if (tommaObl.length > 0) {
     visaStatus(`Fyll i obligatoriska fält: ${tommaObl.join(', ')}`);
+    // Signalera till batch-sidan att manuell inmatning behövs
+    window.dispatchEvent(new CustomEvent('p360-batch-manuell-paus', {
+      detail: { fält: tommaObl, typ: 'dokument', titel: dok.titel || '' }
+    }));
     const manuellResultat = await väntaPåAnvändarensSlutför(iframe, tommaObl);
     if (manuellResultat.cancelled) {
       try { iframe.remove(); } catch { /* ignorera */ }

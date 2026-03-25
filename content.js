@@ -165,6 +165,20 @@ if (!window.__p360PendingChecked) {
   }, 3000);
 }
 
+// Tar emot signal om manuell paus från MAIN world (dokument/ärende-formulär väntar på input)
+if (!window.__p360ManuellPausHandler) {
+  window.__p360ManuellPausHandler = async (event) => {
+    const { fält, typ, titel } = event.detail;
+    const { batchKörning } = await chrome.storage.local.get('batchKörning');
+    if (batchKörning) {
+      await chrome.storage.local.set({
+        batchManuellPaus: { fält, typ, titel, tid: Date.now() }
+      });
+    }
+  };
+  window.addEventListener('p360-batch-manuell-paus', window.__p360ManuellPausHandler);
+}
+
 // Tar emot Handlingstyp-alternativ från MAIN world och sparar i chrome.storage.local
 if (!window.__p360HtHandler) {
   window.__p360HtHandler = async (event) => {
