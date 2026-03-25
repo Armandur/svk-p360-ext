@@ -184,11 +184,14 @@ function filTillBase64(fil) {
 async function förberedFiler(mall) {
   if (!mall.ärendedokument?.length) return mall;
 
+  console.log(`[batch] förberedFiler: ${mall.ärendedokument.length} ärendedokument`);
   for (let i = 0; i < mall.ärendedokument.length; i++) {
     const dok = mall.ärendedokument[i];
+    console.log(`[batch] förberedFiler dok ${i}: _filObj=${!!dok._filObj}, _filnamn=${dok._filnamn || '(ej satt)'}`);
     if (dok._filObj) {
       const base64 = await filTillBase64(dok._filObj);
       const storageNyckel = `batchFil_${Date.now()}_${i}`;
+      console.log(`[batch] förberedFiler dok ${i}: Sparar ${dok._filObj.name} (${base64.length} tecken base64) som ${storageNyckel}`);
       await chrome.storage.local.set({
         [storageNyckel]: [{
           namn: dok._filObj.name,

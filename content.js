@@ -248,15 +248,33 @@ window.__p360OnMessageHandler = (request, sender, sendResponse) => {
     data.ärendeFlöde = request.ärendeFlöde || false;
   }
 
-  // Hämta fildata från chrome.storage.local om popup sparade dem där
+  // Hämta fildata från chrome.storage.local om popup/batch sparade dem där
   // (filer kan vara för stora för sendMessage-gränsen på 64 MB)
   const hämtaFiler = async () => {
-    if (!data.dokument) return;
-    for (const dok of data.dokument) {
-      if (dok.filerStorageNyckel) {
-        const stored = await chrome.storage.local.get(dok.filerStorageNyckel);
-        dok.filerBase64 = stored[dok.filerStorageNyckel] || [];
-        delete dok.filerStorageNyckel;
+    // Hantera skapaÄrendedokument – filreferenser på data.dokument
+    if (data.dokument) {
+      for (const dok of data.dokument) {
+        if (dok.filerStorageNyckel) {
+          const stored = await chrome.storage.local.get(dok.filerStorageNyckel);
+          dok.filerBase64 = stored[dok.filerStorageNyckel] || [];
+          console.log('[p360] Löste filreferens för dokument:', dok.filerStorageNyckel,
+            '→', dok.filerBase64.length, 'filer');
+          await chrome.storage.local.remove(dok.filerStorageNyckel);
+          delete dok.filerStorageNyckel;
+        }
+      }
+    }
+    // Hantera skapaFrånMall – filreferenser på data.mall.ärendedokument
+    if (data.mall?.ärendedokument) {
+      for (const dok of data.mall.ärendedokument) {
+        if (dok.filerStorageNyckel) {
+          const stored = await chrome.storage.local.get(dok.filerStorageNyckel);
+          dok.filerBase64 = stored[dok.filerStorageNyckel] || [];
+          console.log('[p360] Löste filreferens för ärendedokument:', dok.filerStorageNyckel,
+            '→', dok.filerBase64.length, 'filer');
+          await chrome.storage.local.remove(dok.filerStorageNyckel);
+          delete dok.filerStorageNyckel;
+        }
       }
     }
   };
