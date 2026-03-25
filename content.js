@@ -16,7 +16,7 @@ function ärPåÄrendesida() {
 }
 
 // Åtgärder som inte kräver att vi är på en ärendesida (fungerar på hela p360-domänen)
-const ÅTGÄRDER_UTAN_SIDKRAV = new Set(['skapaFrånMall', 'läsInAlternativ']);
+var ÅTGÄRDER_UTAN_SIDKRAV = new Set(['skapaFrånMall', 'läsInAlternativ']);
 
 /**
  * Skickar ett anrop till page.js (MAIN world) och väntar på svar via CustomEvent.
