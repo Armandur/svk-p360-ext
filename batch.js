@@ -281,6 +281,112 @@
     läggTillRad();
   });
 
+  // Exportera jobb (JSON)
+  document.getElementById('btn-exportera-jobb').addEventListener('click', () => {
+    const inställningar = {
+      stängÄrende: document.getElementById('batch-stäng-ärende').checked,
+      dagboksblad: document.getElementById('batch-dagboksblad').checked,
+    };
+    const json = exporteraBatchJobb(valdMall, slotsar, inställningar);
+    const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const namn = valdMall?.namn || 'batch';
+    a.download = `${namn.replace(/[^a-zåäöA-ZÅÄÖ0-9_-]/g, '_')}-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  // Importera jobb (JSON)
+  const jobbInput = document.getElementById('jobb-input');
+  document.getElementById('btn-importera-jobb').addEventListener('click', () => {
+    jobbInput.click();
+  });
+  jobbInput.addEventListener('change', () => {
+    const fil = jobbInput.files[0];
+    if (!fil) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const jobb = JSON.parse(reader.result);
+        if (!jobb.version || !jobb.rader) {
+          alert('Ogiltig jobbfil – saknar version eller rader.');
+          return;
+        }
+        laddaImporteratJobb(jobb);
+      } catch (err) {
+        alert(`Kunde inte läsa jobbfil: ${err.message}`);
+      }
+    };
+    reader.readAsText(fil);
+    jobbInput.value = '';
+  });
+
+  /**
+   * Laddar ett importerat jobb – sätter mall, slots, alternativ och rader.
+   */
+  function laddaImporteratJobb(jobb) {
+    // Återställ cachade alternativ om de finns i jobbet
+    if (jobb.cachedAlternativ) {
+      if (jobb.cachedAlternativ.diarieenheter?.length > 0) {
+        batchCachedAlternativ.diarieenheter = jobb.cachedAlternativ.diarieenheter;
+      }
+      if (jobb.cachedAlternativ.ansvarigaPersoner?.length > 0) {
+        batchCachedAlternativ.ansvarigaPersoner = jobb.cachedAlternativ.ansvarigaPersoner;
+      }
+    }
+
+    // Välj ärendemall
+    if (jobb.mallId) {
+      mallSelect.value = jobb.mallId;
+      valdMall = mallar.find(m => m.id === jobb.mallId) || null;
+      const valdInfo = document.getElementById('mall-vald-info');
+      if (valdMall) {
+        valdInfo.textContent = `Mall: ${valdMall.namn || valdMall.titel}`;
+        valdInfo.style.color = '#333';
+      }
+    }
+
+    // Återställ slotsar
+    if (jobb.slotsar) {
+      slotsar = jobb.slotsar.map((s, idx) => ({
+        dokumentmall: s.dokumentmall,
+        namn: s.namn || `Dokument ${idx + 1}`,
+      }));
+      renderaSlotsar();
+      uppdateraFilKolumner(slotsar.length);
+    }
+
+    // Återställ kolumnsynlighet
+    if (jobb.kolumner?.synliga) {
+      synligaKolumner = new Set(jobb.kolumner.synliga);
+      renderaKolumnTogglar();
+    }
+
+    // Återställ inställningar
+    if (jobb.inställningar) {
+      document.getElementById('batch-stäng-ärende').checked = jobb.inställningar.stängÄrende !== false;
+      document.getElementById('batch-dagboksblad').checked = !!jobb.inställningar.dagboksblad;
+    }
+
+    // Importera rader
+    importeraJobbRader(jobb.rader);
+    uppdateraAlternativStatus();
+  }
+
+  // Exportera CSV (raddata)
+  document.getElementById('btn-exportera-csv').addEventListener('click', () => {
+    const csv = exporteraBatchCSV();
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `batch-data-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
   // Initiera tabellrendering och drag-and-drop
   renderaKolumnTogglar();
   renderaTabell();

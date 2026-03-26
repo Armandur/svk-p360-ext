@@ -291,6 +291,77 @@ function byggMallFrånRad(baseMall, rad, slots) {
 }
 
 /**
+ * Exporterar nuvarande batch-tabell som CSV (alla kolumner med värden).
+ * Select-kolumner exporterar sitt value (t.ex. "200171" för diarieenhet).
+ */
+function exporteraBatchCSV() {
+  sparaFrånTabell();
+  // Samla alla kolumner som har minst ett värde
+  const aktiva = [];
+  for (const [namn] of Object.entries(BATCH_KOLUMNER)) {
+    if (batchRader.some(r => r[namn])) aktiva.push(namn);
+  }
+  // Lägg till fil- och dokumenttitelkolumner
+  for (const dk of dokTitelKolumner) {
+    if (batchRader.some(r => r[dk])) aktiva.push(dk);
+  }
+  for (const fk of filKolumner) {
+    if (batchRader.some(r => r[fk])) aktiva.push(fk);
+  }
+  // Bygg CSV
+  const csvRader = [aktiva.join(';')];
+  for (const rad of batchRader) {
+    const fält = aktiva.map(k => {
+      const v = rad[k] || '';
+      return `"${String(v).replace(/"/g, '""')}"`;
+    });
+    csvRader.push(fält.join(';'));
+  }
+  return csvRader.join('\r\n');
+}
+
+/**
+ * Exporterar hela batch-jobbet som JSON (mall, slots, inställningar, rader).
+ * File-objekt kan inte serialiseras – filnamnen bevaras för koppling via "Koppla filer".
+ */
+function exporteraBatchJobb(valdMall, slotsar, inställningar) {
+  sparaFrånTabell();
+  return JSON.stringify({
+    version: 1,
+    exportDatum: new Date().toISOString(),
+    mallId: valdMall?.id || null,
+    mallNamn: valdMall?.namn || valdMall?.titel || null,
+    slotsar: slotsar.map(s => ({
+      dokumentmall: s.dokumentmall,
+      namn: s.namn,
+    })),
+    inställningar,
+    cachedAlternativ: {
+      diarieenheter: batchCachedAlternativ.diarieenheter,
+      ansvarigaPersoner: batchCachedAlternativ.ansvarigaPersoner,
+    },
+    kolumner: {
+      synliga: [...synligaKolumner],
+      filKolumner: [...filKolumner],
+      dokTitelKolumner: [...dokTitelKolumner],
+    },
+    rader: batchRader.map(r => {
+      const rad = {};
+      for (const kol of Object.keys(BATCH_KOLUMNER)) {
+        if (r[kol]) rad[kol] = r[kol];
+      }
+      for (const fk of filKolumner) {
+        if (r[fk]) rad[fk] = r[fk];
+      }
+      for (const dk of dokTitelKolumner) {
+        if (r[dk]) rad[dk] = r[dk];
+      }
+      return rad;
+    }),
+  }, null, 2);
+}
+
+/**
  * Genererar en CSV-sträng från batchresultat.
  */
 function exporteraResultatCSV(resultat) {

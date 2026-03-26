@@ -397,6 +397,29 @@ function hämtaKolumnAlternativ(alternativNyckel) {
   return [];
 }
 
+/**
+ * Återställer tabelldata från ett importerat jobb.
+ * Anropas av batch.js efter att mall och slots är satta.
+ */
+function importeraJobbRader(jobbRader) {
+  batchRader = [];
+  for (const rad of jobbRader) {
+    const ny = { _filer: [] };
+    for (const kol of Object.keys(BATCH_KOLUMNER)) {
+      ny[kol] = rad[kol] || '';
+    }
+    for (const fk of filKolumner) {
+      ny[fk] = rad[fk] || '';
+    }
+    for (const dk of dokTitelKolumner) {
+      ny[dk] = rad[dk] || '';
+    }
+    batchRader.push(ny);
+  }
+  renderaTabell();
+  uppdateraStartKnapp();
+}
+
 function escBatchHtml(str) {
   return String(str ?? '')
     .replace(/&/g, '&amp;')
