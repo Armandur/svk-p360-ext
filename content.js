@@ -52,9 +52,18 @@ function anropaSidan(action, data = {}) {
 if (!window.__p360PendingHandler) {
   window.__p360PendingHandler = async (event) => {
     const { dokument } = event.detail;
-    if (!Array.isArray(dokument) || dokument.length === 0) return;
-    await chrome.storage.local.set({ pendingÄrendedokument: { dokument, sparad: Date.now() } });
-    console.log(`[p360] ${dokument.length} ärendedokument sparade som pending`);
+    if (!Array.isArray(dokument) || dokument.length === 0) {
+      window.dispatchEvent(new CustomEvent('p360-pending-sparad', { detail: { ok: true } }));
+      return;
+    }
+    try {
+      await chrome.storage.local.set({ pendingÄrendedokument: { dokument, sparad: Date.now() } });
+      console.log(`[p360] ${dokument.length} ärendedokument sparade som pending`);
+      window.dispatchEvent(new CustomEvent('p360-pending-sparad', { detail: { ok: true } }));
+    } catch (err) {
+      console.error('[p360] Kunde inte spara pending ärendedokument:', err.message);
+      window.dispatchEvent(new CustomEvent('p360-pending-sparad', { detail: { ok: false, fel: err.message } }));
+    }
   };
   window.addEventListener('p360-spara-pending-dokument', window.__p360PendingHandler);
 }

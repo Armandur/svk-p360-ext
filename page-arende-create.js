@@ -261,11 +261,29 @@ async function skapaFrånMall(mall) {
     const topUrlFör = window.location.href;
 
     // Hjälpfunktion: spara pending ärendedokument innan navigering
-    const sparaPendingOchNavigera = (url) => {
+    // Väntar på bekräftelse från content.js (ISOLATED world) att chrome.storage.local.set lyckades
+    const sparaPendingOchNavigera = async (url) => {
       if (mall.ärendedokument?.length > 0) {
+        const sparatLöfte = new Promise(resolve => {
+          const timeout = setTimeout(() => {
+            window.removeEventListener('p360-pending-sparad', handler);
+            console.warn('[p360] Timeout – pending-sparning fick inget svar, navigerar ändå.');
+            resolve();
+          }, 3000);
+          const handler = (event) => {
+            clearTimeout(timeout);
+            window.removeEventListener('p360-pending-sparad', handler);
+            if (!event.detail?.ok) {
+              console.warn('[p360] Pending-sparning misslyckades:', event.detail?.fel);
+            }
+            resolve();
+          };
+          window.addEventListener('p360-pending-sparad', handler);
+        });
         window.dispatchEvent(new CustomEvent('p360-spara-pending-dokument', {
           detail: { dokument: mall.ärendedokument }
         }));
+        await sparatLöfte;
       }
       overlay.remove();
       window.location.href = url;

@@ -202,53 +202,9 @@ async function laddaUppEnFil(iframe, fil, ärAvbruten) {
   hp.value = `${userSession}|${fil.name}`;
   console.log(`[p360-upload] Steg 2: Satte hiddenPath="${hp.value}"`);
 
-  // Steg 3: Trigga PostBack för att registrera filen
-  // Extrahera PostBack-target från knappens href
-  const href = btn.getAttribute('href') || '';
-  const postBackMatch = href.match(/__doPostBack\('([^']+)'/);
-  const postBackTarget = postBackMatch
-    ? postBackMatch[1]
-    : 'ctl00$PlaceHolderMain$MainView$DocumentMultiFileUploadControl$hiddenUploadButton';
-
-  console.log(`[p360-upload] Steg 3: btn.tagName=${btn.tagName}, target="${postBackTarget}"`);
-  console.log(`[p360-upload] Steg 3: href="${(href).substring(0, 120)}"`);
-
-  // Vänta på att PRM är idle innan vi triggar
-  await väntaPåPRM(iWin);
-
-  // Logga __EVENTTARGET innan och efter för att verifiera att __doPostBack sätter det
-  const formBefore = iDoc.forms[0];
-  const evBefore = formBefore?.__EVENTTARGET?.value;
-
-  // Trigga PostBack och lyssna på BÅDE PRM endRequest och iframe load
-  const resultat = await triggaPostBackOchVänta(iframe, iWin, postBackTarget, 15000);
-
-  // Kontrollera resultatet
-  if (resultat === 'prm' || resultat === 'load') {
-    // Hämta färska referenser (kan ha ändrats vid full page load)
-    try {
-      const doc = iframe.contentDocument;
-      const filLista = doc.getElementById('PlaceHolderMain_MainView_ImportFileListControl');
-      if (filLista && filLista.textContent.includes(fil.name)) {
-        console.log(`[p360-upload] Bekräftad: ${fil.name} syns i fillistan.`);
-      } else {
-        const scanned = doc.querySelector('[name*="ScannedFilepath"]');
-        console.log(`[p360-upload] PostBack klar (${resultat}), filLista=${filLista ? 'finns' : 'saknas'},`,
-          `ScannedFilepath="${scanned?.value?.substring(0, 80) || '(ej hittat)'}"`);
-      }
-    } catch (e) {
-      console.log(`[p360-upload] Kan ej verifiera efter ${resultat}:`, e.message);
-    }
-    return;
-  }
-
-  // Timeout – logga diagnostik
-  try {
-    const formAfter = iDoc.forms[0];
-    const evAfter = formAfter?.__EVENTTARGET?.value;
-    console.warn(`[p360-upload] Timeout. __EVENTTARGET före="${evBefore}" efter="${evAfter}"`);
-    console.warn(`[p360-upload] PRM finns=${!!iWin.Sys?.WebForms?.PageRequestManager},`,
-      `isAsync=${iWin.Sys?.WebForms?.PageRequestManager?.getInstance?.()?.get_isInAsyncPostBack?.() ?? '?'}`);
-  } catch { /* ignorera */ }
-  console.warn(`[p360-upload] Timeout – kunde inte bekräfta att ${fil.name} registrerades (session=${userSession}).`);
+  // Steg 3: SKIPPA PostBack – hidden field-värdet bevaras genom alla PostBacks
+  // och läses av servern vid Slutför. Att trigga PostBacken orsakar en full page
+  // reload i iframen som nollställer hidden field och alla fält.
+  // Verifierat: filen bifogas korrekt till dokumentet utan PostBack-steg.
+  console.log(`[p360-upload] Steg 3: Hoppas över (hidden field bevaras till Slutför).`);
 }
