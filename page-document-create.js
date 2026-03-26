@@ -305,11 +305,8 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
   if (!titelFält) throw new Error('Dokumentformuläret laddades inte korrekt.');
 
   // ---------------------------------------------------------------
-  // 2. Ladda upp filer FÖRST (före formulärifyllning)
-  //    Flikbyte till Filer → Generellt nollställer fält, så upload
-  //    måste ske innan vi fyller i något.
+  // 2. Konvertera base64-filer till File-objekt
   // ---------------------------------------------------------------
-  // Konvertera base64-filer (från popup/batch) till File-objekt
   console.log('[p360-dok] Filstatus:', 'filerBase64:', dok.filerBase64?.length || 0,
     'filer:', dok.filer?.length || 0, 'titel:', dok.titel);
   if (dok.filerBase64 && dok.filerBase64.length > 0 && (!dok.filer || dok.filer.length === 0)) {
@@ -324,26 +321,15 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
     console.log('[p360-dok] File-objekt skapade:', dok.filer.map(f => f.name + ' (' + f.size + ' bytes)'));
   }
 
-  if (dok.filer && dok.filer.length > 0) {
-    visaStatus('Laddar upp filer…');
-    const uploadRes = await laddaUppFiler(iframe, dok.filer, visaStatus, ärAvbruten);
-    if (uploadRes.misslyckade.length > 0) {
-      console.warn('[p360-dok] Misslyckade filuppladdningar:', uploadRes.misslyckade);
-    }
-    // laddaUppEnFil navigerar till Filer-fliken – navigera tillbaka till Generellt
-    // INNAN fällningsfälten fylls i, så att UpdatePanel-byta inte nollställer dem.
-    if (uploadRes.lyckade.length > 0) {
-      visaStatus('Återgår till Generellt…');
-      iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'GeneralStep');
-      const titelEfterNav = await waitForElement(
-        iDoc, '#PlaceHolderMain_MainView_TitleTextBoxControl', 8000
-      );
-      if (!titelEfterNav) console.warn('[p360-dok] Titelfältet hittades inte efter återgång till Generellt.');
-    }
-  }
-
   // ---------------------------------------------------------------
-  // 3. Fyll i fält (delegerat till page-document-fill.js)
+  // 3. Fyll i fält på Generellt-fliken INNAN filuppladdning.
+  //
+  //    Ordningen är kritisk: flikbyte Filer → Generellt nollställer
+  //    formulärfälten (server-side reset). Fältvärden vi fyller i på
+  //    Generellt bevaras däremot i ViewState vid Generellt → Filer-
+  //    navigering och läses av servern vid Slutför-postback.
+  //    Slutför skickas direkt från Filer-fliken (om filer finns) så
+  //    att SI_HiddenField_ScannedFilepath ingår i POST-datat.
   // ---------------------------------------------------------------
   const { kontaktLagdTill } = await fyllDokumentFormulär(iDoc, iWin, dok, visaStatus);
 
@@ -363,7 +349,23 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
       return { cancelled: true };
     }
   } else {
-    // Alla obligatoriska fält ifyllda – skicka automatiskt
+    // ---------------------------------------------------------------
+    // 5. Ladda upp filer (om filer finns) – stannar kvar på Filer-fliken
+    //    laddaUppEnFil navigerar dit och stannar kvar: SI_HiddenField_
+    //    ScannedFilepath sätts i Filer-flikens DOM och försvinner om vi
+    //    navigerar tillbaka till Generellt. Formuläret skickas därför
+    //    direkt från Filer-fliken (ViewState innehåller Generellt-fältens
+    //    värden från steg 3).
+    // ---------------------------------------------------------------
+    if (dok.filer && dok.filer.length > 0) {
+      visaStatus('Laddar upp filer…');
+      const uploadRes = await laddaUppFiler(iframe, dok.filer, visaStatus, ärAvbruten);
+      if (uploadRes.misslyckade.length > 0) {
+        console.warn('[p360-dok] Misslyckade filuppladdningar:', uploadRes.misslyckade);
+      }
+    }
+
+    // Skicka formuläret (från Filer-fliken om filer laddades upp, annars från Generellt)
     visaStatus('Sparar ärendedokument…');
     const slutförBtn = iDoc.querySelector(
       'input[onclick*="WizardNavigationButton"][onclick*="finish"]'
