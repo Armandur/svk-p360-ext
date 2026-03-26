@@ -233,7 +233,16 @@
     if (!fil) return;
     const reader = new FileReader();
     reader.onload = () => {
-      const { headers, rader } = parsCSV(reader.result);
+      const csvText = reader.result;
+
+      // Extrahera och tillämpa metadata (ärendemall, dokumentslotsar)
+      const meta = extraheraCSVMetadata(csvText);
+      const varningar = tillämpaCsvMetadata(meta);
+      if (varningar.length > 0) {
+        alert('CSV-import:\n\n' + varningar.join('\n'));
+      }
+
+      const { headers, rader } = parsCSV(csvText);
       // Detektera filkolumner i CSV
       const csvFilKol = detekteraFilKolumner(headers);
       const csvDokTitelKol = detekteraDokTitelKolumner(headers);
@@ -251,6 +260,56 @@
     reader.readAsText(fil);
     csvInput.value = ''; // Tillåt att samma fil väljs igen
   });
+
+  /**
+   * Försöker matcha och välja ärendemall och dokumentslotsar från CSV-metadata.
+   * Returnerar array av varningar om mallar saknas.
+   */
+  function tillämpaCsvMetadata(meta) {
+    const varningar = [];
+
+    // Ärendemall
+    if (meta.mallId) {
+      const match = mallar.find(m => m.id === meta.mallId);
+      if (match) {
+        mallSelect.value = match.id;
+        mallSelect.dispatchEvent(new Event('change'));
+      } else {
+        varningar.push(
+          `Ärendemallen "${meta.mallNamn || meta.mallId}" hittades inte bland dina sparade mallar.` +
+          `\nVälj ärendemall manuellt.`
+        );
+      }
+    }
+
+    // Dokumentslotsar
+    if (meta.slotsar.length > 0) {
+      // Säkerställ att det finns tillräckligt med slotsar
+      while (slotsar.length < meta.slotsar.length) {
+        slotsar.push({ dokumentmall: null, namn: `Dokument ${slotsar.length + 1}` });
+      }
+
+      for (let i = 0; i < meta.slotsar.length; i++) {
+        const csvSlot = meta.slotsar[i];
+        if (!csvSlot.id) continue;
+        const dm = dokumentmallar.find(d => d.id === csvSlot.id);
+        if (dm) {
+          slotsar[i].dokumentmall = JSON.parse(JSON.stringify(dm));
+          slotsar[i].namn = dm.namn || dm.titel || `Dokument ${i + 1}`;
+        } else {
+          varningar.push(
+            `Dokumentmallen "${csvSlot.namn || csvSlot.id}" (${csvSlot.filKolumn}) hittades inte.` +
+            `\nVälj dokumentmall för ${csvSlot.filKolumn} manuellt.`
+          );
+        }
+      }
+
+      renderaSlotsar();
+      uppdateraFilKolumner(slotsar.length);
+    }
+
+    return varningar;
+  }
 
   // Koppla filer – matchar valda filer till rader baserat på filnamn
   const kopplaInput = document.getElementById('koppla-filer-input');

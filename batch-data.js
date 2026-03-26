@@ -67,6 +67,35 @@ function detekteraSeparator(text) {
  * @param {string} text – CSV-text
  * @returns {{ headers: string[], rader: Object[] }}
  */
+/**
+ * Extraherar metadata från #-kommentarsrader i CSV-text.
+ * Returnerar { mallNamn, mallId, slotsar: [{ filKolumn, namn, id }] }
+ */
+function extraheraCSVMetadata(text) {
+  const meta = { mallNamn: null, mallId: null, slotsar: [] };
+  const linjer = text.split('\n');
+  for (const rad of linjer) {
+    const trimmed = rad.trimStart();
+    if (!trimmed.startsWith('#')) break;
+    // # Ärendemall: Namn [id]
+    const mallMatch = trimmed.match(/^#\s*Ärendemall:\s*(.+?)\s*\[([^\]]*)\]/);
+    if (mallMatch) {
+      meta.mallNamn = mallMatch[1].trim();
+      meta.mallId = mallMatch[2].trim() || null;
+    }
+    // # Fil_1: Dokumentmallnamn [id]
+    const filMatch = trimmed.match(/^#\s*(Fil_\d+):\s*(.+?)\s*\[([^\]]*)\]/);
+    if (filMatch) {
+      meta.slotsar.push({
+        filKolumn: filMatch[1],
+        namn: filMatch[2].trim(),
+        id: filMatch[3].trim() || null,
+      });
+    }
+  }
+  return meta;
+}
+
 function parsCSV(text) {
   // Hoppa över kommentarsrader (#) i början av filen
   const linjer = text.split('\n');
