@@ -48,25 +48,9 @@ function anropaSidan(action, data = {}) {
   });
 }
 
-// Sparar pending ärendedokument (anropas från page-arende-create.js innan navigering)
-if (!window.__p360PendingHandler) {
-  window.__p360PendingHandler = async (event) => {
-    const { dokument } = event.detail;
-    if (!Array.isArray(dokument) || dokument.length === 0) {
-      window.dispatchEvent(new CustomEvent('p360-pending-sparad', { detail: { ok: true } }));
-      return;
-    }
-    try {
-      await chrome.storage.local.set({ pendingÄrendedokument: { dokument, sparad: Date.now() } });
-      console.log(`[p360] ${dokument.length} ärendedokument sparade som pending`);
-      window.dispatchEvent(new CustomEvent('p360-pending-sparad', { detail: { ok: true } }));
-    } catch (err) {
-      console.error('[p360] Kunde inte spara pending ärendedokument:', err.message);
-      window.dispatchEvent(new CustomEvent('p360-pending-sparad', { detail: { ok: false, fel: err.message } }));
-    }
-  };
-  window.addEventListener('p360-spara-pending-dokument', window.__p360PendingHandler);
-}
+// OBS: p360-spara-pending-dokument-mekanismen ersattes av pre-sparning i message handler.
+// Pending ärendedokument sparas nu direkt i skapaFrånMall-hanteraren nedan,
+// innan data passerar cross-world-gränsen till MAIN world.
 
 /**
  * Löser dokumentmallreferenser ({ dokumentmallId }) till fullständiga dokumentobjekt.
@@ -289,8 +273,24 @@ window.__p360OnMessageHandler = (request, sender, sendResponse) => {
     }
   };
 
-  hämtaFiler().then(() => anropaSidan(request.action, data))
-    .then(svar => sendResponse(svar))
+  hämtaFiler().then(async () => {
+    // Pre-spara pending ärendedokument INNAN cross-world dispatch.
+    // data.mall.ärendedokument är ett vanligt JS-objekt (structured clone från sendMessage)
+    // och kan sparas direkt utan cross-world-proxy-problem.
+    // Sparning efter cross-world-passering (via CustomEvent) är opålitlig eftersom
+    // chrome.storage.local.set inte garanterat klarar cross-world-proxies.
+    if (request.action === 'skapaFrånMall' && data.mall?.ärendedokument?.length > 0) {
+      try {
+        await chrome.storage.local.set({
+          pendingÄrendedokument: { dokument: data.mall.ärendedokument, sparad: Date.now() }
+        });
+        console.log(`[p360] Pre-sparade ${data.mall.ärendedokument.length} ärendedokument som pending`);
+      } catch (err) {
+        console.error('[p360] Kunde inte pre-spara pending ärendedokument:', err.message);
+      }
+    }
+    return anropaSidan(request.action, data);
+  }).then(svar => sendResponse(svar))
     .catch(err => sendResponse({ success: false, fel: err.message }));
 
   return true; // Håller meddelandekanalen öppen för async svar
