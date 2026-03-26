@@ -330,6 +330,16 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
     if (uploadRes.misslyckade.length > 0) {
       console.warn('[p360-dok] Misslyckade filuppladdningar:', uploadRes.misslyckade);
     }
+    // laddaUppEnFil navigerar till Filer-fliken – navigera tillbaka till Generellt
+    // INNAN fällningsfälten fylls i, så att UpdatePanel-byta inte nollställer dem.
+    if (uploadRes.lyckade.length > 0) {
+      visaStatus('Återgår till Generellt…');
+      iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'GeneralStep');
+      const titelEfterNav = await waitForElement(
+        iDoc, '#PlaceHolderMain_MainView_TitleTextBoxControl', 8000
+      );
+      if (!titelEfterNav) console.warn('[p360-dok] Titelfältet hittades inte efter återgång till Generellt.');
+    }
   }
 
   // ---------------------------------------------------------------
