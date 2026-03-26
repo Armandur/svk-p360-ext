@@ -183,6 +183,43 @@
     <button id="btn-ny-mall">＋ Ny mall</button>
   </div>
 
+  <!-- Dokumentmallar -->
+  <div class="grupp">
+    <div class="grupp-rubrik">Dokumentmallar</div>
+    <div id="dokumentmalllista">
+      <div id="tom-dokumentmalllista" style="font-size:12px;color:#aaa;padding:4px 0;">Inga dokumentmallar.</div>
+    </div>
+    <button id="btn-ny-dokumentmall" style="border-style:dashed;color:#0078d4;background:#fff;font-size:12px;margin-top:4px;">＋ Ny dokumentmall</button>
+  </div>
+
+  <!-- Filuppladdning -->
+  <div class="grupp">
+    <div class="grupp-rubrik">Filuppladdning</div>
+    <button id="btn-ladda-upp-filer">Ladda upp fil(er) till nytt ärendedokument</button>
+    <input type="file" id="fil-input" multiple style="display:none;">
+    <button id="btn-batch-upload">Batch: en fil per ärendedokument</button>
+    <input type="file" id="batch-fil-input" multiple style="display:none;">
+    <!-- Batch-panel: välj dokumentmall och starta -->
+    <div id="batch-panel" style="display:none;margin-top:6px;padding:8px;background:#f0f6ff;border:1px solid #c2d8f5;border-radius:4px;">
+      <div style="font-size:11px;color:#555;margin-bottom:4px;" id="batch-fil-info"></div>
+      <label style="font-size:11px;color:#555;display:block;margin-bottom:3px;">Dokumentmall (valfritt)</label>
+      <select id="batch-mall-val" style="width:100%;padding:5px 7px;border:1px solid #ccc;border-radius:3px;font-size:13px;margin-bottom:6px;box-sizing:border-box;">
+        <option value="">(ingen mall – enbart fil)</option>
+      </select>
+      <div style="display:flex;gap:4px;">
+        <button id="btn-batch-starta" style="flex:1;margin:0;padding:6px;font-size:12px;background:#0078d4;color:#fff;border-color:#0078d4;">Starta batch</button>
+        <button id="btn-batch-avbryt" style="width:auto;margin:0;padding:6px;font-size:12px;">Avbryt</button>
+      </div>
+    </div>
+    <div id="fil-status" style="font-size:11px;color:#555;padding:2px 0;display:none;"></div>
+  </div>
+
+  <!-- Massregistrering -->
+  <div class="grupp">
+    <div class="grupp-rubrik">Massregistrering</div>
+    <button id="btn-massregistrering">Massregistrering (CSV/tabell)</button>
+  </div>
+
   <div class="grupp">
     <div class="grupp-rubrik">Dagbok</div>
     <button data-action="dagboksblad">Dagboksblad</button>

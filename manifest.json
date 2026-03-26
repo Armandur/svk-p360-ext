@@ -3,7 +3,8 @@
   "name": "360° Svenska kyrkan – Hjälptillägg",
   "version": "1.1",
   "description": "Automatiserar repetitiva åtgärder i 360° för Svenska kyrkan. Fungerar i Chrome och Edge.",
-  "permissions": ["activeTab", "scripting", "tabs", "storage"],
+  "permissions": ["activeTab", "scripting", "tabs", "storage", "unlimitedStorage"],
+  "host_permissions": ["https://p360.svenskakyrkan.se/*"],
   "background": {
     "service_worker": "background.js"
   },
@@ -51,8 +52,11 @@
         "page-arende-contacts.js",
         "page-arende-create.js",
         "page-document-options.js",
-        "page.js",
-        "spy.js"
+        "page-document-validate.js",
+        "page-document-fill.js",
+        "page-document-upload.js",
+        "page-document-create.js",
+        "page.js"
       ],
       "world": "MAIN"
     }

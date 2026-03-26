@@ -311,6 +311,34 @@ som vid fel ordning nollställer paragraf-fältet (`AccessCodeAuthorizationCombo
 om skyddskod redan satts. Sätt klassificering via det dolda fältet + dropDownList-elementet
 och kör HiddenButton-postbacken *innan* `AccessCodeComboControl` sätts.
 
+### Projekt och Fastighet (typeahead)
+
+Projekt och Fastighet är typeahead-fält med identiskt mönster som Klassificering.
+Båda finns på Generellt-fliken i ärendeformuläret. Sökning med `%` ger alla alternativ.
+
+**Projekt:**
+
+| Element-ID | Typ | Syfte |
+|---|---|---|
+| `PlaceHolderMain_MainView_ProjectQuickSearchControl_DISPLAY` | INPUT text | Synligt sökfält |
+| `PlaceHolderMain_MainView_ProjectQuickSearchControl` | INPUT hidden | Recno-värde |
+| `PlaceHolderMain_MainView_ProjectQuickSearchControl_dropDownList` | SELECT | Native select (fylls via AJAX) |
+| `PlaceHolderMain_MainView_ProjectQuickSearchControl_OnClick_PostBack` | Dold länk | Triggar AJAX-sökning |
+| `PlaceHolderMain_MainView_ProjectQuickSearchControlHiddenButton` | Dold knapp | Bekräftar valet via PostBack |
+
+**Fastighet:**
+
+| Element-ID | Typ | Syfte |
+|---|---|---|
+| `PlaceHolderMain_MainView_EstateGeneralTabSearchControl_DISPLAY` | INPUT text | Synligt sökfält |
+| `PlaceHolderMain_MainView_EstateGeneralTabSearchControl` | INPUT hidden | Recno-värde |
+| `PlaceHolderMain_MainView_EstateGeneralTabSearchControl_dropDownList` | SELECT | Native select (fylls via AJAX) |
+| `PlaceHolderMain_MainView_EstateGeneralTabSearchControl_OnClick_PostBack` | Dold länk | Triggar AJAX-sökning |
+| `PlaceHolderMain_MainView_EstateGeneralTabSearchControlHiddenButton` | Dold knapp | Bekräftar valet via PostBack |
+
+> **Ordning:** Projekt och Fastighet sätts **efter** klassificering och **före**
+> skyddskod-blocket i fyll-i-flödet, för att undvika UpdatePanel-konflikter.
+
 ### Spara-knappen
 
 Knappen "Slutför" har element-ID `PlaceHolderMain_MainView_WizardFinishButton` och
@@ -772,8 +800,12 @@ Underliggande view.aspx-id: `70158b84-a8eb-492a-a546-277ee96e16f9`
 | `PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl` | SELECT + Selectize | **Ja** | Sekretesslagrum (visas vid KO/OSL) |
 | `PlaceHolderMain_MainView_ReceivedDateControl_si_datepicker` | Datumväljare | **Ja** | Ankomstdatum *(Inkommande)* |
 | `PlaceHolderMain_MainView_DispatchedDateControl_si_datepicker` | Datumväljare | **Ja** | Brevdatum / Expedieringsdatum *(Utgående)* |
+| `PlaceHolderMain_MainView_AccessGroupComboControl` | SELECT + Selectize | Nej | Åtkomstgrupp (instansspecifikt) |
+| `PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl` | SELECT + Selectize | Nej | Ansvarig enhet (instansspecifikt) |
 | `PlaceHolderMain_MainView_PaperControl` | SELECT + Selectize | **Ja** | Sparat på papper |
 | `PlaceHolderMain_MainView_ResponsibleUserComboControl` | SELECT + Selectize | **Ja** | Ansvarig person |
+| `PlaceHolderMain_MainView_Custom_QuickUnregContactText` | INPUT text | Nej | Oregistrerad kontakt (avsändare/mottagare) |
+| `PlaceHolderMain_MainView_Custom_QuickUnregContactButton` | Knapp (bock) | Nej | Lägg till oregistrerad kontakt |
 | `PlaceHolderMain_MainView_ProjectQuickSearchControl_DISPLAY` | INPUT text | Nej | Projekt (typeahead, synligt) |
 
 > **`ProcessRecordTypeControl`** = **Handlingstyp** – vilken sorts handling det är (t.ex.
@@ -861,11 +893,142 @@ Därefter triggar formulär-iframen automatiskt (i tur och ordning):
 2. `NewDocumentOperation_POSTBACK` — uppdaterar ärendesidan (top-frame)
 3. `NewDocumentCaseBrokerListener` — laddar om ärendets dokumentlista
 
-### Återstår att kartlägga
+### Fältskillnader per dokumentkategori (verifierat 2026-03-25)
 
-- ~~Titelfältets element-ID~~ ✓ `TitleTextBoxControl` (TEXTAREA, maxlength 254)
-- ~~Värden för `TypeJournalDocumentInsertComboControl`~~ ✓ kartlagt
-- Filuppladdning (flik "Filer")
+Dokumentkategorin (`TypeJournalDocumentInsertComboControl`) triggar en UpdatePanel som
+visar/döljer fält. Alla kategorier har samma grund av fält (titel, handlingstyp, skyddskod,
+åtkomstgrupp, ansvarig enhet/person m.m.). Skillnaderna:
+
+| Fält | Inkommande (110) | Utgående (111) | Upprättat (60005) | Protokoll (112) |
+|---|:---:|:---:|:---:|:---:|
+| `ReceivedDateControl` (Ankomstdatum) | **Ja** | Nej | Nej | Nej |
+| `DispatchedDateControl` (Färdigst/exp-datum) | Ja | **Ja** (ej obl.) | **Ja** (ej obl.) | **Ja** (ej obl.) |
+| `ProcessRecordTypeControl` (Handlingstyp) | Ja | **Ja** | **Ja** | **Ja** |
+| `ToContactQuickSearchControl` (mottagare/avsändare-sökning) | Ja | Ja | **Nej** | Ja |
+| `Custom_QuickUnregContactText` (oregistrerad kontakt) | Ja | Ja | Ja | Ja |
+| `DocumentTemplateComboControl` (dokumentmall) | ? | Ja | Ja | Nej |
+
+> **Handlingstyp** finns för alla kategorier men servern byter automatiskt default-värde
+> vid kategori-byte (t.ex. `101634` för Utgående, `101636` för Upprättat/Protokoll).
+> Värdet är instansspecifikt och måste läsas dynamiskt eller konfigureras per mall.
+>
+> **Färdigst/exp-datum** (`DispatchedDateControl`) är **inte obligatoriskt** för
+> Utgående, Upprättat eller Protokoll, men bra att kunna ange i mallen.
+>
+> **Ankomstdatum** (`ReceivedDateControl`) visas **enbart** för Inkommande.
+
+### Filuppladdning (flik "Filer") – teknisk kartläggning
+
+Dokumentguiden har en flik "Filer" som nås via:
+```js
+__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'FileStep');
+```
+
+#### Upload-kontroll: `DocumentMultiFileUploadControl`
+
+Uppladdning sker i **två steg**: först XHR till `/FileUpload.ashx`, sedan PostBack
+för att registrera filen i formuläret.
+
+**Drag-and-drop-container:**
+
+| Egenskap | Värde |
+|---|---|
+| Element-ID | `PlaceHolderMain_MainView_DocumentMultiFileUploadControl` |
+| `data-url` | `/FileUpload.ashx` |
+| `data-max-file-size` | `2147482624` (~2 GB) |
+| `data-allowed-file-extension` | `*` (alla filtyper) |
+| `data-max-files` | `100` |
+| `data-chunk-size` | `1048576` (1 MB chunks) |
+
+**Dold fil-input:**
+```html
+<input type="file" multiple style="display:none">
+```
+Triggras av ankarlänken i drag-and-drop-containern. Stöder multipla filer.
+
+**Dolda fält efter uppladdning:**
+
+| Element-ID | Syfte |
+|---|---|
+| `PlaceHolderMain_MainView_DocumentMultiFileUploadControl_hiddenUploadedFilesPath` | Sökväg(ar) till uppladdade filer på servern |
+| `PlaceHolderMain_MainView_DocumentMultiFileUploadControl_hiddenUploadButton` | Dold knapp – triggar PostBack efter XHR-upload |
+
+**Uppladdningsflöde:**
+1. Fil(er) väljs via `<input type="file">` eller drag-and-drop
+2. JavaScript laddar upp filen i chunks à 1 MB via XHR POST till `/FileUpload.ashx`
+3. Servern returnerar filsökväg som skrivs till `hiddenUploadedFilesPath`
+4. `hiddenUploadButton` klickas → PostBack registrerar filen i formuläret
+5. `ImportFileListControl` uppdateras med filens metadata (format, namn, titel)
+
+**Fillistan (`ImportFileListControl`):**
+
+| Element-ID | Syfte |
+|---|---|
+| `PlaceHolderMain_MainView_ImportFileListControl` | Tabell med uppladdade filer |
+| Kolumner | Filformat, Filnamn, Titel, Sorteringskolumn |
+
+**Verktygsknappar:**
+
+| Element-ID | Text | Syfte |
+|---|---|---|
+| `PlaceHolderMain_MainView_SetFilePropertiesMenuButtonControl` | Redigera egenskaper | Redigera filens titel/metadata |
+| `PlaceHolderMain_MainView_DeleteFileMenuButtonControl` | Ta bort | Ta bort fil från listan |
+
+#### Verifierat upload-flöde (2026-03-25)
+
+**Ingen chunking** behövs – hela filen skickas i ett enda POST, oavsett storlek
+(testat med 6.2 MB PDF). Flödet i tre steg:
+
+**Steg 1 – POST filen:**
+```js
+const userSession = Math.floor(Math.random() * 1000000000);
+const formData = new FormData();
+formData.append(file.name, file); // Nyckeln = filnamnet
+const xhr = new XMLHttpRequest();
+xhr.open('POST', `/FileUpload.ashx?userSession=${userSession}`);
+xhr.send(formData);
+// Response: filnamnet som text (t.ex. "dokument.pdf")
+```
+
+**Steg 2 – Sätt hidden field:**
+```js
+const hiddenPath = iDoc.getElementById(
+  'PlaceHolderMain_MainView_DocumentMultiFileUploadControl_hiddenUploadedFilesPath'
+);
+hiddenPath.value = `${userSession}|${file.name}`;
+// Servern lagrar filen i: D:\Public360\...\{userSession}\{filnamn}
+```
+
+**Steg 3 – Trigga PostBack:**
+```js
+const hiddenBtn = iDoc.getElementById(
+  'PlaceHolderMain_MainView_DocumentMultiFileUploadControl_hiddenUploadButton'
+);
+hiddenBtn.click(); // <A>-länk som triggar __doPostBack
+// → ImportFileListControl uppdateras med filens metadata
+```
+
+**`userSession`** är ett slumpat nummer som fungerar som mappnamn på servern.
+Det finns ingen autentiserings-check utöver den vanliga ASP.NET-sessionen (cookies).
+
+**`SI_HiddenField_ScannedFilepath`** fylls automatiskt av servern med den
+fullständiga sökvägen efter PostBack:
+`D:\Public360\360\UploadedFiles_prod\KNET\{user}\{userSession}\{filnamn}`
+
+**Data-attribut på drag-drop-containern** (`_dragdropContainer`):
+
+| Attribut | Värde |
+|---|---|
+| `data-uploadurl` | `%2FFileUpload.ashx` |
+| `data-maxfilesize` | `2147482624` |
+| `data-hiddenuploadedfilespathid` | `..._hiddenUploadedFilesPath` |
+| `data-hiddenuploadbuttonid` | `..._hiddenUploadButton` |
+| `data-overlayattachedlistcontrolclientid` | `..._ImportFileListControl` |
+
+**Navigering till Filer-fliken:**
+```js
+iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'FileStep');
+```
 
 ---
 
@@ -882,9 +1045,28 @@ Därefter triggar formulär-iframen automatiskt (i tur och ordning):
 ├── page-arende-options.js # Inläsning av formuläralternativ (NY_ÄRENDE_URL, läsInAlternativ)
 ├── page-arende-contacts.js # Lägg till oregistrerade externa kontakter
 ├── page-arende-create.js  # Skapa ärende från mall (skapaFrånMall)
-├── page.js                # Router i MAIN world (lyssnar på p360-anrop och dispatchar)
-├── background.js          # Service worker – hanterar tangentbordskommandon
+├── page-document-options.js  # Passiv caching av Handlingstyp-alternativ m.m.
+├── page-document-validate.js # Validering av dokumentformulär (obligatoriska fält, handlingstyp)
+├── page-document-fill.js    # Fyller i dokumentformulärets fält från mall
+├── page-document-upload.js  # Filuppladdning till ärendedokument (FileUpload.ashx)
+├── page-document-create.js  # Orkestrering av ärendedokumentskapande
+├── page.js                  # Router i MAIN world (lyssnar på p360-anrop och dispatchar)
+├── background.js            # Service worker – hanterar tangentbordskommandon
+├── mall.html                # Redigeringssida för ärendemallar
+├── mall-data.js             # Konstanter, hjälpfunktioner, typeahead, spara mall
+├── mall-kontakter.js        # Rendering och formulär för externa kontakter
+├── mall-dokument.js         # Rendering och väljare för ärendedokument
+├── mall.js                  # Init, händelsehanterare, läsIn, laddaMall
+├── dokument-mall.html     # Redigeringssida för dokumentmallar och instanser
+├── dokument-mall.js       # Logik för dokumentmallredigeraren (stöder instansläge via ?instans=1)
+├── batch.html             # Massregistrering – UI med redigerbar tabell
+├── batch-data.js          # CSV-parsning, validering, mallbyggnad för batch
+├── batch-table.js         # Redigerbar tabell med drag-and-drop för batch
+├── batch-run.js           # Exekveringsmotor: orkestrerar ärendeskapande per rad
+├── batch.js               # Init, händelsehanterare, sammankoppling av batch-UI
 ├── help.html              # Inbyggd hjälpsida (öppnas via "? Hjälp" i popup)
+├── help.js                # Logik för hjälpsidan
+├── arendepaus.html        # Paussida vid ärendeskapande (väntar på navigering)
 ├── icons/
 │   ├── icon16.png
 │   ├── icon48.png
@@ -903,7 +1085,49 @@ Filerna injiceras i denna ordning:
 4. `page-arende-options.js`
 5. `page-arende-contacts.js`
 6. `page-arende-create.js`
-7. `page.js` (router)
+7. `page-document-options.js`
+8. `page-document-validate.js`
+9. `page-document-fill.js`
+10. `page-document-upload.js`
+11. `page-document-create.js`
+12. `page.js` (router)
+
+## Dokumentmallar och instansmodell
+
+Dokumentmallar lagras i `chrome.storage.local` under nyckeln `dokumentmallar`. De
+är fristående och kan användas direkt på befintliga ärenden via popupen.
+
+### Instanser i ärendemallar
+
+När en dokumentmall läggs till i en ärendemall skapas en **djupkopia** (instans) av
+alla fält. Instansen lagras direkt i ärendemallens `ärendedokument`-array och kan
+redigeras oberoende av originalet.
+
+**Dataformat i `ärendedokument`:**
+```js
+{
+  dokumentmallId: 'dokmall_123',  // Referens till ursprungsmallen (för visning)
+  namn: 'Inkommande brev',       // Ärvt namn (ej redigerbart i instansläge)
+  titel: '...',                   // Instansens egna fältvärden
+  handlingstyp: { value, text },
+  kategori: '110',
+  // ... alla fält från dokumentmallen
+}
+```
+
+**Redigering av instans:**
+1. `mall.js` sparar instansen till `chrome.storage.local.tempDokInstans`
+2. `dokument-mall.html?instans=1` öppnas – laddar data från temp-storage
+3. Vid sparning skrivs uppdaterad data tillbaka till `tempDokInstans`
+4. `mall.js` lyssnar på `chrome.storage.onChanged` och uppdaterar ärendedokument-listan
+
+**`lösaDokumentreferenser` i `content.js`** skickar instanser med egna data rakt
+igenom till `skapaÄrendedokument` – ingen lookup mot `dokumentmallar` behövs.
+
+**Bakåtkompatibilitet:** Gamla rena referenser (`{ dokumentmallId, namn }` utan egna
+fältvärden) expanderas automatiskt vid laddning i `laddaMall()`.
+
+---
 
 ## Kodstil och konventioner
 

@@ -5,101 +5,31 @@ Flytta en punkt till "Klart" när den är implementerad och testad.
 
 ---
 
-## Under arbete
+## Pågående
 
-### Ärendedokument – mall och filuppladdning
+### Massregistrering av ärenden från CSV
 
-**Var vi är (2026-03-24):**
+**Status: Grundflödet fungerar** – ärenden, kontakter, ärendedokument och
+statusändring skapas. Kvarvarande problem: filuppladdningens PostBack-bekräftelse
+visas inte i fillistan (filerna bifogas ändå till ärendet via hidden field).
 
-- ✅ Ärendedokument-formuläret är fullständigt kartlagt i CLAUDE.md (formulärfält,
-  PostBack-nycklar, Inkommande/Utgående-kontakter, spara-sekvens, RepeatWizardDialog,
-  dokumentnummer-extraktion).
-- ✅ Passiv caching av Handlingstyp-alternativ (`ProcessRecordTypeControl`) implementerad:
-  `page-document-options.js` detekterar automatiskt när dokumentformuläret öppnas och
-  sparar tillgängliga handlingstyper (Selectize-alternativ) i `chrome.storage.local`
-  under nyckeln `cachedHandlingstyper`. Cachen är ackumulerande och dedupliceras på `value`.
+#### Kvarvarande buggar
 
-**Nästa steg – popup-UI för dokumentmallar:**
+- **Filuppladdning – PostBack-bekräftelse:** XHR-upload till FileUpload.ashx
+  lyckas och filen bifogas vid sparning, men PostBack-trigget som uppdaterar
+  ImportFileListControl (fillistan i formuläret) fungerar inte. Filerna syns
+  inte visuellt i Filer-fliken men hamnar ändå i det skapade dokumentet.
+  Testat: `btn.click()`, `iWin.__doPostBack()`, script-injektion. Kan vara
+  CSP-relaterat eller en timing-fråga med PageRequestManager.
 
-Bygg ut mallsystemet i popup/inställningssidan så att en ärendemall kan innehålla
-en lista med ärendedokumentmallar. Fält att stödja per dokumentmall:
-- Handlingstyp (väljs från `cachedHandlingstyper`)
-- Dokumentkategori (Inkommande / Utgående / Upprättat m.fl. – hårdkodad lista)
-- Titel
-- Skyddskod + sekretesslagrum (samma som ärendeformulär)
-- Ansvarig person
+#### Implementerat
 
-**Långsiktigt:**
-
-1. **Automatiskt skapande av ärendedokument** som en del av mallflödet när ett
-   mallärende skapas.
-
-2. **Filuppladdning** – möjlighet att ladda upp en fil (t.ex. PDF) till ett
-   ärendedokument. Kräver kartläggning av hur 360° hanterar fil-upload
-   (troligen multipart/form-data eller en separat dialog).
-
----
-
-## Planerat / Prioriterat
-
----
-
-### Mall-ärenden med förifyllda fält
-
-Möjlighet att skapa nya ärenden utifrån sparade mallar där fält som ärendetyp, status,
-handläggare, enhet m.m. redan är förifyllda. Användaren väljer en mall i popupen och
-tillägget fyller i formuläret automatiskt.
-
-- Mallarna lagras lokalt i `chrome.storage.local` (inga externa API-anrop)
-- Gränssnitt för att skapa, redigera och ta bort mallar (inställningssida)
-- Stöd för valfritt antal mallar med egna namn
-
-**Teknisk ansats (kartlagd 2026-03-20):**
-Formuläret öppnas via dialog-iframe, fält fylls med `element.selectize.setValue()` och
-`textarea.value`, sedan anropas `__doPostBack('...WizardNavigationButton', 'finish')` i
-iframe-kontexten. Se CLAUDE.md → "Skapa nytt ärende" för komplett teknisk spec.
-
-**Återstår att kartlägga / implementera:**
-- Sekretessfältens element-ID och beteende (extra fält vid val av KO/OSL):
-  paragraf-/skyddskodsfältet samt alternativ för ärendetitelns sekretesshantering
-  (skyddad / manuell / samma som ärendetitel)
-- **Projekt och Fastighet i mallredigeraren** – fälten finns på respektive flik i
-  ärendeformuläret och ser ut som klassificering (typeahead med synligt visningsvärde
-  + dolt recno-fält). Inläsning av tillgängliga alternativ och sättning av värdet
-  bör kunna göras på samma sätt som klassificering (PostBack + hidden field + display
-  field). Kartlägg element-ID:n och PostBack-nycklar, lägg sedan till stöd i
-  mallredigeraren och i fyll-i-flödet.
-
-### Massregistrering av in-/utträdesärenden från Excel/CSV
-
-Funktion för att skapa ett stort antal ärenden i batch utifrån en Excel- eller CSV-fil.
-Primär användning: utträdesärenden (och inträden) från exportfiler ur pastoratets system.
-
-**Förväntade kolumner i CSV/Excel:**
-
-| Kolumn | Beskrivning |
-|--------|-------------|
-| `Diarium` | Diarienummer (om känt) eller lämnas tomt |
-| `Ankomstdatum` | Ärendets ankomstdatum (ÅÅÅÅ-MM-DD) |
-| `Förnamn` | Kontaktpersonens förnamn |
-| `Efternamn` | Kontaktpersonens efternamn |
-| `In/utträde` | `I` för inträde, `U` för utträde |
-| `PDF-fil` | Filnamn på bifogad PDF (skannat dokument) |
-
-**Flöde:**
-1. Användaren laddar upp CSV/Excel-filen i en dedikerad sida (extension-page)
-2. Tillägget visar en förhandsgranskning av raderna
-3. Vid bekräftelse skapas ärendena ett i taget i 360° via automatisering
-4. Tillägget fångar upp det tilldelade diarienumret för varje skapat ärende
-5. En resultatrapport visas och kan laddas ned som CSV:
-   `Förnamn, Efternamn, In/utträde, Diarienummer, Skapad`
-
-**Tekniska utmaningar att lösa:**
-- Identifiera hur 360° returnerar det nya diarienumret efter att ett ärende skapats
-  (URL-redirect, DOM-element eller response-header)
-- Bifoga PDF-filer programmatiskt (kräver troligen access till File API + formulär-upload)
-- Hantera fel per rad utan att avbryta hela batchen
-- Köhantering så att 360° inte överbelastas (fördröjning mellan ärenden)
+- Batch-gränssnitt (batch.html) med redigerbar tabell, CSV-import, dokumentslotsar
+- Ärendeskapande, kontakter, ärendedokument, statusändring per rad
+- Filkoppling från CSV-filnamn till faktiska File-objekt ("Koppla filer"-knapp)
+- Avbryt-signal som propageras genom hela kedjan (batch → ärende → dokument → upload)
+- Resultatrapport med CSV-nedladdning
+- Signal-filtrering med radIdx för att undvika stale batch-signaler
 
 ### Import av mallar från fil (TSV/CSV/Excel)
 
@@ -131,15 +61,39 @@ skyddskod, ansvarig enhet osv.).
 
 ---
 
-## Kända begränsningar / ej testat
+## Långsiktigt
+
+### Arbetsdokument och Avtalsdokument
+
+Utöka stödet till fler dokumenttyper (andra subtype-värden än 61000).
+
+### Kontakter från ärende/projekt i ärendedokument
+
+När stöd för registrerade kontakter (Kontaktperson, Organisation) läggs till
+på ärendenivå, bör man även kunna välja "Hämta kontakt från ärende" i
+dokumentmallen. Då väljs en eller flera av de kontakter som definierats i
+ärendemallen som avsändare/mottagare på dokumentnivå.
+
+### Stöd för registrerade kontakter (Kontaktperson/Organisation)
+
+Externa kontakter stöder för närvarande bara typen Oregistrerad kontakt.
+Kontaktperson och Organisation kräver ytterligare kartläggning och
+implementation. Registrerade kontakter delar samma post och uppdateras
+centralt, vilket löser problemet med att oregistrerade kontakter är
+fristående kopior.
+
+---
+
+## Kända begränsningar
 
 - **Testad roll:** Tillägget är hittills enbart testat med rollen **registrator /
   huvudregistrator**. Beteendet för rollerna **Handläggare**, **Handläggare+**,
   **Mötessekreterare** och **Ansökan KAE** är okänt – dessa kan ha annorlunda
   behörigheter, andra tillgängliga fält eller annorlunda PostBack-nycklar.
-- **Kontakttyp:** Externa kontakter stöder för närvarande bara typen
-  **Oregistrerad kontakt**. Kontaktperson och Organisation kräver ytterligare
-  kartläggning och implementation.
+- **Oregistrerade kontakter är fristående kopior:** En oregistrerad kontakt som
+  skapas på ärendenivå och sedan hämtas in som avsändare/mottagare på ett
+  ärendedokument blir en helt separat kopia. Ändringar på ärendenivån påverkar
+  inte dokumentkontakten och vice versa. Detta är en begränsning i 360°.
 - **Dubblettvarning:** Om namnet liknar en befintlig kontakt i 360° visas dialogen
   "Möjliga dubbletter i kontaktlistan". Tillägget svarar alltid med "Spara/Skapa ny"
   och skapar alltså alltid en ny oregistrerad kontakt, oavsett om en matchande
@@ -174,7 +128,30 @@ Funktioner som diskuterats men ännu inte prioriterats.
 | Redigera egenskaper, utlåning, gallring, spara som nytt, kopiera hyperlänk, ärendesammanfattning, processplan | 2025 |
 | Växla status (Öppet ↔ Avslutat) + snabbkommando Alt+Shift+S | 2026-03-20 |
 | Inbyggd hjälpsida (help.html) | 2026-03-20 |
+| Mall-ärenden med förifyllda fält (mallredigerare, popup, automatisk formulärifyllning) | 2026-03-20 |
+| Sekretessfält i mallredigeraren (skyddskod, paragraf, offentlig titel) | 2026-03-20 |
 | Mall-ärenden: stöd för externa kontakter (oregistrerade) | 2026-03-24 |
-| Buggfix: andra kontakten lades inte till vid flera kontakter i mall | 2026-03-24 |
-| Ärendedokument-formuläret kartlagt i CLAUDE.md | 2026-03-24 |
-| Passiv caching av Handlingstyp-alternativ (page-document-options.js) | 2026-03-24 |
+| Ärendedokument – fristående dokumentmallar med egen redigeringssida | 2026-03-24 |
+| Ärendedokument – instansmodell (djupkopierade dokumentmallar i ärendemallar) | 2026-03-24 |
+| Passiv caching av handlingstyper, åtkomstgrupper, enheter och personer | 2026-03-24 |
+| Automatiskt skapande av ärendedokument som del av ärendeskapandeflödet | 2026-03-24 |
+| Fristående dokumentskapande från popup på befintligt ärende | 2026-03-24 |
+| Drag-and-drop-sortering av externa kontakter och ärendedokument | 2026-03-24 |
+| Stöd för Utgående, Upprättat och Protokoll i dokumentskapande | 2026-03-25 |
+| Explicit skyddskod (Offentlig) när ärendet har annan default | 2026-03-25 |
+| Validering av handlingstyp mot ärendets klassificering (popup + formulär) | 2026-03-25 |
+| Projekt och Fastighet i ärendemallar och dokumentmallar (typeahead med %-sökning) | 2026-03-25 |
+| Polling istället för fasta väntetider mellan ärendedokument | 2026-03-25 |
+| Fullständigt flöde ärendeskapande → ärendedokument testat och verifierat | 2026-03-25 |
+| Filuppladdning till ärendedokument (popup + ärendemallsflöde) | 2026-03-25 |
+| Refaktorering: page-document-create.js → validate/fill/upload/create | 2026-03-25 |
+| Refaktorering: mall.js → mall-data/mall-kontakter/mall-dokument/mall | 2026-03-25 |
+| Batch-uppladdning: en fil per ärendedokument (popup) | 2026-03-25 |
+| Massregistrering: grundflöde (ärende + kontakt + dokument + status) | 2026-03-25 |
+| Massregistrering: CSV-import med semikolon/komma-stöd | 2026-03-25 |
+| Massregistrering: redigerbar tabell med kolumntogglar | 2026-03-25 |
+| Massregistrering: dokumentslotsar (Fil_N → dokumentmall-koppling) | 2026-03-25 |
+| Massregistrering: filkoppling (matcha CSV-filnamn mot faktiska filer) | 2026-03-25 |
+| Massregistrering: avbryt-signal genom hela kedjan | 2026-03-25 |
+| Massregistrering: resultatrapport med CSV-nedladdning | 2026-03-25 |
+| Massregistrering: radIdx-filtrering mot stale batch-signaler | 2026-03-25 |

@@ -6,25 +6,32 @@
 // dem till content.js via CustomEvent för lagring i chrome.storage.local.
 
 /**
- * Läser ut Handlingstyp-alternativ från ett Selectize-fält.
- * Selectize lagrar alla alternativ i sel.selectize.options (ett objekt value→{value,text}).
- * Native sel.options innehåller bara det valda alternativet – räcker inte.
+ * Läser ut alternativ från ett Selectize-fält (value + text/label).
+ * Selectize lagrar alla alternativ i sel.selectize.options.
  */
-function läsHandlingstyperFrånDokument(doc) {
-  const sel = doc.getElementById('PlaceHolderMain_MainView_ProcessRecordTypeControl');
+function läsSelectizeAlternativ(doc, elementId) {
+  const sel = doc.getElementById(elementId);
   if (!sel) return [];
 
   // Primär: Selectize-cache
   if (sel.selectize?.options) {
     return Object.values(sel.selectize.options)
       .filter(o => o.value && o.value !== '0' && o.value !== '')
-      .map(o => ({ value: String(o.value), text: String(o.text || '').trim() }));
+      .map(o => ({ value: String(o.value), label: String(o.text || '').trim() }));
   }
 
-  // Fallback: native select (om Selectize inte initierats)
+  // Fallback: native select
   return Array.from(sel.options)
     .filter(o => o.value && o.value !== '0' && o.value !== '')
-    .map(o => ({ value: o.value, text: o.text.trim() }));
+    .map(o => ({ value: o.value, label: o.text.trim() }));
+}
+
+/**
+ * Läser ut Handlingstyp-alternativ (returnerar {value, text}-format för bakåtkompatibilitet).
+ */
+function läsHandlingstyperFrånDokument(doc) {
+  const alt = läsSelectizeAlternativ(doc, 'PlaceHolderMain_MainView_ProcessRecordTypeControl');
+  return alt.map(o => ({ value: o.value, text: o.label }));
 }
 
 /**
@@ -52,12 +59,25 @@ function väntaOchCachea(doc) {
 
     clearInterval(poll);
     const handlingstyper = läsHandlingstyperFrånDokument(doc);
-    if (handlingstyper.length === 0) return;
+    if (handlingstyper.length > 0) {
+      window.dispatchEvent(new CustomEvent('p360-spara-handlingstyper', {
+        detail: { handlingstyper }
+      }));
+    }
 
-    console.log('[p360] Handlingstyper cachade från dokumentformulär:', handlingstyper.length, 'alternativ');
-    window.dispatchEvent(new CustomEvent('p360-spara-handlingstyper', {
-      detail: { handlingstyper }
-    }));
+    // Cacha även ansvarig enhet, åtkomstgrupp och ansvarig person
+    const ansvarigaEnheter = läsSelectizeAlternativ(doc, 'PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl');
+    const atkomstgrupper = läsSelectizeAlternativ(doc, 'PlaceHolderMain_MainView_AccessGroupComboControl');
+    const ansvarigaPersoner = läsSelectizeAlternativ(doc, 'PlaceHolderMain_MainView_ResponsibleUserComboControl');
+    const extra = {};
+    if (ansvarigaEnheter.length > 0) extra.ansvarigaEnheter = ansvarigaEnheter;
+    if (atkomstgrupper.length > 0) extra.atkomstgrupper = atkomstgrupper;
+    if (ansvarigaPersoner.length > 0) extra.ansvarigaPersoner = ansvarigaPersoner;
+    if (Object.keys(extra).length > 0) {
+      window.dispatchEvent(new CustomEvent('p360-spara-dokumentformulär-alternativ', {
+        detail: extra
+      }));
+    }
   }, 100);
 }
 

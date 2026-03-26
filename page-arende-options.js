@@ -92,9 +92,14 @@ async function läsInAlternativ() {
         .map(o => ({ value: o.value, label: o.text.trim() }));
     }
 
-    // Klassificeringar kräver en wildcard-sökning (%) för att populera _dropDownList.
-    // Trigga sökning och vänta tills select-elementet fyllts av AJAX-svaret.
+    // Klassificeringar kräver wildcard-sökning via __doPostBack + Selectize-dropdown.
+    // Projekt och Fastighet kräver wildcard-sökning via QuickSearch-mekanismen.
+    // Kör alla sekventiellt (delar UpdatePanel – parallella postbacks krockar).
     const klassificeringar = await försökLäsKlassificeringar(doc, iWin);
+    const projekt = await försökLäsTypeahead(doc, iWin,
+      'PlaceHolderMain_MainView_ProjectQuickSearchControl');
+    const fastigheter = await försökLäsTypeahead(doc, iWin,
+      'PlaceHolderMain_MainView_EstateGeneralTabSearchControl');
 
     return {
       diarieenheter:     läsOptions('PlaceHolderMain_MainView_JournalUnitComboControl'),
@@ -103,6 +108,8 @@ async function läsInAlternativ() {
       ansvarigaEnheter:  läsOptions('PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl'),
       ansvarigaPersoner: läsOptions('PlaceHolderMain_MainView_ResponsibleUserComboControl'),
       klassificeringar,
+      projekt,
+      fastigheter,
     };
   } finally {
     iframe.remove();
@@ -110,15 +117,11 @@ async function läsInAlternativ() {
 }
 
 /**
- * Försöker läsa alla klassificeringsalternativ från formulärets typeahead
- * genom att söka med jokertecknet %.
+ * Läser klassificeringsalternativ via __doPostBack + Selectize-dropdown.
+ * Klassificering har en annan mekanism än Projekt/Fastighet – resultaten
+ * hamnar i Selectize:s dropdown-content, inte i _dropDownList.
  */
 async function försökLäsKlassificeringar(doc, win) {
-  const dropDown = doc.getElementById(
-    'PlaceHolderMain_MainView_ClassificationCode1ComboControl_dropDownList'
-  );
-  if (!dropDown) return [];
-
   const visFält = doc.getElementById(
     'PlaceHolderMain_MainView_ClassificationCode1ComboControl_DISPLAY'
   );
@@ -146,4 +149,62 @@ async function försökLäsKlassificeringar(doc, win) {
   return Array.from(items)
     .filter(el => el.dataset.value && el.dataset.value !== '0')
     .map(el => ({ display: (el.title || el.textContent).trim(), value: el.dataset.value }));
+}
+
+/**
+ * Generisk funktion för att läsa typeahead-alternativ från ett QuickSearch-fält.
+ * Fungerar för Klassificering, Projekt och Fastighet – alla har samma mönster:
+ *   {prefix}_DISPLAY (synligt textfält)
+ *   {prefix}         (hidden value-fält)
+ *   {prefix}_dropDownList (native select som fylls via AJAX)
+ *   {prefix}_OnClick_PostBack (dold postback-länk som triggar sökning)
+ *
+ * @param {Document} doc  iframe-dokumentet
+ * @param {Window} win    iframe-fönstret
+ * @param {string} prefix element-ID-prefix (utan suffix)
+ * @returns {Array<{display: string, value: string}>}
+ */
+async function försökLäsTypeahead(doc, win, prefix) {
+  const visFält = doc.getElementById(prefix + '_DISPLAY');
+  if (!visFält) return [];
+
+  // Sätt söktext och trigga events (samma mönster som klassificering)
+  visFält.value = '%';
+  for (const t of ['focus', 'input', 'keydown', 'keyup']) {
+    try { visFält.dispatchEvent(new Event(t, { bubbles: true })); } catch { /* */ }
+  }
+
+  // Trigga OnClick_PostBack (startar AJAX-sökningen, samma mekanism som klassificering)
+  const postBackId = 'ctl00$PlaceHolderMain$MainView$' +
+    prefix.replace('PlaceHolderMain_MainView_', '') + '_OnClick_PostBack';
+  try { win.__doPostBack(postBackId, ''); } catch { /* */ }
+
+  // Resultaten hamnar i Selectize-dropdown inuti TD#{prefix}_xyPoint.
+  // Polla tills .option[data-value] dyker upp (samma approach som klassificering).
+  const xyPointId = prefix + '_xyPoint';
+  await new Promise(resolve => {
+    const start = Date.now();
+    const check = setInterval(() => {
+      const container = doc.getElementById(xyPointId);
+      const antal = container
+        ? container.querySelectorAll('.selectize-dropdown-content .option[data-value]').length
+        : 0;
+      if (antal > 0 || Date.now() - start > 12000) { clearInterval(check); resolve(); }
+    }, 300);
+  });
+
+  const container = doc.getElementById(xyPointId);
+  const items = container
+    ? container.querySelectorAll('.selectize-dropdown-content .option[data-value]')
+    : [];
+
+  const resultat = Array.from(items)
+    .filter(el => el.dataset.value && el.dataset.value !== '0')
+    .map(el => ({ display: (el.title || el.textContent).trim(), value: el.dataset.value }));
+
+  // Rensa söktexten
+  const nyVisFält = doc.getElementById(prefix + '_DISPLAY');
+  if (nyVisFält) nyVisFält.value = '';
+
+  return resultat;
 }

@@ -122,14 +122,83 @@ async function skapaFrånMall(mall) {
       sättKlassificering();
     }
 
+    // Projekt – typeahead-fält likt klassificering
+    if (mall.projekt?.value) {
+      const sättProjekt = () => {
+        const vis = iDoc.getElementById('PlaceHolderMain_MainView_ProjectQuickSearchControl_DISPLAY');
+        const dolt = iDoc.getElementById('PlaceHolderMain_MainView_ProjectQuickSearchControl');
+        const lista = iDoc.getElementById('PlaceHolderMain_MainView_ProjectQuickSearchControl_dropDownList');
+        if (vis) vis.value = mall.projekt.display || '';
+        if (dolt) dolt.value = mall.projekt.value;
+        if (lista) {
+          if (!Array.from(lista.options).some(o => o.value === mall.projekt.value)) {
+            const opt = iDoc.createElement('option');
+            opt.value = mall.projekt.value;
+            opt.text = mall.projekt.display || mall.projekt.value;
+            lista.appendChild(opt);
+          }
+          lista.value = mall.projekt.value;
+        }
+      };
+
+      const visInit = iDoc.getElementById('PlaceHolderMain_MainView_ProjectQuickSearchControl_DISPLAY');
+      if (visInit) visInit.value = (mall.projekt.display || '').split(' ')[0].trim() || mall.projekt.display || '';
+
+      await väntalPåUpdatePanel(() =>
+        pb('ctl00$PlaceHolderMain$MainView$ProjectQuickSearchControlHiddenButton', ''));
+      sättProjekt();
+    }
+
+    // Fastighet – typeahead-fält likt klassificering
+    if (mall.fastighet?.value) {
+      const sättFastighet = () => {
+        const vis = iDoc.getElementById('PlaceHolderMain_MainView_EstateGeneralTabSearchControl_DISPLAY');
+        const dolt = iDoc.getElementById('PlaceHolderMain_MainView_EstateGeneralTabSearchControl');
+        const lista = iDoc.getElementById('PlaceHolderMain_MainView_EstateGeneralTabSearchControl_dropDownList');
+        if (vis) vis.value = mall.fastighet.display || '';
+        if (dolt) dolt.value = mall.fastighet.value;
+        if (lista) {
+          if (!Array.from(lista.options).some(o => o.value === mall.fastighet.value)) {
+            const opt = iDoc.createElement('option');
+            opt.value = mall.fastighet.value;
+            opt.text = mall.fastighet.display || mall.fastighet.value;
+            lista.appendChild(opt);
+          }
+          lista.value = mall.fastighet.value;
+        }
+      };
+
+      const visInit = iDoc.getElementById('PlaceHolderMain_MainView_EstateGeneralTabSearchControl_DISPLAY');
+      if (visInit) visInit.value = (mall.fastighet.display || '').split(' ')[0].trim() || mall.fastighet.display || '';
+
+      await väntalPåUpdatePanel(() =>
+        pb('ctl00$PlaceHolderMain$MainView$EstateGeneralTabSearchControlHiddenButton', ''));
+      sättFastighet();
+    }
+
     if (mall.skyddskod && mall.skyddskod !== '0') {
       await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', mall.skyddskod);
 
       const paragrafFält = await waitForElement(
         iDoc, '#PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', 10000
       );
-      if (paragrafFält && mall.sekretessParag)
+      if (paragrafFält && mall.sekretessParag) {
+        // Vänta kort så att Selectize hinner initialiseras med options
+        await sleep(500);
         await sättSelTyst('PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', mall.sekretessParag);
+        // Verifiera att värdet faktiskt sattes – om inte, försök igen
+        const paragrafEl = iDoc.getElementById('PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl');
+        if (paragrafEl && paragrafEl.value !== mall.sekretessParag) {
+          console.warn('[p360] Paragraf-värde sattes inte korrekt, försöker igen…',
+            'Förväntat:', mall.sekretessParag, 'Fick:', paragrafEl.value);
+          await sleep(1000);
+          await sättSelTyst('PlaceHolderMain_MainView_AccessCodeAuthorizationComboControl', mall.sekretessParag);
+          if (paragrafEl.value !== mall.sekretessParag) {
+            console.error('[p360] Paragraf-värde kunde inte sättas.',
+              'Tillgängliga options:', Array.from(paragrafEl.options).map(o => o.value));
+          }
+        }
+      }
 
       const checkbox = iDoc.getElementById('PlaceHolderMain_MainView_UnofficialContactCheckBoxControl');
       if (checkbox) checkbox.checked = !!mall.skyddaKontakter;
@@ -191,17 +260,47 @@ async function skapaFrånMall(mall) {
 
     const topUrlFör = window.location.href;
 
+    // Hjälpfunktion: spara pending ärendedokument innan navigering
+    // Väntar på bekräftelse från content.js (ISOLATED world) att chrome.storage.local.set lyckades
+    const sparaPendingOchNavigera = async (url) => {
+      if (mall.ärendedokument?.length > 0) {
+        const sparatLöfte = new Promise(resolve => {
+          const timeout = setTimeout(() => {
+            window.removeEventListener('p360-pending-sparad', handler);
+            console.warn('[p360] Timeout – pending-sparning fick inget svar, navigerar ändå.');
+            resolve();
+          }, 3000);
+          const handler = (event) => {
+            clearTimeout(timeout);
+            window.removeEventListener('p360-pending-sparad', handler);
+            if (!event.detail?.ok) {
+              console.warn('[p360] Pending-sparning misslyckades:', event.detail?.fel);
+            }
+            resolve();
+          };
+          window.addEventListener('p360-pending-sparad', handler);
+        });
+        window.dispatchEvent(new CustomEvent('p360-spara-pending-dokument', {
+          detail: { dokument: mall.ärendedokument }
+        }));
+        await sparatLöfte;
+      }
+      overlay.remove();
+      window.location.href = url;
+    };
+
+    const ärendeUrl = (recno) =>
+      `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${recno}`;
+
     iframe.Resize = () => {};
     iframe.IsLoading = true;
 
     iframe.commitPopup = (returnVal) => {
-      overlay.remove();
       const s = String(returnVal || '');
       if (s.includes('/DMS/') || s.includes('recno=')) {
-        window.location.href = s;
+        sparaPendingOchNavigera(s);
       } else if (/^\d{5,}$/.test(s)) {
-        window.location.href =
-          `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${s}`;
+        sparaPendingOchNavigera(ärendeUrl(s));
       }
     };
     iframe.cancelPopup = () => { overlay.remove(); };
@@ -210,13 +309,11 @@ async function skapaFrånMall(mall) {
     if (window.SI?.UI?.ModalDialog) {
       window.SI.UI.ModalDialog.CloseCallback = function(returnValue, ...args) {
         window.SI.UI.ModalDialog.CloseCallback = origCloseCallback;
-        overlay.remove();
         const s = String(returnValue || '');
         if (s.includes('/DMS/') || s.includes('recno=')) {
-          window.location.href = s;
+          sparaPendingOchNavigera(s);
         } else if (/^\d{5,}$/.test(s)) {
-          window.location.href =
-            `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${s}`;
+          sparaPendingOchNavigera(ärendeUrl(s));
         } else if (origCloseCallback) {
           origCloseCallback.call(this, returnValue, ...args);
         }
@@ -304,9 +401,7 @@ async function skapaFrånMall(mall) {
       }
 
       if (recnoFrånXHR) {
-        const målUrl = `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${recnoFrånXHR}`;
-        overlay.remove();
-        window.location.href = målUrl;
+        sparaPendingOchNavigera(ärendeUrl(recnoFrånXHR));
         return;
       }
 
@@ -319,11 +414,7 @@ async function skapaFrånMall(mall) {
         }
         if (iHref.includes('recno=') && !iHref.includes('cf7c6540')) {
           const recno = new URLSearchParams(iHref.split('?')[1] || '').get('recno');
-          const målUrl = recno
-            ? `/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=${recno}`
-            : iHref;
-          overlay.remove();
-          window.location.href = målUrl;
+          sparaPendingOchNavigera(recno ? ärendeUrl(recno) : iHref);
           return;
         }
       } catch { /* cross-origin */ }

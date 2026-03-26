@@ -96,12 +96,12 @@
       color: #555;
       flex: 1;
     }
-    .klassificering-rad {
+    .typeahead-rad {
       display: grid;
       grid-template-columns: 1fr auto;
       gap: 6px;
     }
-    .klassificering-rad input:last-child { width: 120px; }
+    .typeahead-rad input:last-child { width: 120px; }
 
     /* Knapprad längst ner */
     .knappar-fast {
@@ -143,6 +143,35 @@
     #sekretess-falt input, #sekretess-falt select, #sekretess-falt textarea {
       background: #fffdf5;
     }
+
+    /* Drag-and-drop */
+    .kontakt-kort[draggable="true"],
+    .dokument-kort[draggable="true"] {
+      cursor: grab;
+    }
+    .kontakt-kort[draggable="true"]:active,
+    .dokument-kort[draggable="true"]:active {
+      cursor: grabbing;
+    }
+    .kontakt-kort.dragging,
+    .dokument-kort.dragging {
+      opacity: 0.4;
+    }
+    .kontakt-kort.drag-over,
+    .dokument-kort.drag-over {
+      border-top: 3px solid #0078d4;
+      margin-top: -2px;
+    }
+    .drag-handle {
+      display: inline-block;
+      cursor: grab;
+      color: #aaa;
+      font-size: 14px;
+      margin-right: 6px;
+      user-select: none;
+      vertical-align: middle;
+    }
+    .drag-handle:active { cursor: grabbing; }
 
     /* Kontaktlista */
     .kontakt-kort {
@@ -211,7 +240,7 @@
       border-color: #0078d4;
     }
 
-    #btn-lagg-till-kontakt {
+    #btn-lagg-till-kontakt, #btn-lagg-till-dokument {
       padding: 7px 14px;
       border: 1px dashed #0078d4;
       border-radius: 4px;
@@ -221,9 +250,104 @@
       font-size: 13px;
       width: 100%;
     }
-    #btn-lagg-till-kontakt:hover { background: #f0f6ff; }
+    #btn-lagg-till-kontakt:hover, #btn-lagg-till-dokument:hover { background: #f0f6ff; }
+
+    /* Ärendedokument-kort */
+    .dokument-kort {
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      background: #fafafa;
+      position: relative;
+    }
+    .dokument-kort .dok-rubrik {
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 4px;
+      padding-right: 70px;
+    }
+    .dokument-kort .dok-knappar {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      display: flex;
+      gap: 4px;
+    }
+    .dokument-kort .dok-knappar button {
+      padding: 2px 8px;
+      font-size: 11px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      cursor: pointer;
+      background: #fff;
+    }
+    .dokument-kort .dok-detaljer {
+      font-size: 12px;
+      color: #666;
+    }
+
+    /* Dokumentformulär (inline) */
+    .dokument-formulär {
+      border: 1px solid #0078d4;
+      border-radius: 5px;
+      padding: 14px;
+      margin-bottom: 8px;
+      background: #f0f6ff;
+    }
+    .dokument-formulär h4 {
+      margin: 0 0 12px;
+      font-size: 13px;
+      color: #0078d4;
+    }
+    .dokument-formulär .knappar {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .dokument-formulär .knappar button {
+      padding: 6px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      border: 1px solid #ccc;
+      background: #fff;
+    }
+    .dokument-formulär .knappar button.ok {
+      background: #0078d4;
+      color: #fff;
+      border-color: #0078d4;
+    }
+    .dokument-formulär .dok-sekretess {
+      margin-top: 10px;
+      padding: 10px;
+      background: #fff8e8;
+      border: 1px solid #f0d070;
+      border-radius: 5px;
+    }
+    .dokument-formulär .dok-sekretess label { color: #6b4e10; }
+    .dokument-formulär .dok-sekretess select { background: #fffdf5; }
 
     .obligatorisk::after { content: ' *'; color: #c0392b; }
+
+    /* Grupprubriker för ärende / ärendedokument */
+    .grupprubrik {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a5276;
+      margin: 24px 0 10px;
+      padding: 8px 0 6px;
+      border-bottom: 2px solid #1a5276;
+      letter-spacing: 0.02em;
+    }
+    .grupprubrik:first-of-type { margin-top: 0; }
+    .grupprubrik .grupptips {
+      font-size: 12px;
+      font-weight: 400;
+      color: #666;
+      display: block;
+      margin-top: 2px;
+    }
 
     #felruta {
       display: none;
@@ -248,6 +372,12 @@
         <label class="obligatorisk" for="mall-namn">Mallnamn</label>
         <input type="text" id="mall-namn" placeholder="Ge mallen ett beskrivande namn">
       </div>
+    </div>
+
+    <!-- ====== ÄRENDE ====== -->
+    <div class="grupprubrik">
+      Ärende
+      <span class="grupptips">Fälten nedan styr hur ärendet skapas i 360°.</span>
     </div>
 
     <!-- Generellt -->
@@ -319,11 +449,39 @@
           <option value="">– välj klassificering –</option>
         </select>
         <!-- Manuella inmatningsfält – visas om klassificeringar EJ laddats in -->
-        <div id="klass-manuell-rad" class="klassificering-rad">
+        <div id="klass-manuell-rad" class="typeahead-rad">
           <input type="text" id="mall-klass-display" placeholder="Visningstext (t.ex. 2.5 - Ge internt verksamhetsstöd)">
           <input type="text" id="mall-klass-recno" placeholder="Recno-kod" style="width:120px">
         </div>
         <span id="klass-hjalp" style="font-size:11px;color:#888">
+          Klicka "Läs in fältalternativ" för att hämta listan, eller ange recno-kod manuellt.
+        </span>
+      </div>
+
+      <div class="faltrad">
+        <label for="mall-projekt-select">Projekt</label>
+        <select id="mall-projekt-select" style="display:none;">
+          <option value="">– välj projekt –</option>
+        </select>
+        <div id="projekt-manuell-rad" class="typeahead-rad">
+          <input type="text" id="mall-projekt-display" placeholder="Visningstext (t.ex. Kyrkobyggnadsprojekt 2026)">
+          <input type="text" id="mall-projekt-recno" placeholder="Recno-kod" style="width:120px">
+        </div>
+        <span id="projekt-hjalp" style="font-size:11px;color:#888">
+          Klicka "Läs in fältalternativ" för att hämta listan, eller ange recno-kod manuellt.
+        </span>
+      </div>
+
+      <div class="faltrad">
+        <label for="mall-fastighet-select">Fastighet</label>
+        <select id="mall-fastighet-select" style="display:none;">
+          <option value="">– välj fastighet –</option>
+        </select>
+        <div id="fastighet-manuell-rad" class="typeahead-rad">
+          <input type="text" id="mall-fastighet-display" placeholder="Visningstext (t.ex. Kyrka 1:2)">
+          <input type="text" id="mall-fastighet-recno" placeholder="Recno-kod" style="width:120px">
+        </div>
+        <span id="fastighet-hjalp" style="font-size:11px;color:#888">
           Klicka "Läs in fältalternativ" för att hämta listan, eller ange recno-kod manuellt.
         </span>
       </div>
@@ -375,11 +533,12 @@
       </div>
     </div>
 
-    <!-- Externa kontakter -->
+    <!-- Externa kontakter (hör till ärendet) -->
     <div class="sektion">
       <h3>Externa kontakter</h3>
       <p style="font-size:12px;color:#555;margin:0 0 8px;">
-        Stöder typen <strong>Oregistrerad kontakt</strong>. Kontaktperson och Organisation stöds inte ännu.<br>
+        Stöder typen <strong>Oregistrerad kontakt</strong>. Kontaktperson och Organisation stöds inte ännu.
+        Dra och släpp för att ändra ordning.<br>
         Om namnet liknar en befintlig kontakt i 360° visas en dubblettvarning – tillägget väljer
         alltid <em>Spara/Skapa ny</em> och skapar en ny oregistrerad kontakt.
       </p>
@@ -387,10 +546,34 @@
       <button id="btn-lagg-till-kontakt">＋ Lägg till extern kontakt</button>
     </div>
 
-    <!-- Kommentar -->
+    <!-- Kommentar (hör till ärendet) -->
     <div class="sektion">
       <h3>Kommentar</h3>
       <textarea id="mall-kommentar" rows="3" placeholder="Kommentar som förfylls i ärendet (valfritt)"></textarea>
+    </div>
+
+    <!-- ====== ÄRENDEDOKUMENT ====== -->
+    <div class="grupprubrik">
+      Ärendedokument
+      <span class="grupptips">Dokument som skapas automatiskt i ärendet efter att det skapats.</span>
+    </div>
+
+    <div class="sektion">
+      <p style="font-size:12px;color:#555;margin:0 0 8px;">
+        Välj bland sparade dokumentmallar. Varje tillagd mall blir en <strong>oberoende kopia</strong>
+        (instans) – du kan redigera fälten för just denna ärendemall utan att originalet påverkas.
+        Dra och släpp för att ändra ordning. Numret (:1, :2 …) motsvarar dokumentnumret i 360°.
+      </p>
+      <p style="font-size:12px;color:#555;margin:0 0 8px;">
+        Handlingstyper hämtas passivt när du öppnar "Nytt dokument" i 360° –
+        de lagras sedan lokalt. Övriga fältalternativ hämtas via "Läs in" ovan.
+        <span id="dok-cache-status" style="font-weight:600;"></span>
+      </p>
+      <div id="dokumentlista"></div>
+      <div style="display:flex;gap:6px;">
+        <button id="btn-lagg-till-dokument" style="flex:1;">＋ Lägg till dokumentmall</button>
+        <button id="btn-ny-dokumentmall" style="flex:0;white-space:nowrap;border-style:dashed;color:#0078d4;background:#fff;font-size:12px;">Ny dokumentmall</button>
+      </div>
     </div>
 
     <!-- Felsökning -->
@@ -415,6 +598,9 @@
     <button id="btn-spara" class="primär">Spara mall</button>
   </div>
 
+  <script src="mall-data.js"></script>
+  <script src="mall-kontakter.js"></script>
+  <script src="mall-dokument.js"></script>
   <script src="mall.js"></script>
 </body>
 </html>
