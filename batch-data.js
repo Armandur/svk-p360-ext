@@ -292,7 +292,7 @@ function byggMallFrånRad(baseMall, rad, slots) {
 
 /**
  * Exporterar nuvarande batch-tabell som CSV (alla kolumner med värden).
- * Select-kolumner exporterar sitt value (t.ex. "200171" för diarieenhet).
+ * Select-kolumner exporterar sin etikett (t.ex. "Kyrkokontoret") för läsbarhet.
  */
 function exporteraBatchCSV() {
   sparaFrånTabell();
@@ -312,7 +312,14 @@ function exporteraBatchCSV() {
   const csvRader = [aktiva.join(';')];
   for (const rad of batchRader) {
     const fält = aktiva.map(k => {
-      const v = rad[k] || '';
+      let v = rad[k] || '';
+      // Select-kolumner: översätt value → etikett
+      const def = BATCH_KOLUMNER[k];
+      if (def?.typ === 'select' && v) {
+        const alternativ = hämtaKolumnAlternativ(def.alternativNyckel);
+        const match = alternativ.find(a => a.value === v);
+        if (match) v = match.label;
+      }
       return `"${String(v).replace(/"/g, '""')}"`;
     });
     csvRader.push(fält.join(';'));
@@ -321,44 +328,28 @@ function exporteraBatchCSV() {
 }
 
 /**
- * Exporterar hela batch-jobbet som JSON (mall, slots, inställningar, rader).
- * File-objekt kan inte serialiseras – filnamnen bevaras för koppling via "Koppla filer".
+ * Matchar ett CSV-värde mot en select-kolumns alternativ.
+ * Söker först på exakt value, sedan på etikett (case-insensitive).
+ * Returnerar value-koden eller tom sträng.
  */
-function exporteraBatchJobb(valdMall, slotsar, inställningar) {
-  sparaFrånTabell();
-  return JSON.stringify({
-    version: 1,
-    exportDatum: new Date().toISOString(),
-    mallId: valdMall?.id || null,
-    mallNamn: valdMall?.namn || valdMall?.titel || null,
-    slotsar: slotsar.map(s => ({
-      dokumentmall: s.dokumentmall,
-      namn: s.namn,
-    })),
-    inställningar,
-    cachedAlternativ: {
-      diarieenheter: batchCachedAlternativ.diarieenheter,
-      ansvarigaPersoner: batchCachedAlternativ.ansvarigaPersoner,
-    },
-    kolumner: {
-      synliga: [...synligaKolumner],
-      filKolumner: [...filKolumner],
-      dokTitelKolumner: [...dokTitelKolumner],
-    },
-    rader: batchRader.map(r => {
-      const rad = {};
-      for (const kol of Object.keys(BATCH_KOLUMNER)) {
-        if (r[kol]) rad[kol] = r[kol];
-      }
-      for (const fk of filKolumner) {
-        if (r[fk]) rad[fk] = r[fk];
-      }
-      for (const dk of dokTitelKolumner) {
-        if (r[dk]) rad[dk] = r[dk];
-      }
-      return rad;
-    }),
-  }, null, 2);
+function matchaSelectVärde(alternativNyckel, csvVärde) {
+  if (!csvVärde || !alternativNyckel) return '';
+  const alternativ = hämtaKolumnAlternativ(alternativNyckel);
+  // Exakt value-matchning
+  const exakt = alternativ.find(a => a.value === csvVärde);
+  if (exakt) return exakt.value;
+  // Etikett-matchning (case-insensitive)
+  const lower = csvVärde.toLowerCase().trim();
+  const etikett = alternativ.find(a =>
+    (a.label || '').toLowerCase().trim() === lower
+  );
+  if (etikett) return etikett.value;
+  // Partiell matchning (etikett börjar med eller innehåller)
+  const partiell = alternativ.find(a =>
+    (a.label || '').toLowerCase().includes(lower)
+  );
+  if (partiell) return partiell.value;
+  return csvVärde; // Returnera som-det-är om ingen match
 }
 
 /**

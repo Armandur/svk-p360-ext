@@ -60,12 +60,28 @@ function taBortRad(index) {
 
 /**
  * Importerar rader från parsad CSV-data.
+ * Select-kolumner matchas via value eller etikett (case-insensitive).
+ * Kolumner som finns i CSV:en men är dolda slås automatiskt på.
  */
 function importeraRader(csvRader) {
+  // Auto-visa kolumner som finns i CSV-datan
+  for (const [namn, def] of Object.entries(BATCH_KOLUMNER)) {
+    if (!def.standard && csvRader.some(r => r[namn])) {
+      synligaKolumner.add(namn);
+    }
+  }
+  renderaKolumnTogglar();
+
   for (const rad of csvRader) {
     const ny = { _filer: [] };
-    for (const kol of Object.keys(BATCH_KOLUMNER)) {
-      ny[kol] = rad[kol] || '';
+    for (const [kol, def] of Object.entries(BATCH_KOLUMNER)) {
+      const v = rad[kol] || '';
+      // Select-kolumner: matcha value eller etikett
+      if (def.typ === 'select' && v) {
+        ny[kol] = matchaSelectVärde(def.alternativNyckel, v);
+      } else {
+        ny[kol] = v;
+      }
     }
     for (const fk of filKolumner) {
       ny[fk] = rad[fk] || '';
@@ -395,29 +411,6 @@ function hämtaKolumnAlternativ(alternativNyckel) {
     return batchCachedAlternativ[alternativNyckel];
   }
   return [];
-}
-
-/**
- * Återställer tabelldata från ett importerat jobb.
- * Anropas av batch.js efter att mall och slots är satta.
- */
-function importeraJobbRader(jobbRader) {
-  batchRader = [];
-  for (const rad of jobbRader) {
-    const ny = { _filer: [] };
-    for (const kol of Object.keys(BATCH_KOLUMNER)) {
-      ny[kol] = rad[kol] || '';
-    }
-    for (const fk of filKolumner) {
-      ny[fk] = rad[fk] || '';
-    }
-    for (const dk of dokTitelKolumner) {
-      ny[dk] = rad[dk] || '';
-    }
-    batchRader.push(ny);
-  }
-  renderaTabell();
-  uppdateraStartKnapp();
 }
 
 function escBatchHtml(str) {
