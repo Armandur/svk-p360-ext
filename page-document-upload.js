@@ -89,10 +89,20 @@ async function laddaUppFiler(iframe, filer, visaStatus, ärAvbruten) {
   const hämtaDoc = () => iframe.contentDocument;
   const hämtaWin = () => iframe.contentWindow;
 
+  // Vänta på att __doPostBack finns (ASP.NET-skript kan vara sena)
+  for (let ms = 0; ms < 8000; ms += 200) {
+    if (typeof hämtaWin().__doPostBack === 'function') break;
+    await sleep(200);
+  }
+  if (typeof hämtaWin().__doPostBack !== 'function') {
+    console.error('[p360-upload] __doPostBack saknas i iframe – kan inte byta flik.');
+    throw new Error('Dokumentformuläret laddades inte korrekt (__doPostBack saknas).');
+  }
+
   visaStatus('Navigerar till Filer-fliken…');
 
   // Vänta på att PRM är redo innan flikbyte
-  const prm0 = await väntaPåPRM(hämtaWin());
+  await väntaPåPRM(hämtaWin());
   hämtaWin().__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'FileStep');
 
   // Vänta på att drag-drop-containern dyker upp (Filer-fliken laddad)
