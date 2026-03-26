@@ -350,22 +350,72 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
     }
   } else {
     // ---------------------------------------------------------------
-    // 5. Ladda upp filer (om filer finns) – stannar kvar på Filer-fliken
-    //    laddaUppEnFil navigerar dit och stannar kvar: SI_HiddenField_
-    //    ScannedFilepath sätts i Filer-flikens DOM och försvinner om vi
-    //    navigerar tillbaka till Generellt. Formuläret skickas därför
-    //    direkt från Filer-fliken (ViewState innehåller Generellt-fältens
-    //    värden från steg 3).
+    // 5. Ladda upp filer (om filer finns)
+    //
+    //    Ordning: fält fylldes redan på Generellt (steg 3).
+    //    Vänta på PRM (eventuella UpdatePanels från fyllning klar).
+    //    Navigera till Filer → ladda upp → SI_HiddenField_ScannedFilepath
+    //    sätts i Filer-flikens DOM av servern.
+    //    Spara upload-fält → navigera tillbaka till Generellt →
+    //    återinjicera sparade fält → skicka från Generellt.
+    //    (Slutför fungerar bara korrekt från Generellt-fliken i 360°.)
     // ---------------------------------------------------------------
     if (dok.filer && dok.filer.length > 0) {
+      // Vänta tills eventuella UpdatePanels från formulärfyllning är klara
+      await väntaPåPRM(iWin, 10000);
+
       visaStatus('Laddar upp filer…');
       const uploadRes = await laddaUppFiler(iframe, dok.filer, visaStatus, ärAvbruten);
       if (uploadRes.misslyckade.length > 0) {
         console.warn('[p360-dok] Misslyckade filuppladdningar:', uploadRes.misslyckade);
       }
+
+      if (uploadRes.lyckade.length > 0) {
+        // Spara upload-relaterade hidden fields INNAN vi navigerar tillbaka.
+        // SI_HiddenField_ScannedFilepath sätts av servern i Filer-UpdatePanel
+        // och rensas annars när servern renderar Generellt-fliken igen.
+        const uppladdningsFält = Array.from(iDoc.querySelectorAll('input[type="hidden"]'))
+          .filter(el => {
+            const key = (el.id + '|' + el.name).toLowerCase();
+            return key.includes('scannedfilepath') || key.includes('hiddenuploadedfiles');
+          })
+          .map(el => ({ id: el.id, name: el.name, value: el.value }))
+          .filter(f => f.value);
+        console.log('[p360-dok] Upload-fält sparade (Filer-fliken):', uppladdningsFält);
+
+        // Navigera tillbaka till Generellt – Slutför kräver att vi är på Generellt
+        visaStatus('Återgår till Generellt…');
+        await väntaPåPRM(iWin, 5000);
+        iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'GeneralStep');
+        await waitForElement(iDoc, '#PlaceHolderMain_MainView_TitleTextBoxControl', 8000);
+        await väntaPåPRM(iWin, 5000);
+
+        // Återinjicera upload-fält som rensats av GeneralStep-svaret
+        for (const fält of uppladdningsFält) {
+          const el = fält.id ? iDoc.getElementById(fält.id)
+                   : fält.name ? iDoc.querySelector(`[name="${fält.name}"]`) : null;
+          if (el) {
+            if (el.value !== fält.value) {
+              console.log(`[p360-dok] Återställer ${fält.id || fält.name}: → "${fält.value}"`);
+              el.value = fält.value;
+            }
+          } else if (fält.name) {
+            const form = iDoc.forms[0];
+            if (form) {
+              const nyttEl = iDoc.createElement('input');
+              nyttEl.type = 'hidden';
+              nyttEl.name = fält.name;
+              if (fält.id) nyttEl.id = fält.id;
+              nyttEl.value = fält.value;
+              form.appendChild(nyttEl);
+              console.log(`[p360-dok] Injicerade dolt fält ${fält.id || fält.name}: "${fält.value}"`);
+            }
+          }
+        }
+      }
     }
 
-    // Skicka formuläret (från Filer-fliken om filer laddades upp, annars från Generellt)
+    // Skicka formuläret från Generellt-fliken
     visaStatus('Sparar ärendedokument…');
     const slutförBtn = iDoc.querySelector(
       'input[onclick*="WizardNavigationButton"][onclick*="finish"]'
