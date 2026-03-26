@@ -24,26 +24,46 @@ async function väntaPåPRM(iWin, maxMs = 10000) {
 }
 
 /**
- * Triggar en PostBack via PRM och väntar på att endRequest-eventet fires.
- * Returnerar true om PostBacken genomfördes, false vid timeout.
+ * Triggar en PostBack i iframen och väntar på att den slutförs.
+ * Lyssnar på BÅDE PRM endRequest (async UpdatePanel) OCH iframe load-event
+ * (synkron full page load). Whichever fires first.
+ *
+ * @returns {'prm'|'load'|'timeout'} Vad som avslutade väntan.
  */
-function triggaPostBackViaPRM(iWin, prm, target, timeoutMs = 15000) {
+function triggaPostBackOchVänta(iframe, iWin, target, timeoutMs = 15000) {
   return new Promise(resolve => {
-    const timer = setTimeout(() => {
-      console.warn('[p360-upload] PRM endRequest timeout efter', timeoutMs, 'ms');
-      prm.remove_endRequest(handler);
-      resolve(false);
-    }, timeoutMs);
-
-    function handler(sender, args) {
-      prm.remove_endRequest(handler);
+    let klar = false;
+    const avsluta = (typ) => {
+      if (klar) return;
+      klar = true;
       clearTimeout(timer);
-      console.log('[p360-upload] PRM endRequest mottagen – PostBack klar');
-      resolve(true);
-    }
-    prm.add_endRequest(handler);
+      iframe.removeEventListener('load', loadHandler);
+      console.log(`[p360-upload] PostBack avslutad via: ${typ}`);
+      resolve(typ);
+    };
 
-    console.log(`[p360-upload] PRM: __doPostBack('${target}', '') via iframe`);
+    const timer = setTimeout(() => avsluta('timeout'), timeoutMs);
+
+    // Lyssna på PRM endRequest (async postback)
+    const prm = iWin.Sys?.WebForms?.PageRequestManager?.getInstance?.();
+    if (prm) {
+      const prmHandler = function(sender, args) {
+        prm.remove_endRequest(prmHandler);
+        avsluta('prm');
+      };
+      prm.add_endRequest(prmHandler);
+    }
+
+    // Lyssna på iframe load (synkron postback = full page reload)
+    function loadHandler() {
+      iframe.removeEventListener('load', loadHandler);
+      // Ge nya dokumentet en stund att rendera
+      setTimeout(() => avsluta('load'), 200);
+    }
+    iframe.addEventListener('load', loadHandler);
+
+    // Trigga PostBacken via __doPostBack i iframens kontext
+    console.log(`[p360-upload] __doPostBack('${target}', '') – väntar på svar…`);
     iWin.__doPostBack(target, '');
   });
 }
@@ -191,67 +211,44 @@ async function laddaUppEnFil(iframe, fil, ärAvbruten) {
     : 'ctl00$PlaceHolderMain$MainView$DocumentMultiFileUploadControl$hiddenUploadButton';
 
   console.log(`[p360-upload] Steg 3: btn.tagName=${btn.tagName}, target="${postBackTarget}"`);
+  console.log(`[p360-upload] Steg 3: href="${(href).substring(0, 120)}"`);
 
   // Vänta på att PRM är idle innan vi triggar
-  const prm = await väntaPåPRM(iWin);
+  await väntaPåPRM(iWin);
 
-  let postBackLyckades = false;
+  // Logga __EVENTTARGET innan och efter för att verifiera att __doPostBack sätter det
+  const formBefore = iDoc.forms[0];
+  const evBefore = formBefore?.__EVENTTARGET?.value;
 
-  if (prm) {
-    // Metod 1: Via PRM med endRequest-event (mest tillförlitlig)
-    postBackLyckades = await triggaPostBackViaPRM(iWin, prm, postBackTarget, 15000);
-  } else {
-    // Metod 2: Direkt __doPostBack utan PRM
-    console.log('[p360-upload] Steg 3: Anropar __doPostBack direkt (ingen PRM)');
-    iWin.__doPostBack(postBackTarget, '');
-  }
+  // Trigga PostBack och lyssna på BÅDE PRM endRequest och iframe load
+  const resultat = await triggaPostBackOchVänta(iframe, iWin, postBackTarget, 15000);
 
-  if (postBackLyckades) {
-    // PRM rapporterade att PostBacken är klar – verifiera resultatet
+  // Kontrollera resultatet
+  if (resultat === 'prm' || resultat === 'load') {
+    // Hämta färska referenser (kan ha ändrats vid full page load)
     try {
       const doc = iframe.contentDocument;
       const filLista = doc.getElementById('PlaceHolderMain_MainView_ImportFileListControl');
       if (filLista && filLista.textContent.includes(fil.name)) {
         console.log(`[p360-upload] Bekräftad: ${fil.name} syns i fillistan.`);
       } else {
-        console.log(`[p360-upload] PostBack klar men ${fil.name} ej i fillistan – kontrollerar ScannedFilepath`);
         const scanned = doc.querySelector('[name*="ScannedFilepath"]');
-        if (scanned?.value?.includes(String(userSession))) {
-          console.log(`[p360-upload] Bekräftad via ScannedFilepath (session ${userSession})`);
-        }
+        console.log(`[p360-upload] PostBack klar (${resultat}), filLista=${filLista ? 'finns' : 'saknas'},`,
+          `ScannedFilepath="${scanned?.value?.substring(0, 80) || '(ej hittat)'}"`);
       }
-    } catch { /* ignorera */ }
+    } catch (e) {
+      console.log(`[p360-upload] Kan ej verifiera efter ${resultat}:`, e.message);
+    }
     return;
   }
 
-  // Fallback: Polla efter bekräftelse (om PRM inte finns eller timeout)
-  console.log('[p360-upload] Fallback: pollar efter bekräftelse…');
-  for (let poll = 0; poll < 50; poll++) {
-    if (ärAvbruten?.()) {
-      console.log('[p360-upload] Avbruten under poll – avbryter bekräftelse.');
-      return;
-    }
-    await sleep(300);
-    try {
-      const doc = iframe.contentDocument;
-      const scanned = doc.querySelector('[name*="ScannedFilepath"]');
-      if (scanned && scanned.value && scanned.value.includes(String(userSession))) {
-        console.log(`[p360-upload] Bekräftad: ScannedFilepath innehåller session ${userSession}`);
-        return;
-      }
-      const filLista = doc.getElementById('PlaceHolderMain_MainView_ImportFileListControl');
-      if (filLista && filLista.textContent.includes(fil.name)) {
-        console.log(`[p360-upload] Bekräftad: ImportFileListControl innehåller ${fil.name}`);
-        return;
-      }
-      if (poll > 0 && poll % 10 === 0) {
-        console.log(`[p360-upload] Poll ${poll}: ScannedFilepath="${scanned?.value?.substring(0, 60) || '(ej hittat)'}",`,
-          `filLista=${filLista ? 'finns' : 'saknas'}`);
-      }
-    } catch (e) {
-      if (poll % 10 === 0) console.log(`[p360-upload] Poll ${poll}: fel vid åtkomst:`, e.message);
-    }
-  }
-
+  // Timeout – logga diagnostik
+  try {
+    const formAfter = iDoc.forms[0];
+    const evAfter = formAfter?.__EVENTTARGET?.value;
+    console.warn(`[p360-upload] Timeout. __EVENTTARGET före="${evBefore}" efter="${evAfter}"`);
+    console.warn(`[p360-upload] PRM finns=${!!iWin.Sys?.WebForms?.PageRequestManager},`,
+      `isAsync=${iWin.Sys?.WebForms?.PageRequestManager?.getInstance?.()?.get_isInAsyncPostBack?.() ?? '?'}`);
+  } catch { /* ignorera */ }
   console.warn(`[p360-upload] Timeout – kunde inte bekräfta att ${fil.name} registrerades (session=${userSession}).`);
 }
