@@ -37,6 +37,18 @@ function triggerSetStatusDialog() {
  * Statusvärden: '5' = Öppet, '6' = Avslutat, '8' = Makulerat, '17' = Avslutat från handläggare
  */
 async function sättStatus(statusVärde) {
+  // Vänta på att PRM (ASP.NET PageRequestManager) är idle innan vi öppnar dialogen.
+  // After documents are created, 360° runs internal PostBacks (NewDocumentOperation etc.)
+  // that show "vänta vi jobbar på det" – triggerSetStatusDialog misslyckas om PRM är aktiv.
+  const prm = window.Sys?.WebForms?.PageRequestManager?.getInstance?.();
+  if (prm) {
+    for (let ms = 0; ms < 15000; ms += 200) {
+      if (!prm.get_isInAsyncPostBack()) break;
+      if (ms % 2000 === 0 && ms > 0) console.log(`[p360-status] Väntar på PRM… (${ms} ms)`);
+      await sleep(200);
+    }
+  }
+
   const opened = triggerSetStatusDialog();
   if (!opened) {
     alert('Hittade inte "Sätt status"-knappen på den här sidan.');
