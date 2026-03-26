@@ -311,7 +311,10 @@ async function startaBatch(baseMall, slots, inställningar) {
       sättRadStatus(idx, 'pågår', 'Skapar ärende…');
       visaBatchProgress(`Rad ${idx + 1}/${antalRader}: Skapar ärende…`);
 
-      let mall = byggMallFrånRad(baseMall, rad, slots);
+      // Bygg set av aktiva kolumner (standard + synliga valfria)
+      const aktivaKolumner = new Set(['Titel', 'Namn']);
+      for (const kol of synligaKolumner) aktivaKolumner.add(kol);
+      let mall = byggMallFrånRad(baseMall, rad, slots, aktivaKolumner);
 
       // Förbered filer (konvertera till base64 + spara i storage)
       mall = await förberedFiler(mall);

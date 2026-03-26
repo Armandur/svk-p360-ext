@@ -281,9 +281,13 @@
     läggTillRad();
   });
 
-  // Exportera CSV (raddata)
+  // Exportera CSV (raddata + metadata)
   document.getElementById('btn-exportera-csv').addEventListener('click', () => {
-    const csv = exporteraBatchCSV();
+    const csv = exporteraBatchCSV({
+      mallNamn: valdMall?.namn || valdMall?.titel || null,
+      mallId: valdMall?.id || null,
+      slotsar,
+    });
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

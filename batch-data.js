@@ -68,6 +68,13 @@ function detekteraSeparator(text) {
  * @returns {{ headers: string[], rader: Object[] }}
  */
 function parsCSV(text) {
+  // Hoppa över kommentarsrader (#) i början av filen
+  const linjer = text.split('\n');
+  while (linjer.length > 0 && linjer[0].trimStart().startsWith('#')) {
+    linjer.shift();
+  }
+  text = linjer.join('\n');
+
   const sep = detekteraSeparator(text);
   const rader = [];
   let i = 0;
@@ -186,17 +193,30 @@ function valideraRad(rad, slots) {
 /**
  * Bygger ett komplett mall-objekt från ärendemall + raddata + slotsar.
  * Resultatet kan skickas direkt till skapaFrånMall.
+ *
+ * @param {Object} baseMall - Ärendemallen (djupkopia skapas)
+ * @param {Object} rad - Raddata från tabellen
+ * @param {Array} slots - Dokumentslotsar
+ * @param {Set} [aktivaKolumner] - Kolumner som är aktiverade i tabellen.
+ *   Om en kolumn är dold (inte i settet) ignoreras dess data vid körning.
+ *   Titel och Namn är alltid aktiva.
  */
-function byggMallFrånRad(baseMall, rad, slots) {
+function byggMallFrånRad(baseMall, rad, slots, aktivaKolumner) {
   const mall = JSON.parse(JSON.stringify(baseMall));
+  // Hjälpfunktion: kontrollera om en kolumn är aktiv
+  const aktiv = (kol) => !aktivaKolumner || aktivaKolumner.has(kol);
 
-  // Ärendeöverstyrningar
+  // Ärendeöverstyrningar (Titel är alltid aktiv)
   if (rad.Titel || rad.titel) mall.titel = rad.Titel || rad.titel;
-  if (rad.Kommentar || rad.kommentar) mall.kommentar = rad.Kommentar || rad.kommentar;
-  if (rad.Ankomstdatum || rad.ankomstdatum) mall.ankomstdatum = rad.Ankomstdatum || rad.ankomstdatum;
+  if (aktiv('Kommentar') && (rad.Kommentar || rad.kommentar)) {
+    mall.kommentar = rad.Kommentar || rad.kommentar;
+  }
+  if (aktiv('Ankomstdatum') && (rad.Ankomstdatum || rad.ankomstdatum)) {
+    mall.ankomstdatum = rad.Ankomstdatum || rad.ankomstdatum;
+  }
 
   // Diarieenhet – direkt value-matchning (väljs via dropdown i tabellen)
-  if (rad.Diarieenhet || rad.diarieenhet) {
+  if (aktiv('Diarieenhet') && (rad.Diarieenhet || rad.diarieenhet)) {
     const val = rad.Diarieenhet || rad.diarieenhet;
     if (mall._diarieenheter) {
       const match = mall._diarieenheter.find(d => d.value === val || d.text === val);
@@ -205,7 +225,7 @@ function byggMallFrånRad(baseMall, rad, slots) {
   }
 
   // Ansvarig person – direkt value-matchning
-  if (rad.AnsvarigPerson || rad.ansvarigPerson) {
+  if (aktiv('AnsvarigPerson') && (rad.AnsvarigPerson || rad.ansvarigPerson)) {
     const val = rad.AnsvarigPerson || rad.ansvarigPerson;
     if (mall._ansvarigaPersoner) {
       const match = mall._ansvarigaPersoner.find(p => p.value === val || p.text === val);
@@ -214,37 +234,39 @@ function byggMallFrånRad(baseMall, rad, slots) {
   }
 
   // Skyddskod – value direkt (0, 100031, 100032)
-  if (rad.Skyddskod || rad.skyddskod) {
+  if (aktiv('Skyddskod') && (rad.Skyddskod || rad.skyddskod)) {
     const sk = rad.Skyddskod || rad.skyddskod;
     if (['0', '100031', '100032'].includes(sk)) {
       mall.skyddskod = sk;
     }
   }
-  if (rad.Paragraf || rad.paragraf) mall.sekretessParag = rad.Paragraf || rad.paragraf;
-  if (rad.OffentligTitel || rad.offentligTitel) {
+  if (aktiv('Paragraf') && (rad.Paragraf || rad.paragraf)) {
+    mall.sekretessParag = rad.Paragraf || rad.paragraf;
+  }
+  if (aktiv('OffentligTitel') && (rad.OffentligTitel || rad.offentligTitel)) {
     mall.offentligTitelVal = '3';
     mall.offentligTitel = rad.OffentligTitel || rad.offentligTitel;
   }
 
   // Status – value direkt (5, 6, 8, 17)
-  if (rad.Status || rad.status) {
+  if (aktiv('Status') && (rad.Status || rad.status)) {
     const st = rad.Status || rad.status;
     if (['5', '6', '8', '17'].includes(st)) {
       mall.status = st;
     }
   }
 
-  // Bygg kontakt från CSV-rad (P360 hanterar för-/efternamn själv)
+  // Bygg kontakt från CSV-rad – bara aktiva kontaktfält inkluderas
   const namn = rad.Namn || rad.namn || '';
   const kontakt = {
     namn: namn,
     roll: '9',
-    personnummer: rad.Personnummer || rad.personnummer || '',
-    adress: rad.Adress || rad.adress || '',
-    postnummer: rad.Postnummer || rad.postnummer || '',
-    ort: rad.Ort || rad.ort || '',
-    epost: rad.Epost || rad.epost || '',
-    telefon: rad.Telefon || rad.telefon || '',
+    personnummer: aktiv('Personnummer') ? (rad.Personnummer || rad.personnummer || '') : '',
+    adress: aktiv('Adress') ? (rad.Adress || rad.adress || '') : '',
+    postnummer: aktiv('Postnummer') ? (rad.Postnummer || rad.postnummer || '') : '',
+    ort: aktiv('Ort') ? (rad.Ort || rad.ort || '') : '',
+    epost: aktiv('Epost') ? (rad.Epost || rad.epost || '') : '',
+    telefon: aktiv('Telefon') ? (rad.Telefon || rad.telefon || '') : '',
   };
   mall.externaKontakter = [kontakt];
 
@@ -293,9 +315,31 @@ function byggMallFrånRad(baseMall, rad, slots) {
 /**
  * Exporterar nuvarande batch-tabell som CSV (alla kolumner med värden).
  * Select-kolumner exporterar sin etikett (t.ex. "Kyrkokontoret") för läsbarhet.
+ * Metadata (ärendemall, dokumentslotsar) skrivs som #-kommentarsrader överst.
+ *
+ * @param {Object} [metadata] - Valfri metadata att inkludera
+ * @param {string} [metadata.mallNamn] - Namn på vald ärendemall
+ * @param {string} [metadata.mallId] - ID på vald ärendemall
+ * @param {Array} [metadata.slotsar] - Dokumentslotsar med namn och dokumentmall
  */
-function exporteraBatchCSV() {
+function exporteraBatchCSV(metadata) {
   sparaFrånTabell();
+  const rader = [];
+
+  // Metadata som kommentarsrader
+  if (metadata) {
+    rader.push(`# Ärendemall: ${metadata.mallNamn || '(ingen)'} [${metadata.mallId || ''}]`);
+    if (metadata.slotsar?.length > 0) {
+      for (let i = 0; i < metadata.slotsar.length; i++) {
+        const s = metadata.slotsar[i];
+        const dmNamn = s.dokumentmall?.namn || s.dokumentmall?.titel || '(ingen)';
+        const dmId = s.dokumentmall?.dokumentmallId || s.dokumentmall?.id || '';
+        rader.push(`# Fil_${i + 1}: ${dmNamn} [${dmId}]`);
+      }
+    }
+    rader.push(`# Exporterad: ${new Date().toISOString()}`);
+  }
+
   // Samla alla kolumner som har minst ett värde
   const aktiva = [];
   for (const [namn] of Object.entries(BATCH_KOLUMNER)) {
@@ -308,8 +352,8 @@ function exporteraBatchCSV() {
   for (const fk of filKolumner) {
     if (batchRader.some(r => r[fk])) aktiva.push(fk);
   }
-  // Bygg CSV
-  const csvRader = [aktiva.join(';')];
+  // Header + datarader
+  rader.push(aktiva.join(';'));
   for (const rad of batchRader) {
     const fält = aktiva.map(k => {
       let v = rad[k] || '';
@@ -322,9 +366,9 @@ function exporteraBatchCSV() {
       }
       return `"${String(v).replace(/"/g, '""')}"`;
     });
-    csvRader.push(fält.join(';'));
+    rader.push(fält.join(';'));
   }
-  return csvRader.join('\r\n');
+  return rader.join('\r\n');
 }
 
 /**
