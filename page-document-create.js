@@ -225,6 +225,217 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
 }
 
 /**
+ * Pollar efter RepeatWizardDialog med tidig exit:
+ * - Returnerar direkt när RepeatWizardDialog hittas
+ * - Returnerar tidigt om valideringsfel redan syns i formuläret
+ */
+async function väntaPåRepeatEllerFel(iDoc, timeoutMs = 12000) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    // Om 360° hamnar i UnhandledError är det meningslöst att vänta på RepeatWizardDialog.
+    for (const f of Array.from(document.querySelectorAll('iframe'))) {
+      try {
+        const src = f.src || f.contentDocument?.location?.href || '';
+        if (src.includes('UnhandledError')) {
+          throw new Error('360° rapporterade ett serverfel (UnhandledError).');
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    const repeatIframe = Array.from(document.querySelectorAll('iframe')).find(f => {
+      try {
+        const src = f.src || f.contentDocument?.location?.href || '';
+        return src.includes('RepeatWizardDialog');
+      } catch {
+        return false;
+      }
+    });
+    if (repeatIframe) {
+      return { repeatIframe, valideringsfel: [] };
+    }
+
+    let valideringsfel = [];
+    try {
+      valideringsfel = Array.from(iDoc.querySelectorAll('span.ms-formvalidation'))
+        .filter(el => !el.id?.includes('mandatory') && el.textContent.trim().length > 2)
+        .map(el => el.textContent.trim());
+    } catch { /* ignorera */ }
+
+    if (valideringsfel.length > 0) {
+      return { repeatIframe: null, valideringsfel };
+    }
+
+    await sleep(250);
+  }
+
+  return { repeatIframe: null, valideringsfel: [] };
+}
+
+/**
+ * Triggar "Slutför" i dokumentguiden robust.
+ * Prioriterar fysisk knapp; fallback till __doPostBack endast om funktionen finns.
+ */
+async function triggaDokumentSlutför(iDoc, iWin) {
+  const väljare =
+    'input[onclick*="WizardNavigationButton"][onclick*="finish"],' +
+    'a[onclick*="WizardNavigationButton"][onclick*="finish"],' +
+    'button[onclick*="WizardNavigationButton"][onclick*="finish"]';
+
+  const slutförBtn = iDoc.querySelector(väljare);
+  if (slutförBtn) {
+    // Undvik .click() på <a href="javascript:..."> då CSP kan blockera.
+    const tag = (slutförBtn.tagName || '').toUpperCase();
+    const onclick = slutförBtn.getAttribute?.('onclick') || '';
+    const href = slutförBtn.getAttribute?.('href') || '';
+    const extractPostBack = (s) => {
+      const m = String(s || '').match(/__doPostBack\(\s*['"]([^'"]+)['"]\s*,\s*['"]([^'"]*)['"]\s*\)/);
+      return m ? { target: m[1], arg: m[2] } : null;
+    };
+    const pb = extractPostBack(onclick) || extractPostBack(href);
+    const standardWizardTarget = 'ctl00$PlaceHolderMain$MainView$WizardNavigationButton';
+    const standardWizardArg = 'finish';
+    if (typeof iWin?.__doPostBack === 'function') {
+      const useTarget = pb?.target && pb.target.includes('WizardNavigationButton')
+        ? pb.target
+        : standardWizardTarget;
+      const useArg = (pb?.arg && String(pb.arg).trim().length > 0) ? pb.arg : standardWizardArg;
+      console.log('[p360-dok] Slutför postback:', { useTarget, useArg, extracted: pb });
+      iWin.__doPostBack(useTarget, useArg);
+      return 'postback-standardized';
+    }
+    slutförBtn.click();
+    return 'button';
+  }
+
+  if (typeof iWin?.__doPostBack === 'function') {
+    iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
+    return 'postback';
+  }
+
+  // Kort retry: iframe kan vara mitt i DOM-byte efter UpdatePanel.
+  await sleep(300);
+  const slutförBtn2 = iDoc.querySelector(väljare);
+  if (slutförBtn2) {
+    const tag = (slutförBtn2.tagName || '').toUpperCase();
+    const onclick = slutförBtn2.getAttribute?.('onclick') || '';
+    const href = slutförBtn2.getAttribute?.('href') || '';
+    const extractPostBack = (s) => {
+      const m = String(s || '').match(/__doPostBack\(\s*['"]([^'"]+)['"]\s*,\s*['"]([^'"]*)['"]\s*\)/);
+      return m ? { target: m[1], arg: m[2] } : null;
+    };
+    const pb = extractPostBack(onclick) || extractPostBack(href);
+    const standardWizardTarget = 'ctl00$PlaceHolderMain$MainView$WizardNavigationButton';
+    const standardWizardArg = 'finish';
+    if (typeof iWin?.__doPostBack === 'function') {
+      const useTarget = pb?.target && pb.target.includes('WizardNavigationButton')
+        ? pb.target
+        : standardWizardTarget;
+      const useArg = (pb?.arg && String(pb.arg).trim().length > 0) ? pb.arg : standardWizardArg;
+      console.log('[p360-dok] Slutför postback (retry):', { useTarget, useArg, extracted: pb });
+      iWin.__doPostBack(useTarget, useArg);
+      return 'postback-standardized-retry';
+    }
+    slutförBtn2.click();
+    return 'button-retry';
+  }
+
+  if (typeof iWin?.__doPostBack === 'function') {
+    iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
+    return 'postback-retry';
+  }
+
+  throw new Error('Kunde inte trigga Slutför: knapp saknas och __doPostBack är ej tillgänglig.');
+}
+
+function triggaCompleteViaDom(iDoc, iWin) {
+  const extractPostBack = (s) => {
+    const m = String(s || '').match(/__doPostBack\(\s*['"]([^'"]+)['"]\s*,\s*['"]([^'"]*)['"]\s*\)/);
+    return m ? { target: m[1], arg: m[2] } : null;
+  };
+
+  // Försök 1: hitta element med onclick som triggar CompleteWizardHiddenEventControl
+  const el = iDoc.querySelector(
+    '[onclick*="CompleteWizardHiddenEventControl"],' +
+    '[href*="CompleteWizardHiddenEventControl"],' +
+    '[name*="CompleteWizardHiddenEventControl"],' +
+    'input[type="hidden"][name*="CompleteWizardHiddenEventControl"]'
+  );
+
+  if (el) {
+    const onclick = el.getAttribute?.('onclick') || '';
+    const href = el.getAttribute?.('href') || '';
+    const pb = extractPostBack(onclick) || extractPostBack(href);
+    if (pb && typeof iWin?.__doPostBack === 'function') {
+      console.log('[p360-dok] Trigger complete via DOM-extraktion:', pb);
+      iWin.__doPostBack(pb.target, pb.arg);
+      return true;
+    }
+  }
+
+  // Försök 2: fallback till kanonisk target
+  if (typeof iWin?.__doPostBack === 'function') {
+    console.log('[p360-dok] Trigger complete via fallback target (hårdkodad).');
+    iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$CompleteWizardHiddenEventControl', '');
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Säkerställer att vi står på Generellt-fliken och att basfält finns i DOM.
+ * Gör ett extra GeneralStep-postback om formulärfälten inte finns ännu.
+ */
+async function säkerställGenerelltFlik(iframe) {
+  const harBasfält = (doc) =>
+    !!doc?.getElementById('PlaceHolderMain_MainView_TitleTextBoxControl') &&
+    !!doc?.getElementById('PlaceHolderMain_MainView_TypeJournalDocumentInsertComboControl');
+
+  const navigeraTillGenerellt = (doc, win) => {
+    // Försök 1: klicka flikrubriken om den finns
+    const generalTab = doc?.getElementById('PlaceHolderMain_MainView_BIFWizard_step_0')
+      || doc?.querySelector('[onclick*="WizardNavigationButton"][onclick*="GeneralStep"]');
+    if (generalTab) {
+      generalTab.click();
+      return true;
+    }
+    // Försök 2: direkt postback
+    if (typeof win?.__doPostBack === 'function') {
+      win.__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'GeneralStep');
+      return true;
+    }
+    return false;
+  };
+
+  // Upp till 3 försök med färska iframe-referenser varje varv
+  for (let försök = 0; försök < 3; försök++) {
+    const iDoc = iframe.contentDocument;
+    const iWin = iframe.contentWindow;
+    if (harBasfält(iDoc)) return true;
+
+    await väntaPåPRM(iWin, 8000);
+    const skickad = navigeraTillGenerellt(iDoc, iWin);
+    if (!skickad) {
+      await sleep(500);
+      continue;
+    }
+
+    // Vänta längre; i vissa lägen tar PRM + updatepanel tid
+    const deadline = Date.now() + 20000;
+    while (Date.now() < deadline) {
+      const d = iframe.contentDocument;
+      const w = iframe.contentWindow;
+      if (harBasfält(d)) return true;
+      await väntaPåPRM(w, 4000);
+      await sleep(250);
+    }
+  }
+  return false;
+}
+
+/**
  * Skapar ett enskilt ärendedokument via formuläret på ärendesidan.
  * Förutsätter att vi befinner oss på en ärendedetaljsida.
  *
@@ -235,6 +446,10 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
  */
 async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
   visaStatus = visaStatus || (() => {});
+  // Tillfälligt testläge: injicera inte upload-hidden-fälten efter att vi byter tillbaka
+  // till Generellt-fliken. Detta för att isolera om reinjiceringen orsakar/utlöser felet.
+  // Efter test: sätt tillbaka till false.
+  const SKIP_UPLOAD_HIDDEN_INJECTION_FOR_TEST = false;
 
   // ---------------------------------------------------------------
   // 0. Validera handlingstyp mot ärendets klassificering
@@ -339,7 +554,10 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
     visaStatus('Laddar upp filer…');
     const uploadRes = await laddaUppFiler(iframe, dok.filer, visaStatus, ärAvbruten);
     if (uploadRes.misslyckade.length > 0) {
-      console.warn('[p360-dok] Misslyckade filuppladdningar:', uploadRes.misslyckade);
+      throw new Error(
+        'Följande filer kunde inte registreras i dokumentet: ' +
+        uploadRes.misslyckade.join(', ')
+      );
     }
 
     if (uploadRes.lyckade.length > 0) {
@@ -361,26 +579,56 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
       iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'GeneralStep');
       await waitForElement(iDoc, '#PlaceHolderMain_MainView_TitleTextBoxControl', 8000);
       await väntaPåPRM(iWin, 5000);
+      const ärGenerelltRedo = await säkerställGenerelltFlik(iframe);
+      if (!ärGenerelltRedo) {
+        throw new Error('Kunde inte återgå till Generellt-fliken efter filuppladdning.');
+      }
+      iDoc = iframe.contentDocument;
+      iWin = iframe.contentWindow;
 
       // Återinjicera upload-fält som rensats av GeneralStep-server-svaret
-      for (const fält of uppladdningsFält) {
-        const el = fält.id ? iDoc.getElementById(fält.id)
-                 : fält.name ? iDoc.querySelector(`[name="${fält.name}"]`) : null;
-        if (el) {
-          if (el.value !== fält.value) {
-            console.log(`[p360-dok] Återställer ${fält.id || fält.name}: → "${fält.value}"`);
-            el.value = fält.value;
+      if (SKIP_UPLOAD_HIDDEN_INJECTION_FOR_TEST) {
+        console.log('[p360-dok] TEST: Hoppar över återinjicering av upload-hidden-fält.');
+      } else {
+        for (const fält of uppladdningsFält) {
+          const id = fält.id || '';
+          const name = fält.name || '';
+
+          // Dedupe: undvik flera hidden-inputs med samma name/id (kan ge flera värden i postback).
+          // Ta bort alla matchande (förutom den första) innan vi skriver värdet.
+          let kandidat = null;
+          if (id) {
+            const alla = Array.from(iDoc.querySelectorAll(`input[type="hidden"]#${CSS.escape(id)}`));
+            if (alla.length > 0) {
+              kandidat = alla[0];
+              for (const extra of alla.slice(1)) extra.remove();
+            }
+          } else if (name) {
+            const alla = Array.from(iDoc.querySelectorAll(`input[type="hidden"][name="${CSS.escape(name)}"]`));
+            if (alla.length > 0) {
+              kandidat = alla[0];
+              for (const extra of alla.slice(1)) extra.remove();
+            }
           }
-        } else if (fält.name) {
-          const form = iDoc.forms[0];
-          if (form) {
+
+          if (kandidat) {
+            if (String(kandidat.value) !== String(fält.value)) {
+              console.log(`[p360-dok] Återställer ${id || name}: → "${fält.value}"`);
+              kandidat.value = fält.value;
+            }
+            continue;
+          }
+
+          if (name) {
+            const form = iDoc.forms?.[0];
+            if (!form) continue;
             const nyttEl = iDoc.createElement('input');
             nyttEl.type = 'hidden';
-            nyttEl.name = fält.name;
-            if (fält.id) nyttEl.id = fält.id;
+            nyttEl.name = name;
+            if (id) nyttEl.id = id;
             nyttEl.value = fält.value;
             form.appendChild(nyttEl);
-            console.log(`[p360-dok] Injicerade dolt fält ${fält.id || fält.name}: "${fält.value}"`);
+            console.log(`[p360-dok] Injicerade dolt fält ${id || name}: "${fält.value}"`);
           }
         }
       }
@@ -390,7 +638,29 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
   // ---------------------------------------------------------------
   // 4. Fyll i fält på Generellt-fliken (efter eventuell filuppladdning)
   // ---------------------------------------------------------------
+  const generelltRedo = await säkerställGenerelltFlik(iframe);
+  if (!generelltRedo) {
+    throw new Error('Dokumentformuläret är inte på Generellt-fliken (basfält saknas).');
+  }
+  iDoc = iframe.contentDocument;
+  iWin = iframe.contentWindow;
+  console.log('[p360-dok] Fyller formulär med:', {
+    titel: dok.titel || '',
+    kategori: dok.kategori || '',
+    handlingstyp: dok.handlingstyp?.value || '',
+  });
   const { kontaktLagdTill } = await fyllDokumentFormulär(iDoc, iWin, dok, visaStatus);
+
+  // Verifiera kritiska fält före Slutför så vi inte postar ett tomt formulär.
+  const kategoriEfterFyll = iDoc.getElementById(
+    'PlaceHolderMain_MainView_TypeJournalDocumentInsertComboControl'
+  )?.value || '';
+  if (!kategoriEfterFyll) {
+    throw new Error(
+      'Dokumentkategori är tom efter formulärfyllning. ' +
+      'Formuläret uppdaterades sannolikt om och tappade värden.'
+    );
+  }
 
   // ---------------------------------------------------------------
   // 5. Kontrollera obligatoriska fält – pausa om något saknas
@@ -409,20 +679,46 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
   } else {
     // Skicka formuläret från Generellt-fliken
     visaStatus('Sparar ärendedokument…');
-    const slutförBtn = iDoc.querySelector(
-      'input[onclick*="WizardNavigationButton"][onclick*="finish"]'
-    );
-    if (slutförBtn) {
-      slutförBtn.click();
-    } else {
-      iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'finish');
-    }
+    await väntaPåPRM(iWin, 10000);
+    const metod = await triggaDokumentSlutför(iDoc, iWin);
+    console.log(`[p360-dok] Triggade Slutför via ${metod}.`);
+    // Komplettsteg: trigga serverns "complete" för att öppna RepeatWizardDialog.
+    // Utan detta kan dialogen utebli och 360° hamna i avbrutet-läge.
+    try {
+      await väntaPåPRM(iWin, 5000);
+      triggaCompleteViaDom(iDoc, iWin);
+    } catch { /* ignorera */ }
+    await väntaPåPRM(iWin, 20000);
   }
 
   // ---------------------------------------------------------------
-  // 4. Vänta på RepeatWizardDialog – innehåller dokumentnumret
+  // 6. Vänta på RepeatWizardDialog – innehåller dokumentnumret
   // ---------------------------------------------------------------
-  const repeatIframe = await waitForNyIframe('RepeatWizardDialog', 15000);
+  const WAIT_REPEAT1_MS = 60000;
+  const WAIT_REPEAT2_MS = 90000;
+
+  // Försök 1: vänta på att RepeatWizardDialog-iframen laddas klart.
+  let repeatIframe = await waitForNyIframe('RepeatWizardDialog', WAIT_REPEAT1_MS);
+
+  // Om dialogen inte dyker upp: kör vår gamla early-exit detektor (valideringsfel)
+  // och gör sedan ett kontrollerat andra Slutför-försök.
+  let waitResult = { repeatIframe: null, valideringsfel: [] };
+  if (!repeatIframe) {
+    waitResult = await väntaPåRepeatEllerFel(iDoc, 20000);
+    if (waitResult.valideringsfel.length === 0) {
+      console.warn('[p360-dok] RepeatWizardDialog saknas efter väntan – gör ett andra Slutför-försök.');
+      await väntaPåPRM(iWin, 15000);
+      const metod2 = await triggaDokumentSlutför(iDoc, iWin);
+      console.log(`[p360-dok] Andra Slutför-försök via ${metod2}.`);
+      try {
+        await väntaPåPRM(iWin, 5000);
+        iWin.__doPostBack?.('ctl00$PlaceHolderMain$MainView$CompleteWizardHiddenEventControl', '');
+      } catch { /* ignorera */ }
+      await väntaPåPRM(iWin, 25000);
+      repeatIframe = await waitForNyIframe('RepeatWizardDialog', WAIT_REPEAT2_MS);
+      waitResult = repeatIframe ? { repeatIframe, valideringsfel: [] } : waitResult;
+    }
+  }
   let dokumentNummer = null;
 
   if (repeatIframe) {
@@ -461,17 +757,28 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
     }
   } else {
     // Ingen RepeatWizardDialog – kontrollera valideringsfel
-    let valideringsfel = [];
+    const valideringsfel = waitResult.valideringsfel || [];
+
+    // Hjälploggning för felsökning: visa de viktigaste fälten och ev. uppladdningsspår.
     try {
-      valideringsfel = Array.from(iDoc.querySelectorAll('span.ms-formvalidation'))
-        .filter(el => !el.id?.includes('mandatory') && el.textContent.trim().length > 2)
-        .map(el => el.textContent.trim());
+      const titel = iDoc.getElementById('PlaceHolderMain_MainView_TitleTextBoxControl')?.value || '';
+      const kategori = iDoc.getElementById('PlaceHolderMain_MainView_TypeJournalDocumentInsertComboControl')?.value || '';
+      const handlingstyp = iDoc.getElementById('PlaceHolderMain_MainView_ProcessRecordTypeControl')?.value || '';
+      const uploadedPath = iDoc.getElementById(
+        'PlaceHolderMain_MainView_DocumentMultiFileUploadControl_hiddenUploadedFilesPath'
+      )?.value || '';
+      const scannedFile = iDoc.getElementById('SI_HiddenField_ScannedFilepath')?.value || '';
+      console.warn('[p360-dok] RepeatWizardDialog uteblev. Diagnostik:',
+        { titel, kategori, handlingstyp, uploadedPath, scannedFile, valideringsfel });
     } catch { /* ignorera */ }
 
     if (valideringsfel.length > 0) {
       throw new Error('Dokument kunde inte skapas: ' + valideringsfel.join(', '));
     }
-    throw new Error('RepeatWizardDialog visades inte – dokumentet skapades troligen inte.');
+    throw new Error(
+      'RepeatWizardDialog visades inte efter två Slutför-försök. ' +
+      'Kontrollera dokumentdialogen (obligatoriska fält eller långsam serverpostback).'
+    );
   }
 
   return dokumentNummer;

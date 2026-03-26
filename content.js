@@ -77,11 +77,32 @@ function läsDiarienummerFrånDOM() {
   return el.textContent.replace('Ärende: ', '').trim();
 }
 
+function läsRecnoFrånUrl(url) {
+  try {
+    const u = new URL(String(url || ''), window.location.origin);
+    return u.searchParams.get('recno') || '';
+  } catch {
+    return '';
+  }
+}
+
+function ärCaseDetailsUrl(url) {
+  const s = String(url || '');
+  if (s.includes('/DMS/Case/Details/')) return true;
+  // 360° kan ibland landa på view.aspx med context-data för details-vyn
+  if (s.includes('/view.aspx') && s.includes('DMS.Case.Details.Simplified.61000')) return true;
+  return false;
+}
+
+function skaBehållaFilNyckel(storageNyckel) {
+  return typeof storageNyckel === 'string' && storageNyckel.startsWith('batchFil_');
+}
+
 // Kontrollera om det finns pending ärendedokument att skapa (efter navigering till ärendesida)
 if (!window.__p360PendingChecked) {
   window.__p360PendingChecked = true;
   setTimeout(async () => {
-    if (!window.location.href.includes('/DMS/Case/Details/')) return;
+    if (!ärCaseDetailsUrl(window.location.href)) return;
     const { pendingÄrendedokument, batchKörning } = await chrome.storage.local.get([
       'pendingÄrendedokument', 'batchKörning'
     ]);
@@ -95,6 +116,17 @@ if (!window.__p360PendingChecked) {
       }
       return;
     }
+
+    // Skydd: kör inte pending på samma ärende som mallen skapades från.
+    // Batch startar ofta från en befintlig ärendesida; innan nya ärendet är klart
+    // får vi INTE börja skapa dokument på källärendet.
+    const nuRecno = läsRecnoFrånUrl(window.location.href);
+    const källaRecno = pendingÄrendedokument.källaRecno || '';
+    if (källaRecno && nuRecno && källaRecno === nuRecno) {
+      console.log('[p360] Pending väntar: fortfarande på källärendet (recno=' + nuRecno + ').');
+      return;
+    }
+
     await chrome.storage.local.remove('pendingÄrendedokument');
 
     // Hämta fildata från storage (batch sparar filer separat)
@@ -109,7 +141,9 @@ if (!window.__p360PendingChecked) {
         console.log('[p360] Hämtade filer från storage:', dok.filerStorageNyckel,
           '→', dok.filerBase64.length, 'filer',
           dok.filerBase64.map(f => f.namn + ' base64:' + (f.base64 ? f.base64.length + ' tecken' : 'SAKNAS')));
-        await chrome.storage.local.remove(dok.filerStorageNyckel);
+        if (!skaBehållaFilNyckel(dok.filerStorageNyckel)) {
+          await chrome.storage.local.remove(dok.filerStorageNyckel);
+        }
         delete dok.filerStorageNyckel;
       }
     }
@@ -253,7 +287,9 @@ window.__p360OnMessageHandler = (request, sender, sendResponse) => {
           dok.filerBase64 = stored[dok.filerStorageNyckel] || [];
           console.log('[p360] Löste filreferens för dokument:', dok.filerStorageNyckel,
             '→', dok.filerBase64.length, 'filer');
-          await chrome.storage.local.remove(dok.filerStorageNyckel);
+          if (!skaBehållaFilNyckel(dok.filerStorageNyckel)) {
+            await chrome.storage.local.remove(dok.filerStorageNyckel);
+          }
           delete dok.filerStorageNyckel;
         }
       }
@@ -266,7 +302,9 @@ window.__p360OnMessageHandler = (request, sender, sendResponse) => {
           dok.filerBase64 = stored[dok.filerStorageNyckel] || [];
           console.log('[p360] Löste filreferens för ärendedokument:', dok.filerStorageNyckel,
             '→', dok.filerBase64.length, 'filer');
-          await chrome.storage.local.remove(dok.filerStorageNyckel);
+          if (!skaBehållaFilNyckel(dok.filerStorageNyckel)) {
+            await chrome.storage.local.remove(dok.filerStorageNyckel);
+          }
           delete dok.filerStorageNyckel;
         }
       }
@@ -281,8 +319,15 @@ window.__p360OnMessageHandler = (request, sender, sendResponse) => {
     // chrome.storage.local.set inte garanterat klarar cross-world-proxies.
     if (request.action === 'skapaFrånMall' && data.mall?.ärendedokument?.length > 0) {
       try {
+        const källaUrl = window.location.href;
+        const källaRecno = läsRecnoFrånUrl(källaUrl);
         await chrome.storage.local.set({
-          pendingÄrendedokument: { dokument: data.mall.ärendedokument, sparad: Date.now() }
+          pendingÄrendedokument: {
+            dokument: data.mall.ärendedokument,
+            sparad: Date.now(),
+            källaUrl,
+            källaRecno,
+          }
         });
         console.log(`[p360] Pre-sparade ${data.mall.ärendedokument.length} ärendedokument som pending`);
       } catch (err) {

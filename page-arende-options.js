@@ -8,10 +8,11 @@
 //   IsDlg,Primary,1        – dialog-flagga (context-data-versionen)
 //   name,Primary,DMS.Case.New.61000 – formulärnamn (krävs för att servern ska
 //                                      spara klassificering och övriga fält korrekt)
-const NY_ÄRENDE_URL =
+var NY_ÄRENDE_URL = window.NY_ÄRENDE_URL ||
   '/view.aspx?id=cf7c6540-7018-4c8c-9da8-783d6ce5d8cf' +
   '&dialogmode=true&IsDlg=1' +
   '&context-data=subtype%2cPrimary%2c61000%3bIsDlg%2cPrimary%2c1%3bname%2cPrimary%2cDMS.Case.New.61000%3b';
+window.NY_ÄRENDE_URL = NY_ÄRENDE_URL;
 
 /**
  * Läser in alternativ för instansspecifika fält.

@@ -1,0 +1,2293 @@
+{
+  "startedAt": "2026-03-26T19:37:15.435Z",
+  "stoppedAt": "2026-03-26T19:38:12.158Z",
+  "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+  "logs": [
+    {
+      "ts": "2026-03-26T19:37:15.436Z",
+      "kind": "snapshot",
+      "label": "start",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:16.445Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:17.438Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:18.442Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:19.446Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:19.582Z",
+      "kind": "postback",
+      "target": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu",
+      "arg": "61000"
+    },
+    {
+      "ts": "2026-03-26T19:37:19.586Z",
+      "kind": "xhr_send",
+      "method": "POST",
+      "url": "https://p360.svenskakyrkan.se/view.aspx?id=743988fd-6283-47e4-8fd7-e15ee3c4b5eb&context-data=module%2cPrimary%2cCase%3bsubtype%2cPrimary%2c61000%3brecno%2cPrimary%2c1358063%3bname%2cPrimary%2cDMS.Case.Details.Simplified.61000%3b",
+      "bodyType": "String"
+    },
+    {
+      "ts": "2026-03-26T19:37:19.793Z",
+      "kind": "xhr_load",
+      "method": "POST",
+      "url": "https://p360.svenskakyrkan.se/view.aspx?id=743988fd-6283-47e4-8fd7-e15ee3c4b5eb&context-data=module%2cPrimary%2cCase%3bsubtype%2cPrimary%2c61000%3brecno%2cPrimary%2c1358063%3bname%2cPrimary%2cDMS.Case.Details.Simplified.61000%3b",
+      "status": 200,
+      "responsePreview": "1|#||4|191542|updatePanel|PlaceHolderMain_SI360MainUpdatePanel|\r\n            <input name=\"ctl00$PlaceHolderMain$MainView$BIFViewState\" type=\"hidden\" id=\"PlaceHolderMain_MainView_BIFViewState\" value=\"a5055c2f-918e-4490-bb21-7ceaf4c594bf\" /><span id=\"PlaceHolderMain_MainView_MainView_NavigationHandler"
+    },
+    {
+      "ts": "2026-03-26T19:37:20.438Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:21.463Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:22.442Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:23.437Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:24.449Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:25.445Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:26.440Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:27.436Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:28.446Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:29.451Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:30.441Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:31.450Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:32.436Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:33.447Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:34.438Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:35.446Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:36.439Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:37.440Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:38.436Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:39.441Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:40.447Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:41.436Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:42.435Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:43.450Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:44.437Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:45.436Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:46.436Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:47.441Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:48.437Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:49.448Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:50.436Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:51.440Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:52.436Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:53.445Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:54.451Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:55.437Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:56.436Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:57.450Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:58.448Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:37:59.437Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:38:00.436Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:38:01.438Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:38:02.440Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:38:03.440Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:38:04.436Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:38:05.436Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:38:06.451Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:38:06.764Z",
+      "kind": "postback",
+      "target": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$NewDocumentOperation_POSTBACK",
+      "arg": ""
+    },
+    {
+      "ts": "2026-03-26T19:38:06.771Z",
+      "kind": "xhr_send",
+      "method": "POST",
+      "url": "https://p360.svenskakyrkan.se/view.aspx?id=743988fd-6283-47e4-8fd7-e15ee3c4b5eb&context-data=module%2cPrimary%2cCase%3bsubtype%2cPrimary%2c61000%3brecno%2cPrimary%2c1358063%3bname%2cPrimary%2cDMS.Case.Details.Simplified.61000%3b",
+      "bodyType": "String"
+    },
+    {
+      "ts": "2026-03-26T19:38:06.948Z",
+      "kind": "xhr_load",
+      "method": "POST",
+      "url": "https://p360.svenskakyrkan.se/view.aspx?id=743988fd-6283-47e4-8fd7-e15ee3c4b5eb&context-data=module%2cPrimary%2cCase%3bsubtype%2cPrimary%2c61000%3brecno%2cPrimary%2c1358063%3bname%2cPrimary%2cDMS.Case.Details.Simplified.61000%3b",
+      "status": 200,
+      "responsePreview": "1|#||4|191750|updatePanel|PlaceHolderMain_SI360MainUpdatePanel|\r\n            <input name=\"ctl00$PlaceHolderMain$MainView$BIFViewState\" type=\"hidden\" id=\"PlaceHolderMain_MainView_BIFViewState\" value=\"c5dc33a1-51e2-4666-849c-57abb823081b\" /><span id=\"PlaceHolderMain_MainView_MainView_NavigationHandler"
+    },
+    {
+      "ts": "2026-03-26T19:38:07.045Z",
+      "kind": "postback",
+      "target": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$NewDocumentCaseBrokerListener",
+      "arg": ""
+    },
+    {
+      "ts": "2026-03-26T19:38:07.049Z",
+      "kind": "xhr_send",
+      "method": "POST",
+      "url": "https://p360.svenskakyrkan.se/view.aspx?id=743988fd-6283-47e4-8fd7-e15ee3c4b5eb&context-data=module%2cPrimary%2cCase%3bsubtype%2cPrimary%2c61000%3brecno%2cPrimary%2c1358063%3bname%2cPrimary%2cDMS.Case.Details.Simplified.61000%3b",
+      "bodyType": "String"
+    },
+    {
+      "ts": "2026-03-26T19:38:07.352Z",
+      "kind": "xhr_load",
+      "method": "POST",
+      "url": "https://p360.svenskakyrkan.se/view.aspx?id=743988fd-6283-47e4-8fd7-e15ee3c4b5eb&context-data=module%2cPrimary%2cCase%3bsubtype%2cPrimary%2c61000%3brecno%2cPrimary%2c1358063%3bname%2cPrimary%2cDMS.Case.Details.Simplified.61000%3b",
+      "status": 200,
+      "responsePreview": "1|#||4|206032|updatePanel|PlaceHolderMain_SI360MainUpdatePanel|\r\n            <input name=\"ctl00$PlaceHolderMain$MainView$BIFViewState\" type=\"hidden\" id=\"PlaceHolderMain_MainView_BIFViewState\" value=\"b76d60fe-9550-44cb-aff5-1f56c9b4e1e9\" /><span id=\"PlaceHolderMain_MainView_MainView_NavigationHandler"
+    },
+    {
+      "ts": "2026-03-26T19:38:07.449Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:38:08.444Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:38:09.440Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:38:10.451Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-03-26T19:38:11.444Z",
+      "kind": "snapshot",
+      "label": "interval",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1358063",
+      "upload": {
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "value": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "name": "",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "hiddenPathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "hiddenBtnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "name": "",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "hiddenPathId": "",
+            "hiddenBtnId": "",
+            "listId": "",
+            "text": ""
+          }
+        ]
+      }
+    }
+  ]
+}

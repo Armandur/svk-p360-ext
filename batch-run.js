@@ -66,6 +66,15 @@ function väntaPåNavigation(tabId, urlMönster, timeout = 45000) {
 }
 
 /**
+ * Accepterar både locator-details och view.aspx-details.
+ */
+function ärCaseDetailsUrl(url) {
+  const s = String(url || '');
+  return /\/DMS\/Case\/Details\//.test(s) ||
+    (s.includes('/view.aspx') && s.includes('DMS.Case.Details.Simplified.61000'));
+}
+
+/**
  * Skickar meddelande till en flik och väntar på svar.
  * Injicerar content scripts om de saknas (t.ex. efter tilläggs-reload).
  * Returnerar null om fliken navigerade bort (connection lost).
@@ -199,6 +208,7 @@ async function förberedFiler(mall) {
   if (!mall.ärendedokument?.length) return mall;
 
   console.log(`[batch] förberedFiler: ${mall.ärendedokument.length} ärendedokument`);
+  mall._batchFilNycklar = [];
   for (let i = 0; i < mall.ärendedokument.length; i++) {
     const dok = mall.ärendedokument[i];
     console.log(`[batch] förberedFiler dok ${i}: _filObj=${!!dok._filObj}, _filnamn=${dok._filnamn || '(ej satt)'}`);
@@ -214,6 +224,7 @@ async function förberedFiler(mall) {
         }]
       });
       dok.filerStorageNyckel = storageNyckel;
+      mall._batchFilNycklar.push(storageNyckel);
       delete dok._filObj;
     }
   }
@@ -276,6 +287,7 @@ async function startaBatch(baseMall, slots, inställningar) {
 
   for (let idx = 0; idx < antalRader; idx++) {
     aktuelltIdx = idx;
+    let radFilNycklar = [];
     if (batchAvbruten) {
       sättRadStatus(idx, 'avbruten', 'Avbruten');
       for (let j = idx + 1; j < antalRader; j++) {
@@ -318,6 +330,7 @@ async function startaBatch(baseMall, slots, inställningar) {
 
       // Förbered filer (konvertera till base64 + spara i storage)
       mall = await förberedFiler(mall);
+      radFilNycklar = Array.isArray(mall._batchFilNycklar) ? [...mall._batchFilNycklar] : [];
 
       // Spara batch-konfiguration så content.js vet att det är en batch
       await chrome.storage.local.set({
@@ -331,7 +344,11 @@ async function startaBatch(baseMall, slots, inställningar) {
 
       // Starta navigeringslyssnaren INNAN vi skickar skapaFrånMall
       // (annars missar vi navigeringen om den sker snabbt)
-      const navigeringsPromise = väntaPåNavigation(tabId, /\/DMS\/Case\/Details\//, 120000);
+      const navigeringsPromise = väntaPåNavigation(
+        tabId,
+        /\/DMS\/Case\/Details\/|\/view\.aspx.*DMS\.Case\.Details\.Simplified\.61000/i,
+        120000
+      );
       console.log(`[batch] Rad ${idx + 1}: Skickar skapaFrånMall till flik ${tabId}…`);
 
       // Skicka skapaFrånMall till 360°-fliken
@@ -363,7 +380,7 @@ async function startaBatch(baseMall, slots, inställningar) {
         const flikNu = await chrome.tabs.get(tabId).catch(() => null);
         const nuUrl = flikNu?.url || '';
         console.log(`[batch] Rad ${idx + 1}: Flikens nuvarande URL:`, nuUrl);
-        if (/\/DMS\/Case\/Details\//.test(nuUrl)) {
+        if (ärCaseDetailsUrl(nuUrl)) {
           console.log(`[batch] Rad ${idx + 1}: Fliken är redan på ärendesida, fortsätter.`);
         } else {
           throw new Error(
@@ -470,6 +487,13 @@ async function startaBatch(baseMall, slots, inställningar) {
         status: 'fel',
         fel: err.message,
       });
+      // Stoppa batchen vid första fel för att undvika kedjefel i efterföljande rader.
+      batchAvbruten = true;
+    } finally {
+      // Rensa temporära batch-filer för raden (även om dokumentsteget återanvände nyckeln flera gånger)
+      if (radFilNycklar?.length) {
+        await chrome.storage.local.remove(radFilNycklar);
+      }
     }
 
     // Rensa batch-signal för denna rad
