@@ -330,9 +330,6 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
     if (uploadRes.misslyckade.length > 0) {
       console.warn('[p360-dok] Misslyckade filuppladdningar:', uploadRes.misslyckade);
     }
-    // Hämta färska referenser efter flikbytet tillbaka
-    iDoc = iframe.contentDocument;
-    iWin = iframe.contentWindow;
   }
 
   // ---------------------------------------------------------------

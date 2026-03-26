@@ -24,58 +24,13 @@ async function väntaPåPRM(iWin, maxMs = 10000) {
 }
 
 /**
- * Triggar en PostBack i iframen och väntar på att den slutförs.
- * Lyssnar på BÅDE PRM endRequest (async UpdatePanel) OCH iframe load-event
- * (synkron full page load). Whichever fires first.
- *
- * @returns {'prm'|'load'|'timeout'} Vad som avslutade väntan.
- */
-function triggaPostBackOchVänta(iframe, iWin, target, timeoutMs = 15000) {
-  return new Promise(resolve => {
-    let klar = false;
-    const avsluta = (typ) => {
-      if (klar) return;
-      klar = true;
-      clearTimeout(timer);
-      iframe.removeEventListener('load', loadHandler);
-      console.log(`[p360-upload] PostBack avslutad via: ${typ}`);
-      resolve(typ);
-    };
-
-    const timer = setTimeout(() => avsluta('timeout'), timeoutMs);
-
-    // Lyssna på PRM endRequest (async postback)
-    const prm = iWin.Sys?.WebForms?.PageRequestManager?.getInstance?.();
-    if (prm) {
-      const prmHandler = function(sender, args) {
-        prm.remove_endRequest(prmHandler);
-        avsluta('prm');
-      };
-      prm.add_endRequest(prmHandler);
-    }
-
-    // Lyssna på iframe load (synkron postback = full page reload)
-    function loadHandler() {
-      iframe.removeEventListener('load', loadHandler);
-      // Ge nya dokumentet en stund att rendera
-      setTimeout(() => avsluta('load'), 200);
-    }
-    iframe.addEventListener('load', loadHandler);
-
-    // Trigga PostBacken via __doPostBack i iframens kontext
-    console.log(`[p360-upload] __doPostBack('${target}', '') – väntar på svar…`);
-    iWin.__doPostBack(target, '');
-  });
-}
-
-/**
  * Laddar upp filer till ett öppet dokumentformulär.
- * Navigerar till Filer-fliken, laddar upp via XHR till FileUpload.ashx,
- * sätter hidden field och triggar PostBack. Navigerar sedan tillbaka till
- * Generellt-fliken.
+ * Laddar upp varje fil via XHR till FileUpload.ashx och skapar ett
+ * hidden field i formuläret med sessionsnyckeln. Servern läser
+ * hidden field vid Slutför och bifogar filen.
  *
- * VIKTIGT: Anropa FÖRE formulärifyllning – flikbyte via PostBack kan
- * nollställa fält som redan fyllts i.
+ * Navigerar INTE till Filer-fliken – hidden field skapas direkt i DOM:en
+ * på aktiv flik för att undvika flikbyte som nollställer formulärfält.
  *
  * @param {HTMLIFrameElement} iframe - dokumentformulärets iframe-element
  * @param {File[]} filer - Array av File-objekt att ladda upp
@@ -85,41 +40,6 @@ function triggaPostBackOchVänta(iframe, iWin, target, timeoutMs = 15000) {
  */
 async function laddaUppFiler(iframe, filer, visaStatus, ärAvbruten) {
   if (!filer || filer.length === 0) return { lyckade: [], misslyckade: [] };
-
-  const hämtaDoc = () => iframe.contentDocument;
-  const hämtaWin = () => iframe.contentWindow;
-
-  // Vänta på att __doPostBack finns (ASP.NET-skript kan vara sena)
-  for (let ms = 0; ms < 8000; ms += 200) {
-    if (typeof hämtaWin().__doPostBack === 'function') break;
-    await sleep(200);
-  }
-  if (typeof hämtaWin().__doPostBack !== 'function') {
-    console.error('[p360-upload] __doPostBack saknas i iframe – kan inte byta flik.');
-    throw new Error('Dokumentformuläret laddades inte korrekt (__doPostBack saknas).');
-  }
-
-  visaStatus('Navigerar till Filer-fliken…');
-
-  // Vänta på att PRM är redo innan flikbyte
-  await väntaPåPRM(hämtaWin());
-  hämtaWin().__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'FileStep');
-
-  // Vänta på att drag-drop-containern dyker upp (Filer-fliken laddad)
-  let dragDrop = null;
-  for (let poll = 0; poll < 60; poll++) {
-    await sleep(200);
-    try {
-      dragDrop = hämtaDoc().querySelector(
-        '[id$="DocumentMultiFileUploadControl_dragdropContainer"]'
-      );
-      if (dragDrop) break;
-    } catch { /* iframe kan vara i loading-state */ }
-  }
-  if (!dragDrop) throw new Error('Filer-fliken laddades inte.');
-
-  // Vänta på att PRM är klar efter flikbytet – kritiskt!
-  await väntaPåPRM(hämtaWin());
 
   const lyckade = [];
   const misslyckade = [];
@@ -142,28 +62,15 @@ async function laddaUppFiler(iframe, filer, visaStatus, ärAvbruten) {
     }
   }
 
-  // Navigera tillbaka till Generellt-fliken
-  visaStatus('Återgår till Generellt-fliken…');
-  await väntaPåPRM(hämtaWin());
-  hämtaWin().__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'GeneralStep');
-
-  for (let poll = 0; poll < 60; poll++) {
-    await sleep(200);
-    try {
-      if (hämtaDoc().getElementById('PlaceHolderMain_MainView_TitleTextBoxControl')) break;
-    } catch { /* loading */ }
-  }
-
   return { lyckade, misslyckade };
 }
 
 /**
- * Laddar upp en enskild fil via XHR och registrerar den i formuläret.
+ * Laddar upp en enskild fil via XHR och skapar hidden field i formuläret.
  *
  * Steg 1: POST fil till /FileUpload.ashx?userSession={id}
- * Steg 2: Sätt hidden field med session|filnamn
- * Steg 3: Trigga PostBack via PRM (eller fallback) och vänta på att filen
- *         registreras i ImportFileListControl.
+ * Steg 2: Skapa/sätt hidden field med session|filnamn i formuläret
+ *         (hidden field:et läses av servern vid Slutför)
  *
  * @param {HTMLIFrameElement} iframe - dokumentformulärets iframe-element
  * @param {File} fil - File-objekt att ladda upp
@@ -194,27 +101,28 @@ async function laddaUppEnFil(iframe, fil, ärAvbruten) {
   });
   console.log(`[p360-upload] Steg 1 OK: XHR-svar="${xhrSvar?.substring(0, 100)}"`);
 
-  // Steg 2: Sätt hidden field
+  // Steg 2: Skapa/sätt hidden field direkt i formuläret (utan flikbyte)
   const iDoc = iframe.contentDocument;
-  const iWin = iframe.contentWindow;
   const pathId = 'PlaceHolderMain_MainView_DocumentMultiFileUploadControl_hiddenUploadedFilesPath';
-  const btnId = 'PlaceHolderMain_MainView_DocumentMultiFileUploadControl_hiddenUploadButton';
+  const pathName = 'ctl00$PlaceHolderMain$MainView$DocumentMultiFileUploadControl$hiddenUploadedFilesPath';
 
-  const hp = iDoc.getElementById(pathId);
-  const btn = iDoc.getElementById(btnId);
-  console.log(`[p360-upload] Steg 2: hiddenPath=${!!hp}, hiddenBtn=${!!btn}`);
-
-  if (!hp || !btn) {
-    console.error('[p360-upload] Hidden field eller button saknas – kan inte registrera filen.');
-    return;
+  // Försök hitta befintligt hidden field (finns om vi redan är på Filer-fliken)
+  let hp = iDoc.getElementById(pathId);
+  if (!hp) {
+    // Skapa hidden field i formuläret – servern läser det vid Slutför
+    hp = iDoc.createElement('input');
+    hp.type = 'hidden';
+    hp.id = pathId;
+    hp.name = pathName;
+    const form = iDoc.forms[0];
+    if (form) {
+      form.appendChild(hp);
+      console.log(`[p360-upload] Steg 2: Skapade hidden field i formuläret.`);
+    } else {
+      throw new Error('Formuläret saknas i iframe.');
+    }
   }
 
   hp.value = `${userSession}|${fil.name}`;
   console.log(`[p360-upload] Steg 2: Satte hiddenPath="${hp.value}"`);
-
-  // Steg 3: SKIPPA PostBack – hidden field-värdet bevaras genom alla PostBacks
-  // och läses av servern vid Slutför. Att trigga PostBacken orsakar en full page
-  // reload i iframen som nollställer hidden field och alla fält.
-  // Verifierat: filen bifogas korrekt till dokumentet utan PostBack-steg.
-  console.log(`[p360-upload] Steg 3: Hoppas över (hidden field bevaras till Slutför).`);
 }
