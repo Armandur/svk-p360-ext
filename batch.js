@@ -489,19 +489,43 @@
     URL.revokeObjectURL(url);
   });
 
-  // Öppna dagboksblad för alla lyckade ärenden i resultatpanelen
-  document.getElementById('btn-öppna-dagboksblad').addEventListener('click', () => {
+  // Öppna dagboksblad som PDF-flikar för alla lyckade ärenden
+  document.getElementById('btn-öppna-dagboksblad').addEventListener('click', async () => {
     const lyckade = batchResultat.filter(r => r.status === 'klar' && r.recno);
     if (lyckade.length === 0) {
       alert('Inga lyckade ärenden med känt ärendenummer att öppna dagboksblad för.');
       return;
     }
-    for (const r of lyckade) {
-      chrome.tabs.create({
-        url: `https://p360.svenskakyrkan.se/locator/Reports/Case/Innehallsforteckning/Innehallsforteckning?standalone=true&recno=${r.recno}`,
-        active: false,
-      });
+
+    const btn = document.getElementById('btn-öppna-dagboksblad');
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Hämtar…';
+
+    // Hämta ControlIDs parallellt – rapportsidorna är snabba att fetcha
+    const pdfUrls = await Promise.all(lyckade.map(async (r) => {
+      try {
+        const html = await fetch(
+          `https://p360.svenskakyrkan.se/locator/Reports/Case/Innehallsforteckning/Innehallsforteckning?standalone=true&recno=${r.recno}`,
+          { credentials: 'include' }
+        ).then(res => res.text());
+        const match = html.match(/ControlID=([a-f0-9]{32})/);
+        if (!match) return null;
+        return `https://p360.svenskakyrkan.se/Reserved.ReportViewerWebControl.axd` +
+          `?Culture=1053&CultureOverrides=True&UICulture=1053&UICultureOverrides=True` +
+          `&ReportStack=1&ControlID=${match[1]}&Mode=true&OpType=Export` +
+          `&FileName=Innehallsforteckning_1053&ContentDisposition=AlwaysInline&Format=PDF`;
+      } catch {
+        return null;
+      }
+    }));
+
+    for (const url of pdfUrls) {
+      if (url) chrome.tabs.create({ url, active: false });
     }
+
+    btn.disabled = false;
+    btn.textContent = originalText;
   });
 
   // Ladda ned dagboksblad som PDF för alla lyckade ärenden
