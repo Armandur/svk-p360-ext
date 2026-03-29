@@ -1,0 +1,1288 @@
+{
+  "version": 2,
+  "url": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1356065",
+  "sparadAt": "2026-03-29T15:01:09.081Z",
+  "antal": 122,
+  "logs": [
+    {
+      "t": "2026-03-29T15:00:44.832Z",
+      "k": "iframe_laddad",
+      "url": "about:blank",
+      "iframeId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol_printframe"
+    },
+    {
+      "t": "2026-03-29T15:00:44.832Z",
+      "k": "iframe_snapshot",
+      "url": "about:blank",
+      "prefix": "about:blank",
+      "hidden": [],
+      "controls": []
+    },
+    {
+      "0": "[",
+      "1": "o",
+      "2": "b",
+      "3": "j",
+      "4": "e",
+      "5": "c",
+      "6": "t",
+      "7": " ",
+      "8": "O",
+      "9": "b",
+      "10": "j",
+      "11": "e",
+      "12": "c",
+      "13": "t",
+      "14": "]",
+      "t": "2026-03-29T15:00:44.832Z",
+      "k": "snapshot"
+    },
+    {
+      "0": "[",
+      "1": "o",
+      "2": "b",
+      "3": "j",
+      "4": "e",
+      "5": "c",
+      "6": "t",
+      "7": " ",
+      "8": "O",
+      "9": "b",
+      "10": "j",
+      "11": "e",
+      "12": "c",
+      "13": "t",
+      "14": "]",
+      "t": "2026-03-29T15:00:46.833Z",
+      "k": "snapshot"
+    },
+    {
+      "0": "[",
+      "1": "o",
+      "2": "b",
+      "3": "j",
+      "4": "e",
+      "5": "c",
+      "6": "t",
+      "7": " ",
+      "8": "O",
+      "9": "b",
+      "10": "j",
+      "11": "e",
+      "12": "c",
+      "13": "t",
+      "14": "]",
+      "t": "2026-03-29T15:00:48.833Z",
+      "k": "snapshot"
+    },
+    {
+      "0": "[",
+      "1": "o",
+      "2": "b",
+      "3": "j",
+      "4": "e",
+      "5": "c",
+      "6": "t",
+      "7": " ",
+      "8": "O",
+      "9": "b",
+      "10": "j",
+      "11": "e",
+      "12": "c",
+      "13": "t",
+      "14": "]",
+      "t": "2026-03-29T15:00:50.847Z",
+      "k": "snapshot"
+    },
+    {
+      "0": "[",
+      "1": "o",
+      "2": "b",
+      "3": "j",
+      "4": "e",
+      "5": "c",
+      "6": "t",
+      "7": " ",
+      "8": "O",
+      "9": "b",
+      "10": "j",
+      "11": "e",
+      "12": "c",
+      "13": "t",
+      "14": "]",
+      "t": "2026-03-29T15:00:52.845Z",
+      "k": "snapshot"
+    },
+    {
+      "t": "2026-03-29T15:00:53.010Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragenter",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.010Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragenter",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.016Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.016Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.049Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.049Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.049Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.049Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.049Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.049Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.049Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.049Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.049Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.049Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.052Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.052Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.060Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.060Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.068Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.068Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.073Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.073Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.081Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.081Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.087Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.087Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.094Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.094Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.100Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.100Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.107Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.107Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.120Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.120Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.132Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.132Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.138Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.138Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.143Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.143Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.149Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.149Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.154Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.154Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.397Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragenter",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.397Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragenter",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.404Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.404Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.412Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.412Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.417Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.417Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.427Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.427Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.436Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.436Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.442Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.442Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.447Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.447Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.453Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.453Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.459Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.459Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.464Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.464Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.470Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.470Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.475Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.475Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.480Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.480Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.485Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.486Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.490Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.490Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.495Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.495Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.564Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.564Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.571Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.571Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T15:00:53.605Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "drop",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": [
+        {
+          "namn": "bekräftelse_andersson.pdf",
+          "storlek": 2026,
+          "typ": "application/pdf"
+        }
+      ]
+    },
+    {
+      "t": "2026-03-29T15:00:53.605Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "drop",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": [
+        {
+          "namn": "bekräftelse_andersson.pdf",
+          "storlek": 2026,
+          "typ": "application/pdf"
+        }
+      ]
+    },
+    {
+      "t": "2026-03-29T15:00:53.611Z",
+      "k": "xhr",
+      "ctx": "[main]",
+      "method": "GET",
+      "url": "/FileUpload.ashx/Ping?_=1774793837299",
+      "bodyType": "object",
+      "bodyPreview": ""
+    },
+    {
+      "t": "2026-03-29T15:00:53.657Z",
+      "k": "xhr",
+      "ctx": "[main]",
+      "method": "POST",
+      "url": "/FileUpload.ashx?userSession=240437000",
+      "bodyType": "FormData",
+      "bodyPreview": "bekräftelse_andersson.pdf"
+    },
+    {
+      "t": "2026-03-29T15:00:53.657Z",
+      "k": "xhr_svar",
+      "ctx": "[main]",
+      "url": "/FileUpload.ashx/Ping?_=1774793837299",
+      "status": 200,
+      "svar": "Ping"
+    },
+    {
+      "t": "2026-03-29T15:00:53.694Z",
+      "k": "xhr",
+      "ctx": "[main]",
+      "method": "GET",
+      "url": "/FileUpload.ashx/Ping?_=1774793837300",
+      "bodyType": "object",
+      "bodyPreview": ""
+    },
+    {
+      "t": "2026-03-29T15:00:53.694Z",
+      "k": "xhr_svar",
+      "ctx": "[main]",
+      "url": "/FileUpload.ashx?userSession=240437000",
+      "status": 200,
+      "svar": "bekräftelse_andersson.pdf"
+    },
+    {
+      "t": "2026-03-29T15:00:53.733Z",
+      "k": "klick",
+      "ctx": "[main]",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+      "tag": "A",
+      "type": "",
+      "onclick": "",
+      "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+      "text": ""
+    },
+    {
+      "t": "2026-03-29T15:00:53.733Z",
+      "k": "klick",
+      "ctx": "[main]",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+      "tag": "A",
+      "type": "",
+      "onclick": "",
+      "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+      "text": ""
+    },
+    {
+      "t": "2026-03-29T15:00:53.733Z",
+      "k": "xhr_svar",
+      "ctx": "[main]",
+      "url": "/FileUpload.ashx/Ping?_=1774793837300",
+      "status": 200,
+      "svar": "Ping"
+    },
+    {
+      "t": "2026-03-29T15:00:53.735Z",
+      "k": "postback",
+      "ctx": "[main]",
+      "target": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+      "arg": ""
+    },
+    {
+      "t": "2026-03-29T15:00:53.739Z",
+      "k": "xhr",
+      "ctx": "[main]",
+      "method": "POST",
+      "url": "https://p360.svenskakyrkan.se/view.aspx?id=743988fd-6283-47e4-8fd7-e15ee3c4b5eb&context-data=module%2cPrimary%2cCase%3bsubtype%2cPrimary%2c61000%3brecno%2cPrimary%2c1356065%3bname%2cPrimary%2cDMS.Case.Details.Simplified.61000%3b",
+      "bodyType": "String",
+      "bodyPreview": "ctl00%24ScriptManager=ctl00%24PlaceHolderMain%24SI360MainUpdatePanel%7Cctl00%24PlaceHolderMain%24MainView%24LeftFolderView1_ViewControl%24UploadControl_DocumentMultiFileUploadControl_hiddenUploadButto"
+    },
+    {
+      "t": "2026-03-29T15:00:54.202Z",
+      "k": "iframe_tillagd",
+      "id": "keepviewaliveframe",
+      "src": "https://p360.svenskakyrkan.se/keepViewAlive.aspx?ids=e3bba959-c448-4ee4-aba6-5b565aaec79d,a5662583-d400-42d4-8b85-8456cc53561d,4af4dab8-859d-4517-8592-8ae04e95f96c",
+      "href": "about:blank"
+    },
+    {
+      "t": "2026-03-29T15:00:54.202Z",
+      "k": "iframe_laddad",
+      "url": "about:blank",
+      "iframeId": "keepviewaliveframe"
+    },
+    {
+      "t": "2026-03-29T15:00:54.202Z",
+      "k": "iframe_snapshot",
+      "url": "about:blank",
+      "prefix": "about:blank",
+      "hidden": [],
+      "controls": []
+    },
+    {
+      "t": "2026-03-29T15:00:54.202Z",
+      "k": "iframe_borttagen",
+      "id": "keepviewaliveframe",
+      "src": "https://p360.svenskakyrkan.se/keepViewAlive.aspx?ids=e3bba959-c448-4ee4-aba6-5b565aaec79d,a5662583-d400-42d4-8b85-8456cc53561d,4af4dab8-859d-4517-8592-8ae04e95f96c"
+    },
+    {
+      "t": "2026-03-29T15:00:54.202Z",
+      "k": "iframe_tillagd",
+      "id": "",
+      "src": "https://p360.svenskakyrkan.se/locator/DMS/Dialog/ConnectedDocumentDialog?IsDlg=1&SAVEAS=1&MoveTo=1&dialogmode=true&dialog=modal&ApplyIE9DropDownFix=true&recno=5714542&SourceEntity=Case&SourceKey=1356065&dialogTitle=360%C2%B0&dialogOpenMode=spdialog&dialogCloseMode=spdialog&IsDlg=1",
+      "href": "about:blank"
+    },
+    {
+      "t": "2026-03-29T15:00:54.202Z",
+      "k": "iframe_laddad",
+      "url": "about:blank",
+      "iframeId": ""
+    },
+    {
+      "t": "2026-03-29T15:00:54.202Z",
+      "k": "iframe_snapshot",
+      "url": "about:blank",
+      "prefix": "about:blank",
+      "hidden": [],
+      "controls": []
+    },
+    {
+      "0": "[",
+      "1": "o",
+      "2": "b",
+      "3": "j",
+      "4": "e",
+      "5": "c",
+      "6": "t",
+      "7": " ",
+      "8": "O",
+      "9": "b",
+      "10": "j",
+      "11": "e",
+      "12": "c",
+      "13": "t",
+      "14": "]",
+      "t": "2026-03-29T15:00:54.202Z",
+      "k": "xhr_svar"
+    },
+    {
+      "0": "[",
+      "1": "o",
+      "2": "b",
+      "3": "j",
+      "4": "e",
+      "5": "c",
+      "6": "t",
+      "7": " ",
+      "8": "O",
+      "9": "b",
+      "10": "j",
+      "11": "e",
+      "12": "c",
+      "13": "t",
+      "14": "]",
+      "t": "2026-03-29T15:00:54.844Z",
+      "k": "snapshot"
+    },
+    {
+      "0": "[",
+      "1": "o",
+      "2": "b",
+      "3": "j",
+      "4": "e",
+      "5": "c",
+      "6": "t",
+      "7": " ",
+      "8": "O",
+      "9": "b",
+      "10": "j",
+      "11": "e",
+      "12": "c",
+      "13": "t",
+      "14": "]",
+      "t": "2026-03-29T15:00:56.835Z",
+      "k": "snapshot"
+    },
+    {
+      "0": "[",
+      "1": "o",
+      "2": "b",
+      "3": "j",
+      "4": "e",
+      "5": "c",
+      "6": "t",
+      "7": " ",
+      "8": "O",
+      "9": "b",
+      "10": "j",
+      "11": "e",
+      "12": "c",
+      "13": "t",
+      "14": "]",
+      "t": "2026-03-29T15:00:58.842Z",
+      "k": "snapshot"
+    },
+    {
+      "0": "[",
+      "1": "o",
+      "2": "b",
+      "3": "j",
+      "4": "e",
+      "5": "c",
+      "6": "t",
+      "7": " ",
+      "8": "O",
+      "9": "b",
+      "10": "j",
+      "11": "e",
+      "12": "c",
+      "13": "t",
+      "14": "]",
+      "t": "2026-03-29T15:01:00.451Z",
+      "k": "snapshot"
+    },
+    {
+      "0": "[",
+      "1": "o",
+      "2": "b",
+      "3": "j",
+      "4": "e",
+      "5": "c",
+      "6": "t",
+      "7": " ",
+      "8": "O",
+      "9": "b",
+      "10": "j",
+      "11": "e",
+      "12": "c",
+      "13": "t",
+      "14": "]",
+      "t": "2026-03-29T15:01:00.845Z",
+      "k": "snapshot"
+    },
+    {
+      "0": "[",
+      "1": "o",
+      "2": "b",
+      "3": "j",
+      "4": "e",
+      "5": "c",
+      "6": "t",
+      "7": " ",
+      "8": "O",
+      "9": "b",
+      "10": "j",
+      "11": "e",
+      "12": "c",
+      "13": "t",
+      "14": "]",
+      "t": "2026-03-29T15:01:02.845Z",
+      "k": "snapshot"
+    },
+    {
+      "0": "[",
+      "1": "o",
+      "2": "b",
+      "3": "j",
+      "4": "e",
+      "5": "c",
+      "6": "t",
+      "7": " ",
+      "8": "O",
+      "9": "b",
+      "10": "j",
+      "11": "e",
+      "12": "c",
+      "13": "t",
+      "14": "]",
+      "t": "2026-03-29T15:01:03.532Z",
+      "k": "xhr"
+    },
+    {
+      "0": "[",
+      "1": "o",
+      "2": "b",
+      "3": "j",
+      "4": "e",
+      "5": "c",
+      "6": "t",
+      "7": " ",
+      "8": "O",
+      "9": "b",
+      "10": "j",
+      "11": "e",
+      "12": "c",
+      "13": "t",
+      "14": "]",
+      "t": "2026-03-29T15:01:03.632Z",
+      "k": "xhr_svar"
+    },
+    {
+      "0": "[",
+      "1": "o",
+      "2": "b",
+      "3": "j",
+      "4": "e",
+      "5": "c",
+      "6": "t",
+      "7": " ",
+      "8": "O",
+      "9": "b",
+      "10": "j",
+      "11": "e",
+      "12": "c",
+      "13": "t",
+      "14": "]",
+      "t": "2026-03-29T15:01:04.228Z",
+      "k": "xhr"
+    },
+    {
+      "0": "[",
+      "1": "o",
+      "2": "b",
+      "3": "j",
+      "4": "e",
+      "5": "c",
+      "6": "t",
+      "7": " ",
+      "8": "O",
+      "9": "b",
+      "10": "j",
+      "11": "e",
+      "12": "c",
+      "13": "t",
+      "14": "]",
+      "t": "2026-03-29T15:01:04.313Z",
+      "k": "xhr_svar"
+    },
+    {
+      "0": "[",
+      "1": "o",
+      "2": "b",
+      "3": "j",
+      "4": "e",
+      "5": "c",
+      "6": "t",
+      "7": " ",
+      "8": "O",
+      "9": "b",
+      "10": "j",
+      "11": "e",
+      "12": "c",
+      "13": "t",
+      "14": "]",
+      "t": "2026-03-29T15:01:04.845Z",
+      "k": "snapshot"
+    },
+    {
+      "0": "[",
+      "1": "o",
+      "2": "b",
+      "3": "j",
+      "4": "e",
+      "5": "c",
+      "6": "t",
+      "7": " ",
+      "8": "O",
+      "9": "b",
+      "10": "j",
+      "11": "e",
+      "12": "c",
+      "13": "t",
+      "14": "]",
+      "t": "2026-03-29T15:01:06.834Z",
+      "k": "snapshot"
+    },
+    {
+      "0": "[",
+      "1": "o",
+      "2": "b",
+      "3": "j",
+      "4": "e",
+      "5": "c",
+      "6": "t",
+      "7": " ",
+      "8": "O",
+      "9": "b",
+      "10": "j",
+      "11": "e",
+      "12": "c",
+      "13": "t",
+      "14": "]",
+      "t": "2026-03-29T15:01:08.840Z",
+      "k": "snapshot"
+    }
+  ]
+}
