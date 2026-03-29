@@ -1,5 +1,6 @@
 // dokument-mall.js – logik för dokumentmallredigeringssidan
 
+// Lokal kopia – mall-data.js (där originalet finns) laddas inte på dokument-mall.html
 function escHtml(str) {
   return String(str ?? '')
     .replace(/&/g, '&amp;')
