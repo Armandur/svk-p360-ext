@@ -308,7 +308,7 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
               const src = f.src || f.contentDocument?.location?.href || '';
               if (src.includes('RepeatWizardDialog')) {
                 rensa();
-                resolve({ cancelled: false });
+                resolve({ cancelled: false, repeatIframe: f });
                 return;
               }
             } catch { /* cross-origin */ }
@@ -324,7 +324,7 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
         const src = f.src || '';
         if (src.includes('RepeatWizardDialog')) {
           rensa();
-          resolve({ cancelled: false });
+          resolve({ cancelled: false, repeatIframe: f });
           return;
         }
       } catch { /* cross-origin */ }
@@ -656,6 +656,9 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
   // 5. Kontrollera obligatoriska fält – pausa om något saknas
   // ---------------------------------------------------------------
   const tommaObl = kontrolleraObligatoriskaFält(iDoc, { kontaktLagdTill });
+  // repeatIframe kan sättas redan i steg 5 (manuell väg) om RepeatWizardDialog
+  // visades medan användaren fyllde i formuläret.
+  let förhandsRepeat = null;
   if (tommaObl.length > 0) {
     visaStatus(`Fyll i obligatoriska fält: ${tommaObl.join(', ')}`);
     window.dispatchEvent(new CustomEvent('p360-batch-manuell-paus', {
@@ -666,6 +669,9 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
       try { iframe.remove(); } catch { /* ignorera */ }
       return { cancelled: true };
     }
+    // Spara iframe-referensen om den redan hittades av väntaPåAnvändarensSlutför.
+    // Det undviker att steg 6 missar RepeatWizardDialog om användaren redan stängt den.
+    förhandsRepeat = manuellResultat.repeatIframe || null;
   } else {
     // Skicka formuläret från Generellt-fliken
     visaStatus('Sparar ärendedokument…');
@@ -686,8 +692,9 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
   const WAIT_REPEAT1_MS = 60000;
   const WAIT_REPEAT2_MS = 90000;
 
-  // Försök 1: vänta på att RepeatWizardDialog-iframen laddas klart.
-  let repeatIframe = await waitForNyIframe('RepeatWizardDialog', WAIT_REPEAT1_MS);
+  // Om RepeatWizardDialog redan hittades i steg 5 (manuell väg), använd den direkt.
+  // Annars vänta på att dialogen dyker upp (automatisk väg).
+  let repeatIframe = förhandsRepeat || await waitForNyIframe('RepeatWizardDialog', WAIT_REPEAT1_MS);
 
   // Om dialogen inte dyker upp: kör vår gamla early-exit detektor (valideringsfel)
   // och gör sedan ett kontrollerat andra Slutför-försök.
@@ -710,6 +717,14 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
   let dokumentNummer = null;
 
   if (repeatIframe) {
+    // Om iframen kom från steg 5 kan den fortfarande ladda – vänta kort tills URL är klar.
+    if (!(repeatIframe.contentDocument?.location?.href || '').includes('RepeatWizardDialog')) {
+      for (let i = 0; i < 30; i++) {
+        await sleep(200);
+        if ((repeatIframe.contentDocument?.location?.href || '').includes('RepeatWizardDialog')) break;
+      }
+    }
+
     // Extrahera dokumentnummer ur dialogCaption-parametern
     try {
       const url = new URL(repeatIframe.contentDocument.location.href);
