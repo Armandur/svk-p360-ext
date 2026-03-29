@@ -101,7 +101,9 @@ function fyllSelectFrånAlternativ(elId, alternativ, läggTillTom = false) {
     opt.textContent = '(Ej satt – välj manuellt)';
     sel.appendChild(opt);
   }
-  (alternativ || []).forEach(a => {
+  [...(alternativ || [])].sort((a, b) =>
+    (a.label || '').localeCompare(b.label || '', 'sv', { numeric: true })
+  ).forEach(a => {
     const opt = document.createElement('option');
     opt.value = a.value;
     opt.textContent = a.label;
@@ -139,7 +141,9 @@ function fyllTypeaheadSelect(config, items) {
   const nuvarandeRecno  = document.getElementById(config.recnoId).value.trim();
 
   sel.innerHTML = `<option value="">${config.tomOption}</option>`;
-  items.forEach(k => {
+  [...items].sort((a, b) =>
+    (a.display || '').localeCompare(b.display || '', 'sv', { numeric: true })
+  ).forEach(k => {
     const opt = document.createElement('option');
     opt.value = (k.value || '') + '||' + (k.display || '');
     opt.textContent = k.display;
