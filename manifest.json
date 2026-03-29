@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "360° Svenska kyrkan – Hjälptillägg",
-  "version": "1.1",
+  "version": "1.2",
   "description": "Automatiserar repetitiva åtgärder i 360° för Svenska kyrkan. Fungerar i Chrome och Edge.",
   "permissions": ["activeTab", "scripting", "tabs", "storage", "unlimitedStorage"],
   "host_permissions": ["https://p360.svenskakyrkan.se/*"],
