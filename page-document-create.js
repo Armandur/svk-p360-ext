@@ -303,18 +303,22 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
       resolveOnce({ cancelled: true });
     });
 
-    // Polla alla iframes var 300 ms och kolla contentDocument.location.href.
-    // MutationObserver + f.src är opålitligt – 360° sätter iframe.src via JS efter
-    // att elementet lagts till i DOM, vilket inte triggar en ny mutation.
-    // Polling fångar RepeatWizardDialog oavsett hur 360° öppnar den.
+    // Polla var 300 ms:
+    // 1. RepeatWizardDialog dyker upp (flöde utan föranmäld fil)
+    // 2. Formulär-iframen försvinner ur DOM (flöde MED fil – ingen RepeatWizardDialog)
     pollId = setInterval(() => {
+      // Koll 1: RepeatWizardDialog
       for (const f of document.querySelectorAll('iframe')) {
         try {
           if ((f.contentDocument?.location?.href || '').includes('RepeatWizardDialog')) {
-            resolveOnce({ cancelled: false, repeatIframe: f });
+            resolveOnce({ cancelled: false, repeatIframe: f, iframeStängd: false });
             return;
           }
         } catch { /* cross-origin – ignorera */ }
+      }
+      // Koll 2: Formulär-iframen borttagen ur DOM (filuppladdningsflöde)
+      if (!document.contains(iframe)) {
+        resolveOnce({ cancelled: false, repeatIframe: null, iframeStängd: true });
       }
     }, 300);
   });
@@ -644,9 +648,9 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
   // 5. Kontrollera obligatoriska fält – pausa om något saknas
   // ---------------------------------------------------------------
   const tommaObl = kontrolleraObligatoriskaFält(iDoc, { kontaktLagdTill });
-  // repeatIframe kan sättas redan i steg 5 (manuell väg) om RepeatWizardDialog
-  // visades medan användaren fyllde i formuläret.
+  // repeatIframe/iframeStängd kan sättas redan i steg 5 (manuell väg).
   let förhandsRepeat = null;
+  let iframeStängd = false;
   if (tommaObl.length > 0) {
     visaStatus(`Fyll i obligatoriska fält: ${tommaObl.join(', ')}`);
     window.dispatchEvent(new CustomEvent('p360-batch-manuell-paus', {
@@ -657,9 +661,8 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
       try { iframe.remove(); } catch { /* ignorera */ }
       return { cancelled: true };
     }
-    // Spara iframe-referensen om den redan hittades av väntaPåAnvändarensSlutför.
-    // Det undviker att steg 6 missar RepeatWizardDialog om användaren redan stängt den.
     förhandsRepeat = manuellResultat.repeatIframe || null;
+    iframeStängd = manuellResultat.iframeStängd || false;
   } else {
     // Skicka formuläret från Generellt-fliken
     visaStatus('Sparar ärendedokument…');
@@ -675,36 +678,80 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
   }
 
   // ---------------------------------------------------------------
-  // 6. Vänta på RepeatWizardDialog – innehåller dokumentnumret
+  // 6. Vänta på slutsignal
   // ---------------------------------------------------------------
+  // Flöde MED föranmäld fil (ConnectedDocumentDialog → Document/New med recno):
+  //   • Ingen RepeatWizardDialog – 360° tar bort Document/New-iframen ur DOM direkt.
+  //   • Verifierat via spy-logg 2026-03-29: UploadFilesAsDocumentOperation_POSTBACK →
+  //     NewDocumentCaseBrokerListener → iframe_borttagen.
+  //
+  // Flöde UTAN fil (DocumentActionMenuControl → Document/New utan recno):
+  //   • RepeatWizardDialog dyker upp → vi stänger den och läser dokumentnumret.
+  const harFiler = !!(dok.filer?.length || dok.filerBase64?.length);
   const WAIT_REPEAT1_MS = 60000;
   const WAIT_REPEAT2_MS = 90000;
 
-  // Om RepeatWizardDialog redan hittades i steg 5 (manuell väg), använd den direkt.
-  // Annars vänta på att dialogen dyker upp (automatisk väg).
-  let repeatIframe = förhandsRepeat || await waitForNyIframe('RepeatWizardDialog', WAIT_REPEAT1_MS);
+  let repeatIframe = förhandsRepeat;
 
-  // Om dialogen inte dyker upp: kör vår gamla early-exit detektor (valideringsfel)
-  // och gör sedan ett kontrollerat andra Slutför-försök.
-  let waitResult = { repeatIframe: null, valideringsfel: [] };
-  if (!repeatIframe) {
-    waitResult = await väntaPåRepeatEllerFel(iDoc, 20000);
-    if (waitResult.valideringsfel.length === 0) {
-      console.warn('[p360-dok] RepeatWizardDialog saknas – gör ett andra Slutför-försök.');
-      await väntaPåPRM(iWin, 15000);
-      await triggaDokumentSlutför(iDoc, iWin);
-      try {
-        await väntaPåPRM(iWin, 5000);
-        iWin.__doPostBack?.('ctl00$PlaceHolderMain$MainView$CompleteWizardHiddenEventControl', '');
-      } catch { /* ignorera */ }
-      await väntaPåPRM(iWin, 25000);
-      repeatIframe = await waitForNyIframe('RepeatWizardDialog', WAIT_REPEAT2_MS);
-      waitResult = repeatIframe ? { repeatIframe, valideringsfel: [] } : waitResult;
+  if (!repeatIframe && !iframeStängd) {
+    if (harFiler) {
+      // Fil-flöde: vänta på att iframen försvinner (eller RepeatWizardDialog om det mot
+      // förmodan skulle dyka upp).
+      visaStatus('Väntar på att dokumentet sparas…');
+      const start = Date.now();
+      while (Date.now() - start < WAIT_REPEAT1_MS) {
+        if (!document.contains(iframe)) { iframeStängd = true; break; }
+        const repeat = Array.from(document.querySelectorAll('iframe')).find(f => {
+          try { return (f.contentDocument?.location?.href || '').includes('RepeatWizardDialog'); }
+          catch { return false; }
+        });
+        if (repeat) { repeatIframe = repeat; break; }
+        // Kontrollera valideringsfel tidigt
+        let valFel = [];
+        try {
+          valFel = Array.from(iDoc.querySelectorAll('span.ms-formvalidation'))
+            .filter(el => !el.id?.includes('mandatory') && el.textContent.trim().length > 2)
+            .map(el => el.textContent.trim());
+        } catch { /* ignorera */ }
+        if (valFel.length > 0) {
+          throw new Error('Dokumentet kunde inte sparas: ' + valFel.join(', '));
+        }
+        await sleep(300);
+      }
+    } else {
+      // Fil-fritt flöde: RepeatWizardDialog förväntas.
+      repeatIframe = await waitForNyIframe('RepeatWizardDialog', WAIT_REPEAT1_MS);
+
+      let waitResult = { repeatIframe: null, valideringsfel: [] };
+      if (!repeatIframe) {
+        waitResult = await väntaPåRepeatEllerFel(iDoc, 20000);
+        if (waitResult.valideringsfel.length === 0) {
+          console.warn('[p360-dok] RepeatWizardDialog saknas – gör ett andra Slutför-försök.');
+          await väntaPåPRM(iWin, 15000);
+          await triggaDokumentSlutför(iDoc, iWin);
+          try {
+            await väntaPåPRM(iWin, 5000);
+            iWin.__doPostBack?.('ctl00$PlaceHolderMain$MainView$CompleteWizardHiddenEventControl', '');
+          } catch { /* ignorera */ }
+          await väntaPåPRM(iWin, 25000);
+          repeatIframe = await waitForNyIframe('RepeatWizardDialog', WAIT_REPEAT2_MS);
+        }
+        if (!repeatIframe) {
+          const valFel = waitResult.valideringsfel || [];
+          if (valFel.length > 0) throw new Error('Dokument kunde inte skapas: ' + valFel.join(', '));
+          throw new Error('RepeatWizardDialog visades inte efter två Slutför-försök.');
+        }
+      }
     }
   }
+
   let dokumentNummer = null;
 
-  if (repeatIframe) {
+  if (iframeStängd) {
+    // Fil-flöde: dialog stängd utan RepeatWizardDialog – dokumentet är sparat.
+    // Vänta kort på att ärendesidans dokumentlista uppdateras.
+    await sleep(1000);
+  } else if (repeatIframe) {
     // Om iframen kom från steg 5 kan den fortfarande ladda – vänta kort tills URL är klar.
     if (!(repeatIframe.contentDocument?.location?.href || '').includes('RepeatWizardDialog')) {
       for (let i = 0; i < 30; i++) {
@@ -746,30 +793,6 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
       });
       if (!kvarvarande) break;
     }
-  } else {
-    // Ingen RepeatWizardDialog – kontrollera valideringsfel
-    const valideringsfel = waitResult.valideringsfel || [];
-
-    // Hjälploggning för felsökning: visa de viktigaste fälten och ev. uppladdningsspår.
-    try {
-      const titel = iDoc.getElementById('PlaceHolderMain_MainView_TitleTextBoxControl')?.value || '';
-      const kategori = iDoc.getElementById('PlaceHolderMain_MainView_TypeJournalDocumentInsertComboControl')?.value || '';
-      const handlingstyp = iDoc.getElementById('PlaceHolderMain_MainView_ProcessRecordTypeControl')?.value || '';
-      const uploadedPath = iDoc.getElementById(
-        'PlaceHolderMain_MainView_DocumentMultiFileUploadControl_hiddenUploadedFilesPath'
-      )?.value || '';
-      const scannedFile = iDoc.getElementById('SI_HiddenField_ScannedFilepath')?.value || '';
-      console.warn('[p360-dok] RepeatWizardDialog uteblev. Diagnostik:',
-        { titel, kategori, handlingstyp, uploadedPath, scannedFile, valideringsfel });
-    } catch { /* ignorera */ }
-
-    if (valideringsfel.length > 0) {
-      throw new Error('Dokument kunde inte skapas: ' + valideringsfel.join(', '));
-    }
-    throw new Error(
-      'RepeatWizardDialog visades inte efter två Slutför-försök. ' +
-      'Kontrollera dokumentdialogen (obligatoriska fält eller långsam serverpostback).'
-    );
   }
 
   return dokumentNummer;

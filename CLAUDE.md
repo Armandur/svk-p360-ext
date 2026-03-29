@@ -1064,6 +1064,9 @@ eller klickar "Välj fil".
 8.  __doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish')
 9.  Document/New/61000 öppnas med filen REDAN registrerad (recno i URL)
 10. Fyll i formulärfält (titel, kategori, handlingstyp m.m.) och klicka Slutför
+11. Server triggar automatiskt CompleteWizardHiddenEventControl → UploadFilesAsDocumentOperation_POSTBACK
+    → NewDocumentCaseBrokerListener → Document/New-iframen **tas bort ur DOM**
+    (INGEN RepeatWizardDialog – verifierat via spy-logg 2026-03-29)
 ```
 
 **Varför detta flöde är bättre:**
