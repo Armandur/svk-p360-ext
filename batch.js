@@ -146,6 +146,53 @@
     }
   });
 
+  /**
+   * Kontrollerar om dokumentslotarnas handlingstyp stämmer med ärendemallens
+   * klassificering och visar varning vid avvikelse.
+   */
+  function kontrolleraSlotKompatibilitet() {
+    const varningDiv = document.getElementById('slot-klass-varning');
+    if (!varningDiv) return;
+
+    if (!valdMall?.klassificering?.display) {
+      varningDiv.style.display = 'none';
+      return;
+    }
+
+    const ärendeMatch = valdMall.klassificering.display.match(/^([\d.]+)/);
+    const ärendeKlass = ärendeMatch ? ärendeMatch[1] : null;
+    if (!ärendeKlass) {
+      varningDiv.style.display = 'none';
+      return;
+    }
+
+    const konflikter = [];
+    for (let i = 0; i < slotsar.length; i++) {
+      const slot = slotsar[i];
+      const htText = slot.dokumentmall?.handlingstyp?.text;
+      if (!htText) continue;
+      const htMatch = htText.match(/^([\d.]+)/);
+      const mallKlass = htMatch ? htMatch[1] : null;
+      if (mallKlass && mallKlass !== ärendeKlass) {
+        const namn = slot.dokumentmall?.namn || slot.dokumentmall?.titel || `Dokument ${i + 1}`;
+        konflikter.push(`Fil_${i + 1} "${escHtml(namn)}": handlingstyp klass ${mallKlass} ≠ ärendets klass ${ärendeKlass}`);
+      }
+    }
+
+    if (konflikter.length > 0) {
+      varningDiv.innerHTML =
+        `<strong>⚠ Handlingstypklass stämmer inte överens.</strong> ` +
+        `Handlingstypen i dessa dokumentslotsar tillhör en annan klassificering än ärendemallen ` +
+        `(klass ${ärendeKlass}) – formuläret kräver troligen manuell inmatning:<br>` +
+        `<ul style="margin:4px 0 0 16px;padding:0;">` +
+        konflikter.map(k => `<li>${k}</li>`).join('') +
+        `</ul>`;
+      varningDiv.style.display = 'block';
+    } else {
+      varningDiv.style.display = 'none';
+    }
+  }
+
   // Rendera dokumentslotsar
   function renderaSlotsar() {
     const lista = document.getElementById('slot-lista');
@@ -202,6 +249,8 @@
       div.appendChild(taBortBtn);
       lista.appendChild(div);
     });
+
+    kontrolleraSlotKompatibilitet();
   }
 
   function renderaSlotRoll(el, slot) {
