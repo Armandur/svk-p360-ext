@@ -138,11 +138,14 @@
           : String(body || '').slice(0, 200),
       });
       this.addEventListener('load', () => {
+        const txt = String(this.responseText || '');
+        // Fånga mer av UpdatePanel-svar (view.aspx) för att se RepeatWizardDialog-signaler
+        const preview = (m.url || '').includes('view.aspx') ? txt.slice(0, 2000) : txt.slice(0, 400);
         push('xhr_svar', {
           ctx: m.ctx || ctx,
           url: m.url || '',
           status: this.status,
-          svar: String(this.responseText || '').slice(0, 400),
+          svar: preview,
         });
       });
       return origSend.call(this, body);
@@ -218,7 +221,15 @@
     };
 
     // Lyssna alltid på load-event för framtida navigeringar i iframen
-    ifr.addEventListener('load', gör);
+    ifr.addEventListener('load', () => {
+      try {
+        const nyUrl = ifr.contentWindow?.location?.href || '';
+        if (nyUrl && nyUrl !== 'about:blank') {
+          push('iframe_navigerad', { iframeId: ifr.id || '', url: nyUrl });
+        }
+      } catch { /* cross-origin */ }
+      gör();
+    });
     // Försök även direkt om iframen redan har ett riktigt innehåll
     gör();
   }
