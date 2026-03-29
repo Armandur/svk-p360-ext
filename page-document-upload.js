@@ -8,15 +8,9 @@
  */
 async function väntaPåPRM(iWin, maxMs = 10000) {
   const prm = iWin.Sys?.WebForms?.PageRequestManager?.getInstance?.();
-  if (!prm) {
-    console.log('[p360-upload] PRM saknas – ingen väntan.');
-    return null;
-  }
+  if (!prm) return null;
   for (let ms = 0; ms < maxMs; ms += 100) {
     if (!prm.get_isInAsyncPostBack()) return prm;
-    if (ms % 2000 === 0 && ms > 0) {
-      console.log(`[p360-upload] Väntar på PRM… (${ms} ms)`);
-    }
     await sleep(100);
   }
   console.warn('[p360-upload] PRM fortfarande aktiv efter', maxMs, 'ms – fortsätter ändå.');
@@ -48,14 +42,10 @@ async function laddaUppFiler(iframe, filer, visaStatus, ärAvbruten) {
     const fil = filer[i];
     visaStatus(`Laddar upp fil ${i + 1}/${filer.length}: ${fil.name}…`);
 
-    if (ärAvbruten?.()) {
-      console.log('[p360-upload] Avbruten – hoppar över resterande filer.');
-      break;
-    }
+    if (ärAvbruten?.()) break;
 
     try {
-      const res = await laddaUppEnFil(iframe, fil, ärAvbruten);
-      console.log('[p360-upload] Verifierad registrering:', res);
+      await laddaUppEnFil(iframe, fil, ärAvbruten);
       lyckade.push(fil.name);
     } catch (err) {
       console.error(`[p360-upload] Misslyckades ladda upp ${fil.name}:`, err.message);
@@ -182,7 +172,6 @@ async function laddaUppEnFil(iframe, fil, ärAvbruten) {
   // Steg 0: Navigera till Filer-fliken om uppladdningskontrollerna saknas
   let { hiddenPathEl: hp, hiddenBtn, importList } = hittaUploadKontroller();
   if (!hp || !hiddenBtn) {
-    console.log('[p360-upload] Steg 0: Navigerar till Filer-fliken…');
     iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'FileStep');
     for (let ms = 0; ms < 10000; ms += 200) {
       await sleep(200);
@@ -192,7 +181,6 @@ async function laddaUppEnFil(iframe, fil, ärAvbruten) {
     if (!hp || !hiddenBtn) {
       throw new Error('Filer-fliken laddades inte – upload-kontroller saknas.');
     }
-    console.log('[p360-upload] Steg 0 OK: Filer-fliken laddad.');
   }
 
   // Vänta extra på "rätt" upload-kontrollvariant (LeftFolder...UploadControl...).
@@ -205,14 +193,7 @@ async function laddaUppEnFil(iframe, fil, ärAvbruten) {
     await sleep(200);
   }
 
-  console.log('[p360-upload] Valda upload-kontroller:', {
-    hiddenPathId: hp?.id || hp?.name || '',
-    hiddenBtnId: hiddenBtn?.id || hiddenBtn?.name || '',
-    importListId: importList?.id || '',
-  });
-
   // Steg 1: POST filen till FileUpload.ashx
-  console.log(`[p360-upload] Steg 1: POST ${fil.name} (${fil.size} bytes) till FileUpload.ashx (session=${userSession})`);
   const xhrSvar = await new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `/FileUpload.ashx?userSession=${userSession}`);
@@ -227,8 +208,6 @@ async function laddaUppEnFil(iframe, fil, ärAvbruten) {
     formData.append(fil.name, fil);
     xhr.send(formData);
   });
-  console.log(`[p360-upload] Steg 1 OK: XHR-svar="${xhrSvar?.substring(0, 100)}"`);
-
   // Steg 2: Sätt hidden field (hämta elementet igen efter möjlig navigering)
   ({ hiddenPathEl: hp, hiddenBtn, importList } = hittaUploadKontroller());
   if (!hp) throw new Error('hiddenUploadedFilesPath försvann efter navigering till Filer-fliken.');
@@ -256,7 +235,6 @@ async function laddaUppEnFil(iframe, fil, ärAvbruten) {
   if (canonPath) canonPath.value = uploadValue;
 
   hp.value = uploadValue;
-  console.log(`[p360-upload] Steg 2: Satte hiddenPath (${hp.id || hp.name})="${hp.value}"`);
 
   // Steg 3: Klicka hiddenUploadButton → PostBack registrerar filen med servern
   // Utan detta steget sätts aldrig SI_HiddenField_ScannedFilepath och filen bifogas inte.
@@ -288,10 +266,7 @@ async function laddaUppEnFil(iframe, fil, ärAvbruten) {
 
     // Kör alltid även kanonisk upload-postback (från spy) för att träffa rätt serverkontroll.
     if (typeof iWin.__doPostBack === 'function') {
-      try {
-        console.log('[p360-upload] Extra kanonisk upload-postback:', CANON_BTN_TARGET);
-        iWin.__doPostBack(CANON_BTN_TARGET, '');
-      } catch { /* ignorera */ }
+      try { iWin.__doPostBack(CANON_BTN_TARGET, ''); } catch { /* ignorera */ }
     }
 
     await väntaPåPRM(iWin, 15000);
@@ -341,7 +316,6 @@ async function laddaUppEnFil(iframe, fil, ärAvbruten) {
       );
     }
 
-    console.log('[p360-upload] Steg 3 OK: upload-postback körd och fil registrerad.');
     return {
       filnamn: fil.name,
       hiddenPath: hp.value,
@@ -351,4 +325,112 @@ async function laddaUppEnFil(iframe, fil, ärAvbruten) {
     console.warn('[p360-upload] Steg 3: hiddenUploadButton hittades inte – filen bifogas kanske inte.');
     throw new Error('hiddenUploadButton saknas – kan inte registrera fil i dokumentformuläret.');
   }
+}
+
+/**
+ * Öppnar ett nytt ärendedokumentformulär via ärendesidans upload-yta (drag-and-drop
+ * eller fil-väljare).  Laddar upp filen direkt på ärendesidan, hanterar den
+ * automatiskt öppnade ConnectedDocumentDialog och returnerar Document/New-iframen
+ * med filen redan registrerad på servern.
+ *
+ * Kartlagt 2026-03-29 via spy-logg. Flöde:
+ *   1. POST /FileUpload.ashx?userSession={id}  – en POST per fil
+ *   2. Sätt hiddenUploadedFilesPath på ärendesidans upload-kontroll
+ *   3. Klicka hiddenUploadButton på ärendesidan → server skapar temp-dokument med recno
+ *   4. ConnectedDocumentDialog öppnas (3 radioknappar, value 1/2/3)
+ *   5. Välj radio value="3" (→ Ärendedokument subtype 61000, bekräftat i spy-logg)
+ *   6. Klicka Finish → Document/New/61000 öppnas med filen redan registrerad
+ *
+ * @param {File[]} filer       - Filer att ladda upp
+ * @param {Function} visaStatus
+ * @param {Function} [ärAvbruten]
+ * @returns {Promise<HTMLIFrameElement>} Document/New-iframen
+ */
+async function öppnaDokumentMedFil(filer, visaStatus, ärAvbruten) {
+  const CASE_UPLOAD_BTN_TARGET =
+    'ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl' +
+    '$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton';
+  const CASE_UPLOAD_PATH_NAME =
+    'ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl' +
+    '$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath';
+
+  // 1. Ladda upp varje fil till FileUpload.ashx
+  const sökvägar = [];
+  for (const fil of filer) {
+    if (ärAvbruten?.()) throw new Error('Avbruten');
+    visaStatus(`Laddar upp ${fil.name}…`);
+    const userSession = Math.floor(Math.random() * 1000000000);
+    await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `/FileUpload.ashx?userSession=${userSession}`);
+      xhr.onload = () => xhr.status === 200 ? resolve() : reject(new Error(`HTTP ${xhr.status}`));
+      xhr.onerror = () => reject(new Error('Nätverksfel vid uppladdning'));
+      xhr.timeout = 120000;
+      xhr.ontimeout = () => reject(new Error('Timeout vid uppladdning'));
+      const fd = new FormData();
+      fd.append(fil.name, fil);
+      xhr.send(fd);
+    });
+    sökvägar.push(`${userSession}|${fil.name}`);
+  }
+
+  // 2. Sätt hiddenUploadedFilesPath på ärendesidans upload-kontroll
+  //    Verifierat format (spy-logg 2026-03-29): {session}|{filnamn}|||{session}|{filnamn}|||...
+  const uploadVärde = sökvägar.join('|||');
+  let pathEl = document.querySelector(
+    '[id*="UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath"],' +
+    `[name="${CASE_UPLOAD_PATH_NAME}"]`
+  );
+  if (!pathEl) {
+    // Skapa fältet om det saknas i DOM (kan hända om ärendesidan inte renderat kontrollerna)
+    const form = document.forms?.[0];
+    if (!form) throw new Error('Formulär saknas på ärendesidan.');
+    pathEl = document.createElement('input');
+    pathEl.type = 'hidden';
+    pathEl.name = CASE_UPLOAD_PATH_NAME;
+    form.appendChild(pathEl);
+  }
+  pathEl.value = uploadVärde;
+
+  // 3. Trigga hiddenUploadButton → server skapar temp-dokument och öppnar dialog
+  visaStatus('Registrerar fil på servern…');
+  __doPostBack(CASE_UPLOAD_BTN_TARGET, '');
+
+  // 4. Vänta på ConnectedDocumentDialog
+  visaStatus('Väntar på ConnectedDocumentDialog…');
+  const connIframe = await waitForNyIframe('ConnectedDocumentDialog', 15000);
+  if (!connIframe) throw new Error('ConnectedDocumentDialog öppnades inte.');
+
+  // Vänta tills formuläret i dialogen är redo
+  const cDoc = connIframe.contentDocument;
+  const cWin = connIframe.contentWindow;
+  if (!cDoc || !cWin) throw new Error('ConnectedDocumentDialog är inte tillgänglig (cross-origin?).');
+  await waitForElement(cDoc, 'input[type="radio"][id*="ArchiveAndTemplateComboBox"]', 8000);
+
+  // 5. Välj radio value="3" (Ärendedokument/subtype 61000, bekräftat i spy-logg 2026-03-29)
+  const radioBtn = cDoc.querySelector(
+    'input[type="radio"][id*="ArchiveAndTemplateComboBox_2"],' +
+    'input[type="radio"][name*="ArchiveAndTemplateComboBox"][value="3"]'
+  );
+  if (radioBtn && !radioBtn.checked) {
+    radioBtn.click();
+    await sleep(600); // Vänta kort på eventuell UpdatePanel
+  }
+
+  // 6. Klicka Finish i ConnectedDocumentDialog
+  visaStatus('Väljer dokumenttyp (Ärendedokument)…');
+  const prm = cWin.Sys?.WebForms?.PageRequestManager?.getInstance?.();
+  if (prm) {
+    for (let ms = 0; ms < 5000; ms += 100) {
+      if (!prm.get_isInAsyncPostBack()) break;
+      await sleep(100);
+    }
+  }
+  cWin.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish');
+
+  // 7. Vänta på Document/New-iframen (filen är redan registrerad)
+  visaStatus('Öppnar dokumentformulär…');
+  const docIframe = await waitForNyIframe('Document/New', 20000);
+  if (!docIframe) throw new Error('Dokumentformuläret öppnades inte efter ConnectedDocumentDialog.');
+  return docIframe;
 }

@@ -219,6 +219,103 @@ document.getElementById('btn-ny-mall').addEventListener('click', () => {
 });
 
 // ------------------------------------------------------------------
+// Exportera / importera mallar
+// ------------------------------------------------------------------
+
+let importData = null;
+
+document.getElementById('btn-exportera-mallar').addEventListener('click', async () => {
+  döljFelmeddelande();
+  const data = await chrome.storage.local.get(['mallar', 'dokumentmallar']);
+  const mallar = data.mallar || [];
+  const dokumentmallar = data.dokumentmallar || [];
+  if (!mallar.length && !dokumentmallar.length) {
+    visaFel('Inga mallar att exportera.');
+    return;
+  }
+  const json = JSON.stringify({ mallar, dokumentmallar }, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `360-mallar-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById('btn-importera-mallar').addEventListener('click', () => {
+  döljFelmeddelande();
+  document.getElementById('import-fil-input').click();
+});
+
+document.getElementById('import-fil-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  e.target.value = '';
+  if (!file) return;
+
+  let data;
+  try {
+    data = JSON.parse(await file.text());
+  } catch {
+    visaFel('Filen är inte giltig JSON.');
+    return;
+  }
+
+  if (!Array.isArray(data.mallar) && !Array.isArray(data.dokumentmallar)) {
+    visaFel('Filen verkar inte vara en exportfil från 360° Hjälptillägg.');
+    return;
+  }
+
+  importData = data;
+  const nrM = (data.mallar || []).length;
+  const nrD = (data.dokumentmallar || []).length;
+  document.getElementById('import-info').textContent =
+    `${nrM} ärendemallar och ${nrD} dokumentmallar hittades i filen. ` +
+    '"Slå samman" lägger till nya och behåller befintliga. "Ersätt allt" tar bort allt befintligt.';
+  document.getElementById('import-panel').style.display = '';
+});
+
+document.getElementById('btn-import-avbryt').addEventListener('click', () => {
+  importData = null;
+  document.getElementById('import-panel').style.display = 'none';
+});
+
+document.getElementById('btn-import-samman').addEventListener('click', async () => {
+  if (!importData) return;
+  await slutförImport(importData, 'samman');
+});
+
+document.getElementById('btn-import-ersätt').addEventListener('click', async () => {
+  if (!importData) return;
+  await slutförImport(importData, 'ersätt');
+});
+
+async function slutförImport(data, läge) {
+  let mallar, dokumentmallar;
+
+  if (läge === 'ersätt') {
+    mallar = data.mallar || [];
+    dokumentmallar = data.dokumentmallar || [];
+  } else {
+    const befintliga = await chrome.storage.local.get(['mallar', 'dokumentmallar']);
+    const befMallar = befintliga.mallar || [];
+    const befDokMallar = befintliga.dokumentmallar || [];
+    const befMallIds = new Set(befMallar.map(m => m.id));
+    const befDokIds = new Set(befDokMallar.map(m => m.id));
+    mallar = [...befMallar, ...(data.mallar || []).filter(m => !befMallIds.has(m.id))];
+    dokumentmallar = [...befDokMallar, ...(data.dokumentmallar || []).filter(m => !befDokIds.has(m.id))];
+  }
+
+  await chrome.storage.local.set({ mallar, dokumentmallar });
+  importData = null;
+  document.getElementById('import-panel').style.display = 'none';
+  await laddaMallar();
+  await laddaDokumentmallar();
+}
+
+// ------------------------------------------------------------------
 // Dokumentmallhantering
 // ------------------------------------------------------------------
 
@@ -468,29 +565,77 @@ async function skickaFilDokument(dokument) {
   }
 }
 
+let uppladdningsFiler = [];
+
 document.getElementById('btn-ladda-upp-filer').addEventListener('click', () => {
   döljFelmeddelande();
   document.getElementById('fil-input').click();
 });
 
 document.getElementById('fil-input').addEventListener('change', async (e) => {
-  const filer = Array.from(e.target.files);
-  if (filer.length === 0) return;
+  uppladdningsFiler = Array.from(e.target.files);
+  if (uppladdningsFiler.length === 0) return;
+
+  // Fyll mallistan
+  const { dokumentmallar = [] } = await chrome.storage.local.get('dokumentmallar');
+  const sel = document.getElementById('fil-mall-val');
+  sel.innerHTML = '<option value="">(ingen mall – enbart fil)</option>';
+  dokumentmallar.forEach(dm => {
+    const opt = document.createElement('option');
+    opt.value = dm.id;
+    opt.textContent = dm.namn;
+    sel.appendChild(opt);
+  });
+
+  document.getElementById('fil-panel-info').textContent =
+    `${uppladdningsFiler.length} fil(er) valda – skapas som ett ärendedokument.`;
+  document.getElementById('fil-panel').style.display = '';
+
+  e.target.value = '';
+});
+
+document.getElementById('btn-fil-avbryt').addEventListener('click', () => {
+  document.getElementById('fil-panel').style.display = 'none';
+  uppladdningsFiler = [];
+});
+
+document.getElementById('btn-fil-starta').addEventListener('click', async () => {
+  if (uppladdningsFiler.length === 0) return;
+  döljFelmeddelande();
+
+  document.getElementById('fil-panel').style.display = 'none';
 
   const filStatus = document.getElementById('fil-status');
   filStatus.style.display = '';
-  filStatus.textContent = `Förbereder ${filer.length} fil(er)…`;
+  filStatus.style.color = '#555';
+
+  const mallId = document.getElementById('fil-mall-val').value;
+  let mallData = {};
+  if (mallId) {
+    const { dokumentmallar = [] } = await chrome.storage.local.get('dokumentmallar');
+    const dm = dokumentmallar.find(m => m.id === mallId);
+    if (dm) {
+      mallData = { ...dm };
+      delete mallData.id;
+      delete mallData.skapad;
+    }
+  }
 
   try {
     const filData = [];
-    for (const f of filer) {
+    for (const f of uppladdningsFiler) {
       filStatus.textContent = `Läser ${f.name}…`;
       const base64 = await filTillBase64(f);
       filData.push({ namn: f.name, typ: f.type, base64 });
     }
 
-    filStatus.textContent = `Skickar ${filer.length} fil(er) till 360°…`;
-    await skickaFilDokument([{ filerBase64: filData }]);
+    const dok = { ...mallData, filerBase64: filData };
+    if (!dok.titel) dok.titel = uppladdningsFiler.length === 1
+      ? uppladdningsFiler[0].name.replace(/\.[^.]+$/, '')
+      : '';
+
+    filStatus.textContent = `Skickar till 360°…`;
+    await skickaFilDokument([dok]);
 
     filStatus.textContent = '';
     filStatus.style.display = 'none';
@@ -499,7 +644,7 @@ document.getElementById('fil-input').addEventListener('change', async (e) => {
     filStatus.style.color = '#c0392b';
   }
 
-  e.target.value = '';
+  uppladdningsFiler = [];
 });
 
 // ------------------------------------------------------------------

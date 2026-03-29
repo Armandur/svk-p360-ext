@@ -146,6 +146,53 @@
     }
   });
 
+  /**
+   * Kontrollerar om dokumentslotarnas handlingstyp stämmer med ärendemallens
+   * klassificering och visar varning vid avvikelse.
+   */
+  function kontrolleraSlotKompatibilitet() {
+    const varningDiv = document.getElementById('slot-klass-varning');
+    if (!varningDiv) return;
+
+    if (!valdMall?.klassificering?.display) {
+      varningDiv.style.display = 'none';
+      return;
+    }
+
+    const ärendeMatch = valdMall.klassificering.display.match(/^([\d.]+)/);
+    const ärendeKlass = ärendeMatch ? ärendeMatch[1] : null;
+    if (!ärendeKlass) {
+      varningDiv.style.display = 'none';
+      return;
+    }
+
+    const konflikter = [];
+    for (let i = 0; i < slotsar.length; i++) {
+      const slot = slotsar[i];
+      const htText = slot.dokumentmall?.handlingstyp?.text;
+      if (!htText) continue;
+      const htMatch = htText.match(/^([\d.]+)/);
+      const mallKlass = htMatch ? htMatch[1] : null;
+      if (mallKlass && mallKlass !== ärendeKlass) {
+        const namn = slot.dokumentmall?.namn || slot.dokumentmall?.titel || `Dokument ${i + 1}`;
+        konflikter.push(`Fil_${i + 1} "${escHtml(namn)}": handlingstyp klass ${mallKlass} ≠ ärendets klass ${ärendeKlass}`);
+      }
+    }
+
+    if (konflikter.length > 0) {
+      varningDiv.innerHTML =
+        `<strong>⚠ Handlingstypklass stämmer inte överens.</strong> ` +
+        `Handlingstypen i dessa dokumentslotsar tillhör en annan klassificering än ärendemallen ` +
+        `(klass ${ärendeKlass}) – formuläret kräver troligen manuell inmatning:<br>` +
+        `<ul style="margin:4px 0 0 16px;padding:0;">` +
+        konflikter.map(k => `<li>${k}</li>`).join('') +
+        `</ul>`;
+      varningDiv.style.display = 'block';
+    } else {
+      varningDiv.style.display = 'none';
+    }
+  }
+
   // Rendera dokumentslotsar
   function renderaSlotsar() {
     const lista = document.getElementById('slot-lista');
@@ -202,6 +249,8 @@
       div.appendChild(taBortBtn);
       lista.appendChild(div);
     });
+
+    kontrolleraSlotKompatibilitet();
   }
 
   function renderaSlotRoll(el, slot) {
@@ -440,13 +489,112 @@
     URL.revokeObjectURL(url);
   });
 
-  // Öppna dagboksblad (resultatpanel)
+  // Öppna dagboksblad som PDF-flikar för alla lyckade ärenden
   document.getElementById('btn-öppna-dagboksblad').addEventListener('click', async () => {
-    const flik = await hittaP360Flik();
-    if (!flik) {
-      alert('Ingen öppen 360°-flik hittades.');
+    const lyckade = batchResultat.filter(r => r.status === 'klar' && r.recno);
+    if (lyckade.length === 0) {
+      alert('Inga lyckade ärenden med känt ärendenummer att öppna dagboksblad för.');
       return;
     }
-    skickaTillFlik(flik.id, { action: 'dagboksblad' });
+
+    const btn = document.getElementById('btn-öppna-dagboksblad');
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Hämtar…';
+
+    // Hämta ControlIDs parallellt – rapportsidorna är snabba att fetcha
+    const pdfUrls = await Promise.all(lyckade.map(async (r) => {
+      try {
+        const html = await fetch(
+          `https://p360.svenskakyrkan.se/locator/Reports/Case/Innehallsforteckning/Innehallsforteckning?standalone=true&recno=${r.recno}`,
+          { credentials: 'include' }
+        ).then(res => res.text());
+        const match = html.match(/ControlID=([a-f0-9]{32})/);
+        if (!match) return null;
+        return `https://p360.svenskakyrkan.se/Reserved.ReportViewerWebControl.axd` +
+          `?Culture=1053&CultureOverrides=True&UICulture=1053&UICultureOverrides=True` +
+          `&ReportStack=1&ControlID=${match[1]}&Mode=true&OpType=Export` +
+          `&FileName=Innehallsforteckning_1053&ContentDisposition=AlwaysInline&Format=PDF`;
+      } catch {
+        return null;
+      }
+    }));
+
+    for (const url of pdfUrls) {
+      if (url) chrome.tabs.create({ url, active: false });
+    }
+
+    btn.disabled = false;
+    btn.textContent = originalText;
+  });
+
+  // Ladda ned dagboksblad som PDF för alla lyckade ärenden
+  document.getElementById('btn-ladda-ned-dagboksblad').addEventListener('click', async () => {
+    const lyckade = batchResultat.filter(r => r.status === 'klar' && r.recno);
+    if (lyckade.length === 0) {
+      alert('Inga lyckade ärenden med känt ärendenummer att ladda ned dagboksblad för.');
+      return;
+    }
+
+    const btn = document.getElementById('btn-ladda-ned-dagboksblad');
+    const originalText = btn.textContent;
+    btn.disabled = true;
+
+    let lyckadeNed = 0;
+    let misslyckadeNed = 0;
+
+    for (let i = 0; i < lyckade.length; i++) {
+      const r = lyckade[i];
+      btn.textContent = `Laddar ned ${i + 1}/${lyckade.length}…`;
+      try {
+        // Hämta rapportsidans HTML för att extrahera ControlID
+        const rapportUrl = `https://p360.svenskakyrkan.se/locator/Reports/Case/Innehallsforteckning/Innehallsforteckning?standalone=true&recno=${r.recno}`;
+        const htmlSvar = await fetch(rapportUrl, { credentials: 'include' });
+        if (!htmlSvar.ok) throw new Error(`HTTP ${htmlSvar.status}`);
+        const html = await htmlSvar.text();
+
+        // Extrahera ControlID ur $create(Microsoft.Reporting.WebFormsClient._InternalReportViewer, {...})
+        const match = html.match(/ControlID=([a-f0-9]{32})/);
+        if (!match) throw new Error('ControlID hittades inte i rapportsidan.');
+        const controlId = match[1];
+
+        // Bygg nedladdnings-URL (AlwaysAttachment = fil sparas direkt, inte inline)
+        const pdfUrl =
+          `https://p360.svenskakyrkan.se/Reserved.ReportViewerWebControl.axd` +
+          `?Culture=1053&CultureOverrides=True&UICulture=1053&UICultureOverrides=True` +
+          `&ReportStack=1&ControlID=${controlId}&Mode=true&OpType=Export` +
+          `&FileName=Innehallsforteckning_1053&ContentDisposition=AlwaysAttachment&Format=PDF`;
+
+        const pdfSvar = await fetch(pdfUrl, { credentials: 'include' });
+        if (!pdfSvar.ok) throw new Error(`PDF-hämtning misslyckades: HTTP ${pdfSvar.status}`);
+        const blob = await pdfSvar.blob();
+
+        // Trigga nedladdning
+        const filnamn = `dagboksblad_${r.diarienummer || r.recno}.pdf`
+          .replace(/[/\\:*?"<>|]/g, '-');
+        const objUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = objUrl;
+        a.download = filnamn;
+        a.click();
+        URL.revokeObjectURL(objUrl);
+        lyckadeNed++;
+      } catch (err) {
+        console.error(`[batch] Dagboksblad-nedladdning misslyckades för recno ${r.recno}:`, err);
+        misslyckadeNed++;
+      }
+
+      // Kort paus mellan nedladdningar för att inte överbelasta servern
+      if (i < lyckade.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 800));
+      }
+    }
+
+    btn.disabled = false;
+    btn.textContent = originalText;
+
+    if (misslyckadeNed > 0) {
+      alert(`${lyckadeNed} dagboksblad nedladdade. ${misslyckadeNed} misslyckades – se konsolen för detaljer.`);
+    }
   });
 })();

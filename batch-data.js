@@ -206,16 +206,6 @@ function valideraRad(rad, slots) {
   const fel = [];
   if (!rad.Titel && !rad.titel) fel.push('Titel saknas');
   if (!rad.Namn && !rad.namn) fel.push('Namn saknas');
-
-  // Kolla att minst en fil finns om det finns slots
-  if (slots.length > 0) {
-    const harFil = slots.some((_, idx) => {
-      const kolumn = `Fil_${idx + 1}`;
-      return rad[kolumn] || rad._filer?.[idx];
-    });
-    if (!harFil) fel.push('Ingen fil angiven');
-  }
-
   return fel;
 }
 
@@ -303,12 +293,12 @@ function byggMallFrånRad(baseMall, rad, slots, aktivaKolumner) {
   mall.ärendedokument = [];
   for (let s = 0; s < slots.length; s++) {
     const slot = slots[s];
+    // Hoppa över slot utan dokumentmall
+    if (!slot.dokumentmall) continue;
+
     const filKolumn = `Fil_${s + 1}`;
     const filnamn = rad[filKolumn];
     const filObj = rad._filer?.[s];
-
-    // Hoppa över slot om ingen fil
-    if (!filnamn && !filObj) continue;
 
     const dokMall = JSON.parse(JSON.stringify(slot.dokumentmall));
 
@@ -329,11 +319,13 @@ function byggMallFrånRad(baseMall, rad, slots, aktivaKolumner) {
       dokMall.ankomstdatum = rad.Ankomstdatum || rad.ankomstdatum;
     }
 
-    // Fil-referens (filnamn eller File-objekt lagras separat)
+    // Fil-referens (filnamn eller File-objekt lagras separat, ej obligatoriskt)
     if (filObj) {
       dokMall._filObj = filObj; // File-objekt från drag-and-drop
     }
-    dokMall._filnamn = filnamn || (filObj ? filObj.name : '');
+    if (filnamn || filObj) {
+      dokMall._filnamn = filnamn || filObj.name;
+    }
 
     mall.ärendedokument.push(dokMall);
   }

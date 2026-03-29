@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(location.search);
   mallId = params.get('id');
   if (mallId) {
-    document.getElementById('sidrubrik').textContent = 'Redigera mall';
+    document.getElementById('sidrubrik').textContent = 'Redigera ärendemall';
     await laddaMall(mallId);
   }
 
