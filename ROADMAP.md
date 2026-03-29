@@ -7,33 +7,7 @@ Flytta en punkt till "Klart" när den är implementerad och testad.
 
 ## Pågående
 
-### Import av mallar från fil (TSV/CSV/Excel)
-
-Möjlighet att importera mallärenden från en tabbseparerad, kommaseparerad eller
-Excel-fil (`.txt`, `.csv`, `.xls`, `.xlsx`). Varje rad i filen representerar en mall
-med namngivna kolumner som motsvarar mallfälten (titel, diarieenhet, klassificering,
-skyddskod, ansvarig enhet osv.).
-
-**Användningsfall:**
-- Snabb uppsättning av många mallar på en gång
-- Dela mallkonfigurationer mellan kollegor (exportera → skicka fil → importera)
-- Versionsstyra mallar utanför tillägget (t.ex. i ett kalkylblad)
-
-**Förväntade kolumner:** samma fält som i mallformuläret – `namn`, `titel`,
-`diarieenhet`, `klassificering`, `skyddskod`, `paragraf`, `ansvarigEnhet`,
-`ansvarigPerson`, `status`, `sparatPaPapper`, `kommentar` m.fl.
-
-**Flöde:**
-1. Användaren laddar upp filen i mallinställningssidan
-2. Tillägget parsar filen och visar en förhandsgranskning av mallarna
-3. Befintliga mallar kan behållas, slås samman eller ersättas
-4. Möjlighet att även exportera befintliga mallar till samma filformat
-
-**Tekniska noteringar:**
-- Excel-parsning kräver ett externt bibliotek (t.ex. SheetJS/xlsx) eller
-  begränsning till CSV/TSV för att undvika beroenden
-- Fältvärden för dropdowns (diarieenhet, ansvarig enhet m.m.) är instansspecifika –
-  import av värde-ID:n fungerar bara inom samma 360°-installation
+Inga funktioner under aktiv utveckling just nu.
 
 ---
 
@@ -138,3 +112,5 @@ Funktioner som diskuterats men ännu inte prioriterats.
 | Refaktorering: page-document-steps.js + batch-utils.js för bättre AI-navigering | 2026-03-29 |
 | Massregistrering: "Öppna dagboksblad (alla ärenden)" i resultatpanelen | 2026-03-29 |
 | Massregistrering: "Ladda ned dagboksblad (PDF)" – direktnedladdning via MSRS axd-endpoint | 2026-03-29 |
+| Export av mallar (ärendemallar + dokumentmallar) till JSON-fil | 2026-03-29 |
+| Import av mallar från JSON-fil med val: slå samman eller ersätt allt | 2026-03-29 |
