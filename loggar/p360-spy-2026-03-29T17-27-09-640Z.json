@@ -1,0 +1,3181 @@
+{
+  "version": 2,
+  "url": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1356065",
+  "sparadAt": "2026-03-29T17:27:09.639Z",
+  "antal": 93,
+  "logs": [
+    {
+      "t": "2026-03-29T17:26:49.060Z",
+      "k": "iframe_laddad",
+      "url": "https://p360.svenskakyrkan.se/keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+      "iframeId": "keepviewaliveframe"
+    },
+    {
+      "t": "2026-03-29T17:26:49.060Z",
+      "k": "iframe_formulär",
+      "url": "https://p360.svenskakyrkan.se/keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+      "formFält": [],
+      "dolda": []
+    },
+    {
+      "t": "2026-03-29T17:26:49.060Z",
+      "k": "iframe_snapshot",
+      "url": "https://p360.svenskakyrkan.se/keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+      "prefix": "keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+      "hidden": [],
+      "controls": []
+    },
+    {
+      "t": "2026-03-29T17:26:49.061Z",
+      "k": "snapshot",
+      "etikett": "start",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1356065",
+      "main": {
+        "prefix": "main",
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "val": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControlDropDownButton_anchor_t",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Nytt dokument\n\t\tDokumentAvtalsdokumentArbetsdokumentÄrendedokumentNy e-postReferens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControlDropDownButton_anchor",
+            "tag": "BUTTON",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Nytt dokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu",
+            "tag": "UL",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "DokumentAvtalsdokumentArbetsdokumentÄrendedokumentNy e-postReferens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_",
+            "tag": "A",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Dokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_19",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','19');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Avtalsdokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_1",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','1');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Arbetsdokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_61000",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','61000');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Ärendedokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_EMail",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','EMail');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Ny e-post"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_NewReference",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','NewReference');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Referens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_MainTable",
+            "tag": "TABLE",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_CaptionCell",
+            "tag": "TD",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "%2FFileUpload.ashx",
+            "pathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "btnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "maxFiles": "",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropSelectFilesAnchorControl",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:void(0);",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "tag": "INPUT",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          }
+        ]
+      },
+      "iframes": [
+        {
+          "url": "about:blank",
+          "prefix": "about:blank",
+          "hidden": [],
+          "controls": []
+        },
+        {
+          "url": "https://p360.svenskakyrkan.se/keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+          "prefix": "keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+          "hidden": [],
+          "controls": []
+        }
+      ]
+    },
+    {
+      "t": "2026-03-29T17:26:51.062Z",
+      "k": "snapshot",
+      "etikett": "intervall",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1356065",
+      "main": {
+        "prefix": "main",
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "val": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControlDropDownButton_anchor_t",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Nytt dokument\n\t\tDokumentAvtalsdokumentArbetsdokumentÄrendedokumentNy e-postReferens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControlDropDownButton_anchor",
+            "tag": "BUTTON",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Nytt dokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu",
+            "tag": "UL",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "DokumentAvtalsdokumentArbetsdokumentÄrendedokumentNy e-postReferens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_",
+            "tag": "A",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Dokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_19",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','19');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Avtalsdokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_1",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','1');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Arbetsdokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_61000",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','61000');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Ärendedokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_EMail",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','EMail');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Ny e-post"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_NewReference",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','NewReference');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Referens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_MainTable",
+            "tag": "TABLE",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_CaptionCell",
+            "tag": "TD",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "%2FFileUpload.ashx",
+            "pathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "btnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "maxFiles": "",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropSelectFilesAnchorControl",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:void(0);",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "tag": "INPUT",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          }
+        ]
+      },
+      "iframes": [
+        {
+          "url": "about:blank",
+          "prefix": "about:blank",
+          "hidden": [],
+          "controls": []
+        },
+        {
+          "url": "https://p360.svenskakyrkan.se/keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+          "prefix": "keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+          "hidden": [],
+          "controls": []
+        }
+      ]
+    },
+    {
+      "t": "2026-03-29T17:26:53.069Z",
+      "k": "snapshot",
+      "etikett": "intervall",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1356065",
+      "main": {
+        "prefix": "main",
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "val": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControlDropDownButton_anchor_t",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Nytt dokument\n\t\tDokumentAvtalsdokumentArbetsdokumentÄrendedokumentNy e-postReferens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControlDropDownButton_anchor",
+            "tag": "BUTTON",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Nytt dokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu",
+            "tag": "UL",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "DokumentAvtalsdokumentArbetsdokumentÄrendedokumentNy e-postReferens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_",
+            "tag": "A",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Dokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_19",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','19');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Avtalsdokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_1",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','1');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Arbetsdokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_61000",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','61000');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Ärendedokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_EMail",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','EMail');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Ny e-post"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_NewReference",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','NewReference');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Referens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_MainTable",
+            "tag": "TABLE",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_CaptionCell",
+            "tag": "TD",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "%2FFileUpload.ashx",
+            "pathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "btnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "maxFiles": "",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropSelectFilesAnchorControl",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:void(0);",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "tag": "INPUT",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          }
+        ]
+      },
+      "iframes": [
+        {
+          "url": "about:blank",
+          "prefix": "about:blank",
+          "hidden": [],
+          "controls": []
+        },
+        {
+          "url": "https://p360.svenskakyrkan.se/keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+          "prefix": "keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+          "hidden": [],
+          "controls": []
+        }
+      ]
+    },
+    {
+      "t": "2026-03-29T17:26:55.068Z",
+      "k": "snapshot",
+      "etikett": "intervall",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1356065",
+      "main": {
+        "prefix": "main",
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "val": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControlDropDownButton_anchor_t",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Nytt dokument\n\t\tDokumentAvtalsdokumentArbetsdokumentÄrendedokumentNy e-postReferens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControlDropDownButton_anchor",
+            "tag": "BUTTON",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Nytt dokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu",
+            "tag": "UL",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "DokumentAvtalsdokumentArbetsdokumentÄrendedokumentNy e-postReferens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_",
+            "tag": "A",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Dokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_19",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','19');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Avtalsdokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_1",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','1');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Arbetsdokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_61000",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','61000');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Ärendedokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_EMail",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','EMail');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Ny e-post"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_NewReference",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','NewReference');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Referens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_MainTable",
+            "tag": "TABLE",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_CaptionCell",
+            "tag": "TD",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "%2FFileUpload.ashx",
+            "pathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "btnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "maxFiles": "",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropSelectFilesAnchorControl",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:void(0);",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "tag": "INPUT",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          }
+        ]
+      },
+      "iframes": [
+        {
+          "url": "about:blank",
+          "prefix": "about:blank",
+          "hidden": [],
+          "controls": []
+        },
+        {
+          "url": "https://p360.svenskakyrkan.se/keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+          "prefix": "keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+          "hidden": [],
+          "controls": []
+        }
+      ]
+    },
+    {
+      "t": "2026-03-29T17:26:57.063Z",
+      "k": "snapshot",
+      "etikett": "intervall",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1356065",
+      "main": {
+        "prefix": "main",
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "val": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControlDropDownButton_anchor_t",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Nytt dokument\n\t\tDokumentAvtalsdokumentArbetsdokumentÄrendedokumentNy e-postReferens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControlDropDownButton_anchor",
+            "tag": "BUTTON",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Nytt dokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu",
+            "tag": "UL",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "DokumentAvtalsdokumentArbetsdokumentÄrendedokumentNy e-postReferens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_",
+            "tag": "A",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Dokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_19",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','19');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Avtalsdokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_1",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','1');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Arbetsdokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_61000",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','61000');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Ärendedokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_EMail",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','EMail');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Ny e-post"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_NewReference",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','NewReference');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Referens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_MainTable",
+            "tag": "TABLE",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_CaptionCell",
+            "tag": "TD",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "%2FFileUpload.ashx",
+            "pathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "btnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "maxFiles": "",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropSelectFilesAnchorControl",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:void(0);",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "tag": "INPUT",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          }
+        ]
+      },
+      "iframes": [
+        {
+          "url": "about:blank",
+          "prefix": "about:blank",
+          "hidden": [],
+          "controls": []
+        },
+        {
+          "url": "https://p360.svenskakyrkan.se/keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+          "prefix": "keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+          "hidden": [],
+          "controls": []
+        }
+      ]
+    },
+    {
+      "t": "2026-03-29T17:26:58.078Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragenter",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.083Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.141Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.200Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.263Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.285Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.340Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.403Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.464Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.501Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.507Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.588Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.667Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.700Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.704Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.711Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.725Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.735Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.742Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.747Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.753Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.760Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.766Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.772Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.777Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.783Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.789Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.794Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.805Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.814Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.820Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.824Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.832Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.838Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.843Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.847Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.853Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.931Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:58.958Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:59.023Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:59.065Z",
+      "k": "snapshot",
+      "etikett": "intervall",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1356065",
+      "main": {
+        "prefix": "main",
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "val": ""
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControlDropDownButton_anchor_t",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Nytt dokument\n\t\tDokumentAvtalsdokumentArbetsdokumentÄrendedokumentNy e-postReferens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControlDropDownButton_anchor",
+            "tag": "BUTTON",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Nytt dokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu",
+            "tag": "UL",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "DokumentAvtalsdokumentArbetsdokumentÄrendedokumentNy e-postReferens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_",
+            "tag": "A",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Dokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_19",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','19');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Avtalsdokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_1",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','1');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Arbetsdokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_61000",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','61000');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Ärendedokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_EMail",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','EMail');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Ny e-post"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_NewReference",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','NewReference');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Referens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_MainTable",
+            "tag": "TABLE",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_CaptionCell",
+            "tag": "TD",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "%2FFileUpload.ashx",
+            "pathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "btnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "maxFiles": "",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropSelectFilesAnchorControl",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:void(0);",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "tag": "INPUT",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          }
+        ]
+      },
+      "iframes": [
+        {
+          "url": "about:blank",
+          "prefix": "about:blank",
+          "hidden": [],
+          "controls": []
+        },
+        {
+          "url": "https://p360.svenskakyrkan.se/keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+          "prefix": "keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+          "hidden": [],
+          "controls": []
+        }
+      ]
+    },
+    {
+      "t": "2026-03-29T17:26:59.102Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:59.170Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:59.241Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:59.318Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:59.386Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:59.394Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:59.398Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:59.472Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:59.533Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "dragover",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": []
+    },
+    {
+      "t": "2026-03-29T17:26:59.601Z",
+      "k": "drag",
+      "ctx": "[main]",
+      "typ": "drop",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+      "uploadUrl": "%2FFileUpload.ashx",
+      "filer": [
+        {
+          "namn": "bekräftelse_andersson.pdf",
+          "storlek": 2026,
+          "typ": "application/pdf"
+        },
+        {
+          "namn": "bekräftelse_bergström.pdf",
+          "storlek": 2024,
+          "typ": "application/pdf"
+        },
+        {
+          "namn": "bekräftelse_carlsson.pdf",
+          "storlek": 2026,
+          "typ": "application/pdf"
+        }
+      ]
+    },
+    {
+      "t": "2026-03-29T17:26:59.603Z",
+      "k": "hidden_path_satt",
+      "ctx": "",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+      "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+      "value": ""
+    },
+    {
+      "t": "2026-03-29T17:26:59.609Z",
+      "k": "xhr",
+      "ctx": "[main]",
+      "method": "GET",
+      "url": "/FileUpload.ashx/Ping?_=1774805190898",
+      "bodyType": "object",
+      "bodyPreview": ""
+    },
+    {
+      "t": "2026-03-29T17:26:59.662Z",
+      "k": "xhr",
+      "ctx": "[main]",
+      "method": "POST",
+      "url": "/FileUpload.ashx?userSession=655142795",
+      "bodyType": "FormData",
+      "bodyPreview": "bekräftelse_andersson.pdf"
+    },
+    {
+      "t": "2026-03-29T17:26:59.663Z",
+      "k": "xhr_svar",
+      "ctx": "[main]",
+      "url": "/FileUpload.ashx/Ping?_=1774805190898",
+      "status": 200,
+      "svar": "Ping"
+    },
+    {
+      "t": "2026-03-29T17:26:59.706Z",
+      "k": "xhr",
+      "ctx": "[main]",
+      "method": "GET",
+      "url": "/FileUpload.ashx/Ping?_=1774805190899",
+      "bodyType": "object",
+      "bodyPreview": ""
+    },
+    {
+      "t": "2026-03-29T17:26:59.707Z",
+      "k": "xhr_svar",
+      "ctx": "[main]",
+      "url": "/FileUpload.ashx?userSession=655142795",
+      "status": 200,
+      "svar": "bekräftelse_andersson.pdf"
+    },
+    {
+      "t": "2026-03-29T17:26:59.745Z",
+      "k": "xhr",
+      "ctx": "[main]",
+      "method": "POST",
+      "url": "/FileUpload.ashx?userSession=873871058",
+      "bodyType": "FormData",
+      "bodyPreview": "bekräftelse_bergström.pdf"
+    },
+    {
+      "t": "2026-03-29T17:26:59.745Z",
+      "k": "xhr_svar",
+      "ctx": "[main]",
+      "url": "/FileUpload.ashx/Ping?_=1774805190899",
+      "status": 200,
+      "svar": "Ping"
+    },
+    {
+      "t": "2026-03-29T17:26:59.784Z",
+      "k": "xhr",
+      "ctx": "[main]",
+      "method": "GET",
+      "url": "/FileUpload.ashx/Ping?_=1774805190900",
+      "bodyType": "object",
+      "bodyPreview": ""
+    },
+    {
+      "t": "2026-03-29T17:26:59.784Z",
+      "k": "xhr_svar",
+      "ctx": "[main]",
+      "url": "/FileUpload.ashx?userSession=873871058",
+      "status": 200,
+      "svar": "bekräftelse_bergström.pdf"
+    },
+    {
+      "t": "2026-03-29T17:26:59.822Z",
+      "k": "xhr",
+      "ctx": "[main]",
+      "method": "POST",
+      "url": "/FileUpload.ashx?userSession=833871172",
+      "bodyType": "FormData",
+      "bodyPreview": "bekräftelse_carlsson.pdf"
+    },
+    {
+      "t": "2026-03-29T17:26:59.822Z",
+      "k": "xhr_svar",
+      "ctx": "[main]",
+      "url": "/FileUpload.ashx/Ping?_=1774805190900",
+      "status": 200,
+      "svar": "Ping"
+    },
+    {
+      "t": "2026-03-29T17:26:59.861Z",
+      "k": "xhr",
+      "ctx": "[main]",
+      "method": "GET",
+      "url": "/FileUpload.ashx/Ping?_=1774805190901",
+      "bodyType": "object",
+      "bodyPreview": ""
+    },
+    {
+      "t": "2026-03-29T17:26:59.862Z",
+      "k": "xhr_svar",
+      "ctx": "[main]",
+      "url": "/FileUpload.ashx?userSession=833871172",
+      "status": 200,
+      "svar": "bekräftelse_carlsson.pdf"
+    },
+    {
+      "t": "2026-03-29T17:26:59.901Z",
+      "k": "hidden_path_satt",
+      "ctx": "",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+      "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+      "value": "655142795|bekräftelse_andersson.pdf|||873871058|bekräftelse_bergström.pdf|||833871172|bekräftelse_carlsson.pdf"
+    },
+    {
+      "t": "2026-03-29T17:26:59.901Z",
+      "k": "klick",
+      "ctx": "[main]",
+      "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+      "tag": "A",
+      "type": "",
+      "onclick": "",
+      "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+      "text": ""
+    },
+    {
+      "t": "2026-03-29T17:26:59.902Z",
+      "k": "xhr_svar",
+      "ctx": "[main]",
+      "url": "/FileUpload.ashx/Ping?_=1774805190901",
+      "status": 200,
+      "svar": "Ping"
+    },
+    {
+      "t": "2026-03-29T17:26:59.904Z",
+      "k": "postback",
+      "ctx": "[main]",
+      "target": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+      "arg": ""
+    },
+    {
+      "t": "2026-03-29T17:26:59.909Z",
+      "k": "xhr",
+      "ctx": "[main]",
+      "method": "POST",
+      "url": "https://p360.svenskakyrkan.se/view.aspx?id=743988fd-6283-47e4-8fd7-e15ee3c4b5eb&context-data=module%2cPrimary%2cCase%3bsubtype%2cPrimary%2c61000%3brecno%2cPrimary%2c1356065%3bname%2cPrimary%2cDMS.Case.Details.Simplified.61000%3b",
+      "bodyType": "String",
+      "bodyPreview": "ctl00%24ScriptManager=ctl00%24PlaceHolderMain%24SI360MainUpdatePanel%7Cctl00%24PlaceHolderMain%24MainView%24LeftFolderView1_ViewControl%24UploadControl_DocumentMultiFileUploadControl_hiddenUploadButto"
+    },
+    {
+      "t": "2026-03-29T17:27:00.920Z",
+      "k": "iframe_tillagd",
+      "id": "keepviewaliveframe",
+      "src": "https://p360.svenskakyrkan.se/keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+      "href": "about:blank"
+    },
+    {
+      "t": "2026-03-29T17:27:00.920Z",
+      "k": "iframe_borttagen",
+      "id": "keepviewaliveframe",
+      "src": "https://p360.svenskakyrkan.se/keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036"
+    },
+    {
+      "t": "2026-03-29T17:27:00.920Z",
+      "k": "iframe_tillagd",
+      "id": "",
+      "src": "https://p360.svenskakyrkan.se/locator/DMS/Dialog/ConnectedDocumentDialog?IsDlg=1&SAVEAS=1&MoveTo=1&dialogmode=true&dialog=modal&ApplyIE9DropDownFix=true&recno=5714557&SourceEntity=Case&SourceKey=1356065&dialogTitle=360%C2%B0&dialogOpenMode=spdialog&dialogCloseMode=spdialog&IsDlg=1",
+      "href": "about:blank"
+    },
+    {
+      "t": "2026-03-29T17:27:00.920Z",
+      "k": "xhr_svar",
+      "ctx": "[main]",
+      "url": "https://p360.svenskakyrkan.se/view.aspx?id=743988fd-6283-47e4-8fd7-e15ee3c4b5eb&context-data=module%2cPrimary%2cCase%3bsubtype%2cPrimary%2c61000%3brecno%2cPrimary%2c1356065%3bname%2cPrimary%2cDMS.Case.Details.Simplified.61000%3b",
+      "status": 200,
+      "svar": "1|#||4|255890|updatePanel|PlaceHolderMain_SI360MainUpdatePanel|\r\n            <input name=\"ctl00$PlaceHolderMain$MainView$BIFViewState\" type=\"hidden\" id=\"PlaceHolderMain_MainView_BIFViewState\" value=\"4806e4c0-a7e6-418a-ad04-6468c4dba464\" /><span id=\"PlaceHolderMain_MainView_MainView_NavigationHandler\"></span><script>\r\n    \"use strict\";\r\n    function pageLoad() {\r\n        if (window.setPhaseImages) "
+    },
+    {
+      "t": "2026-03-29T17:27:00.949Z",
+      "k": "iframe_laddad",
+      "url": "https://p360.svenskakyrkan.se/keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+      "iframeId": "keepviewaliveframe"
+    },
+    {
+      "t": "2026-03-29T17:27:00.949Z",
+      "k": "iframe_formulär",
+      "url": "https://p360.svenskakyrkan.se/keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+      "formFält": [],
+      "dolda": []
+    },
+    {
+      "t": "2026-03-29T17:27:00.949Z",
+      "k": "iframe_snapshot",
+      "url": "https://p360.svenskakyrkan.se/keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+      "prefix": "keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+      "hidden": [],
+      "controls": []
+    },
+    {
+      "t": "2026-03-29T17:27:01.065Z",
+      "k": "snapshot",
+      "etikett": "intervall",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1356065",
+      "main": {
+        "prefix": "main",
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "val": "655142795|bekräftelse_andersson.pdf|||873871058|bekräftelse_bergström.pdf|||833871172|bekräftelse_carlsson.pdf"
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControlDropDownButton_anchor_t",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Nytt dokument\n\tDokumentAvtalsdokumentArbetsdokumentÄrendedokumentNy e-postReferens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControlDropDownButton_anchor",
+            "tag": "BUTTON",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Nytt dokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu",
+            "tag": "UL",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "DokumentAvtalsdokumentArbetsdokumentÄrendedokumentNy e-postReferens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_",
+            "tag": "A",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Dokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_19",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','19');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Avtalsdokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_1",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','1');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Arbetsdokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_61000",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','61000');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Ärendedokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_EMail",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','EMail');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Ny e-post"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_NewReference",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','NewReference');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Referens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_MainTable",
+            "tag": "TABLE",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_CaptionCell",
+            "tag": "TD",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "%2FFileUpload.ashx",
+            "pathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "btnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "maxFiles": "",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropSelectFilesAnchorControl",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:void(0);",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "tag": "INPUT",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          }
+        ]
+      },
+      "iframes": [
+        {
+          "url": "about:blank",
+          "prefix": "about:blank",
+          "hidden": [],
+          "controls": []
+        },
+        {
+          "url": "https://p360.svenskakyrkan.se/keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+          "prefix": "keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+          "hidden": [],
+          "controls": []
+        },
+        {
+          "url": "about:blank",
+          "prefix": "about:blank",
+          "hidden": [],
+          "controls": []
+        }
+      ]
+    },
+    {
+      "t": "2026-03-29T17:27:01.537Z",
+      "k": "iframe_laddad",
+      "url": "https://p360.svenskakyrkan.se/locator/DMS/Dialog/ConnectedDocumentDialog?IsDlg=1&SAVEAS=1&MoveTo=1&dialogmode=true&dialog=modal&ApplyIE9DropDownFix=true&recno=5714557&SourceEntity=Case&SourceKey=1356065&dialogTitle=360%C2%B0&dialogOpenMode=spdialog&dialogCloseMode=spdialog&IsDlg=1",
+      "iframeId": ""
+    },
+    {
+      "t": "2026-03-29T17:27:01.537Z",
+      "k": "iframe_formulär",
+      "url": "https://p360.svenskakyrkan.se/locator/DMS/Dialog/ConnectedDocumentDialog?IsDlg=1&SAVEAS=1&MoveTo=1&dialogmode=true&dialog=modal&ApplyIE9DropDownFix=true&recno=5714557&SourceEntity=Case&SourceKey=1356065&dialogTitle=360%C2%B0&dialogOpenMode=spdialog&dialogCloseMode=spdialog&IsDlg=1",
+      "formFält": [
+        {
+          "id": "",
+          "name": "",
+          "tag": "INPUT",
+          "type": "button",
+          "value": "",
+          "onclick": ""
+        },
+        {
+          "id": "PlaceHolderMain_MainView_ArchiveAndTemplateComboBox_0",
+          "name": "ctl00$PlaceHolderMain$MainView$ArchiveAndTemplateComboBox",
+          "tag": "INPUT",
+          "type": "radio",
+          "value": "1",
+          "onclick": "javascript:setTimeout('__doPostBack(\\'ctl00$PlaceHolderMain$MainView$ArchiveAndTemplateComboBox$0\\',\\'\\')', 0)"
+        },
+        {
+          "id": "PlaceHolderMain_MainView_ArchiveAndTemplateComboBox_1",
+          "name": "ctl00$PlaceHolderMain$MainView$ArchiveAndTemplateComboBox",
+          "tag": "INPUT",
+          "type": "radio",
+          "value": "2",
+          "onclick": "javascript:setTimeout('__doPostBack(\\'ctl00$PlaceHolderMain$MainView$ArchiveAndTemplateComboBox$1\\',\\'\\')', 0)"
+        },
+        {
+          "id": "PlaceHolderMain_MainView_ArchiveAndTemplateComboBox_2",
+          "name": "ctl00$PlaceHolderMain$MainView$ArchiveAndTemplateComboBox",
+          "tag": "INPUT",
+          "type": "radio",
+          "value": "3",
+          "onclick": "javascript:setTimeout('__doPostBack(\\'ctl00$PlaceHolderMain$MainView$ArchiveAndTemplateComboBox$2\\',\\'\\')', 0)"
+        },
+        {
+          "id": "",
+          "name": "",
+          "tag": "INPUT",
+          "type": "button",
+          "value": "",
+          "onclick": ""
+        }
+      ],
+      "dolda": [
+        {
+          "id": "__SIINSTRUCTIONS",
+          "name": "__SIINSTRUCTIONS",
+          "val": ""
+        },
+        {
+          "id": "__EVENTTARGET",
+          "name": "__EVENTTARGET",
+          "val": ""
+        },
+        {
+          "id": "__EVENTARGUMENT",
+          "name": "__EVENTARGUMENT",
+          "val": ""
+        },
+        {
+          "id": "__LASTFOCUS",
+          "name": "__LASTFOCUS",
+          "val": ""
+        },
+        {
+          "id": "__SCROLLPOSITIONX",
+          "name": "__SCROLLPOSITIONX",
+          "val": "0"
+        },
+        {
+          "id": "__SCROLLPOSITIONY",
+          "name": "__SCROLLPOSITIONY",
+          "val": "0"
+        },
+        {
+          "id": "siteRootUrlHiddenField",
+          "name": "ctl00$siteRootUrlHiddenField",
+          "val": ""
+        },
+        {
+          "id": "PlaceHolderMain_MainView_BIFViewState",
+          "name": "ctl00$PlaceHolderMain$MainView$BIFViewState",
+          "val": "bb303e64-c772-4c01-9d44-0fb1d0a875d3"
+        },
+        {
+          "id": "PlaceHolderMain_MainViewContextGuidFieldId",
+          "name": "PlaceHolderMain_MainViewContextGuidFieldId",
+          "val": "99fff06c-8e93-449e-a66e-0a6b05a50bb3"
+        },
+        {
+          "id": "SI_BIF_datePickerOptions",
+          "name": "",
+          "val": "{\"editable\":true,\"format\":\"yyyy-mm-dd\",\"formatSubmit\":\"yyyy-mm-dd\",\"hiddenName\":true,\"hiddenPrefix\":"
+        }
+      ]
+    },
+    {
+      "t": "2026-03-29T17:27:01.537Z",
+      "k": "iframe_snapshot",
+      "url": "https://p360.svenskakyrkan.se/locator/DMS/Dialog/ConnectedDocumentDialog?IsDlg=1&SAVEAS=1&MoveTo=1&dialogmode=true&dialog=modal&ApplyIE9DropDownFix=true&recno=5714557&SourceEntity=Case&SourceKey=1356065&dialogTitle=360%C2%B0&dialogOpenMode=spdialog&dialogCloseMode=spdialog&IsDlg=1",
+      "prefix": "ConnectedDocumentDialog?IsDlg=1&SAVEAS=1&MoveTo=1&dialogmode=true&dialog=modal&ApplyIE9DropDownFix=true&recno=5714557&SourceEntity=Case&SourceKey=1356065&dialogTitle=360%C2%B0&dialogOpenMode=spdialog&dialogCloseMode=spdialog&IsDlg=1",
+      "hidden": [],
+      "controls": []
+    },
+    {
+      "t": "2026-03-29T17:27:03.072Z",
+      "k": "snapshot",
+      "etikett": "intervall",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1356065",
+      "main": {
+        "prefix": "main",
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "val": "655142795|bekräftelse_andersson.pdf|||873871058|bekräftelse_bergström.pdf|||833871172|bekräftelse_carlsson.pdf"
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControlDropDownButton_anchor_t",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Nytt dokument\n\tDokumentAvtalsdokumentArbetsdokumentÄrendedokumentNy e-postReferens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControlDropDownButton_anchor",
+            "tag": "BUTTON",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Nytt dokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu",
+            "tag": "UL",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "DokumentAvtalsdokumentArbetsdokumentÄrendedokumentNy e-postReferens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_",
+            "tag": "A",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Dokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_19",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','19');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Avtalsdokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_1",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','1');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Arbetsdokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_61000",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','61000');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Ärendedokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_EMail",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','EMail');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Ny e-post"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_NewReference",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','NewReference');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Referens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_MainTable",
+            "tag": "TABLE",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_CaptionCell",
+            "tag": "TD",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "%2FFileUpload.ashx",
+            "pathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "btnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "maxFiles": "",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropSelectFilesAnchorControl",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:void(0);",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "tag": "INPUT",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          }
+        ]
+      },
+      "iframes": [
+        {
+          "url": "about:blank",
+          "prefix": "about:blank",
+          "hidden": [],
+          "controls": []
+        },
+        {
+          "url": "https://p360.svenskakyrkan.se/keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+          "prefix": "keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+          "hidden": [],
+          "controls": []
+        },
+        {
+          "url": "https://p360.svenskakyrkan.se/locator/DMS/Dialog/ConnectedDocumentDialog?IsDlg=1&SAVEAS=1&MoveTo=1&dialogmode=true&dialog=modal&ApplyIE9DropDownFix=true&recno=5714557&SourceEntity=Case&SourceKey=1356065&dialogTitle=360%C2%B0&dialogOpenMode=spdialog&dialogCloseMode=spdialog&IsDlg=1",
+          "prefix": "ConnectedDocumentDialog?IsDlg=1&SAVEAS=1&MoveTo=1&dialogmode=true&dialog=modal&ApplyIE9DropDownFix=true&recno=5714557&SourceEntity=Case&SourceKey=1356065&dialogTitle=360%C2%B0&dialogOpenMode=spdialog&dialogCloseMode=spdialog&IsDlg=1",
+          "hidden": [],
+          "controls": []
+        }
+      ]
+    },
+    {
+      "t": "2026-03-29T17:27:05.061Z",
+      "k": "snapshot",
+      "etikett": "intervall",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1356065",
+      "main": {
+        "prefix": "main",
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "val": "655142795|bekräftelse_andersson.pdf|||873871058|bekräftelse_bergström.pdf|||833871172|bekräftelse_carlsson.pdf"
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControlDropDownButton_anchor_t",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Nytt dokument\n\tDokumentAvtalsdokumentArbetsdokumentÄrendedokumentNy e-postReferens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControlDropDownButton_anchor",
+            "tag": "BUTTON",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Nytt dokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu",
+            "tag": "UL",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "DokumentAvtalsdokumentArbetsdokumentÄrendedokumentNy e-postReferens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_",
+            "tag": "A",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Dokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_19",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','19');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Avtalsdokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_1",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','1');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Arbetsdokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_61000",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','61000');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Ärendedokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_EMail",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','EMail');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Ny e-post"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_NewReference",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','NewReference');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Referens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_MainTable",
+            "tag": "TABLE",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_CaptionCell",
+            "tag": "TD",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "%2FFileUpload.ashx",
+            "pathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "btnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "maxFiles": "",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropSelectFilesAnchorControl",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:void(0);",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "tag": "INPUT",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          }
+        ]
+      },
+      "iframes": [
+        {
+          "url": "about:blank",
+          "prefix": "about:blank",
+          "hidden": [],
+          "controls": []
+        },
+        {
+          "url": "https://p360.svenskakyrkan.se/keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+          "prefix": "keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+          "hidden": [],
+          "controls": []
+        },
+        {
+          "url": "https://p360.svenskakyrkan.se/locator/DMS/Dialog/ConnectedDocumentDialog?IsDlg=1&SAVEAS=1&MoveTo=1&dialogmode=true&dialog=modal&ApplyIE9DropDownFix=true&recno=5714557&SourceEntity=Case&SourceKey=1356065&dialogTitle=360%C2%B0&dialogOpenMode=spdialog&dialogCloseMode=spdialog&IsDlg=1",
+          "prefix": "ConnectedDocumentDialog?IsDlg=1&SAVEAS=1&MoveTo=1&dialogmode=true&dialog=modal&ApplyIE9DropDownFix=true&recno=5714557&SourceEntity=Case&SourceKey=1356065&dialogTitle=360%C2%B0&dialogOpenMode=spdialog&dialogCloseMode=spdialog&IsDlg=1",
+          "hidden": [],
+          "controls": []
+        }
+      ]
+    },
+    {
+      "t": "2026-03-29T17:27:07.063Z",
+      "k": "snapshot",
+      "etikett": "intervall",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1356065",
+      "main": {
+        "prefix": "main",
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "val": "655142795|bekräftelse_andersson.pdf|||873871058|bekräftelse_bergström.pdf|||833871172|bekräftelse_carlsson.pdf"
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControlDropDownButton_anchor_t",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Nytt dokument\n\tDokumentAvtalsdokumentArbetsdokumentÄrendedokumentNy e-postReferens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControlDropDownButton_anchor",
+            "tag": "BUTTON",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Nytt dokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu",
+            "tag": "UL",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "DokumentAvtalsdokumentArbetsdokumentÄrendedokumentNy e-postReferens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_",
+            "tag": "A",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Dokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_19",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','19');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Avtalsdokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_1",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','1');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Arbetsdokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_61000",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','61000');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Ärendedokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_EMail",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','EMail');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Ny e-post"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_NewReference",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','NewReference');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Referens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_MainTable",
+            "tag": "TABLE",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_CaptionCell",
+            "tag": "TD",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "%2FFileUpload.ashx",
+            "pathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "btnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "maxFiles": "",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropSelectFilesAnchorControl",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:void(0);",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "tag": "INPUT",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          }
+        ]
+      },
+      "iframes": [
+        {
+          "url": "about:blank",
+          "prefix": "about:blank",
+          "hidden": [],
+          "controls": []
+        },
+        {
+          "url": "https://p360.svenskakyrkan.se/keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+          "prefix": "keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+          "hidden": [],
+          "controls": []
+        },
+        {
+          "url": "https://p360.svenskakyrkan.se/locator/DMS/Dialog/ConnectedDocumentDialog?IsDlg=1&SAVEAS=1&MoveTo=1&dialogmode=true&dialog=modal&ApplyIE9DropDownFix=true&recno=5714557&SourceEntity=Case&SourceKey=1356065&dialogTitle=360%C2%B0&dialogOpenMode=spdialog&dialogCloseMode=spdialog&IsDlg=1",
+          "prefix": "ConnectedDocumentDialog?IsDlg=1&SAVEAS=1&MoveTo=1&dialogmode=true&dialog=modal&ApplyIE9DropDownFix=true&recno=5714557&SourceEntity=Case&SourceKey=1356065&dialogTitle=360%C2%B0&dialogOpenMode=spdialog&dialogCloseMode=spdialog&IsDlg=1",
+          "hidden": [],
+          "controls": []
+        }
+      ]
+    },
+    {
+      "t": "2026-03-29T17:27:09.059Z",
+      "k": "snapshot",
+      "etikett": "intervall",
+      "href": "https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000?module=Case&subtype=61000&recno=1356065",
+      "main": {
+        "prefix": "main",
+        "hidden": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "name": "ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "val": "655142795|bekräftelse_andersson.pdf|||873871058|bekräftelse_bergström.pdf|||833871172|bekräftelse_carlsson.pdf"
+          }
+        ],
+        "controls": [
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControlDropDownButton_anchor_t",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Nytt dokument\n\tDokumentAvtalsdokumentArbetsdokumentÄrendedokumentNy e-postReferens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControlDropDownButton_anchor",
+            "tag": "BUTTON",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Nytt dokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu",
+            "tag": "UL",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "DokumentAvtalsdokumentArbetsdokumentÄrendedokumentNy e-postReferens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_",
+            "tag": "A",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Dokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_19",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','19');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Avtalsdokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_1",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','1');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Arbetsdokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_61000",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','61000');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Ärendedokument"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_EMail",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','EMail');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Ny e-post"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentActionMenuControl_DropDownMenu_MenuItemAnchor_NewReference",
+            "tag": "A",
+            "onclick": "__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu','NewReference');",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Referens"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_MainTable",
+            "tag": "TABLE",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_CaptionCell",
+            "tag": "TD",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer",
+            "tag": "DIV",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "%2FFileUpload.ashx",
+            "pathId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "btnId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "listId": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_DocumentsFolderView_listcontrol",
+            "maxFiles": "",
+            "text": "Släpp här…Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropSelectFilesAnchorControl",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:void(0);",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": "Välj eller dra filer hit"
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath",
+            "tag": "INPUT",
+            "onclick": "",
+            "href": "",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          },
+          {
+            "id": "PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton",
+            "tag": "A",
+            "onclick": "",
+            "href": "javascript:__doPostBack('ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton','')",
+            "uploadUrl": "",
+            "pathId": "",
+            "btnId": "",
+            "listId": "",
+            "maxFiles": "",
+            "text": ""
+          }
+        ]
+      },
+      "iframes": [
+        {
+          "url": "about:blank",
+          "prefix": "about:blank",
+          "hidden": [],
+          "controls": []
+        },
+        {
+          "url": "https://p360.svenskakyrkan.se/keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+          "prefix": "keepViewAlive.aspx?ids=1bc03f79-05ab-40b7-8a91-17778a341b4b,62506ea2-28b1-4df4-882b-e000dcca5361,1183df0d-0b95-4893-8563-d0441fa8b036",
+          "hidden": [],
+          "controls": []
+        },
+        {
+          "url": "https://p360.svenskakyrkan.se/locator/DMS/Dialog/ConnectedDocumentDialog?IsDlg=1&SAVEAS=1&MoveTo=1&dialogmode=true&dialog=modal&ApplyIE9DropDownFix=true&recno=5714557&SourceEntity=Case&SourceKey=1356065&dialogTitle=360%C2%B0&dialogOpenMode=spdialog&dialogCloseMode=spdialog&IsDlg=1",
+          "prefix": "ConnectedDocumentDialog?IsDlg=1&SAVEAS=1&MoveTo=1&dialogmode=true&dialog=modal&ApplyIE9DropDownFix=true&recno=5714557&SourceEntity=Case&SourceKey=1356065&dialogTitle=360%C2%B0&dialogOpenMode=spdialog&dialogCloseMode=spdialog&IsDlg=1",
+          "hidden": [],
+          "controls": []
+        }
+      ]
+    }
+  ]
+}
