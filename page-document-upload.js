@@ -8,15 +8,9 @@
  */
 async function väntaPåPRM(iWin, maxMs = 10000) {
   const prm = iWin.Sys?.WebForms?.PageRequestManager?.getInstance?.();
-  if (!prm) {
-    console.log('[p360-upload] PRM saknas – ingen väntan.');
-    return null;
-  }
+  if (!prm) return null;
   for (let ms = 0; ms < maxMs; ms += 100) {
     if (!prm.get_isInAsyncPostBack()) return prm;
-    if (ms % 2000 === 0 && ms > 0) {
-      console.log(`[p360-upload] Väntar på PRM… (${ms} ms)`);
-    }
     await sleep(100);
   }
   console.warn('[p360-upload] PRM fortfarande aktiv efter', maxMs, 'ms – fortsätter ändå.');
@@ -48,14 +42,10 @@ async function laddaUppFiler(iframe, filer, visaStatus, ärAvbruten) {
     const fil = filer[i];
     visaStatus(`Laddar upp fil ${i + 1}/${filer.length}: ${fil.name}…`);
 
-    if (ärAvbruten?.()) {
-      console.log('[p360-upload] Avbruten – hoppar över resterande filer.');
-      break;
-    }
+    if (ärAvbruten?.()) break;
 
     try {
-      const res = await laddaUppEnFil(iframe, fil, ärAvbruten);
-      console.log('[p360-upload] Verifierad registrering:', res);
+      await laddaUppEnFil(iframe, fil, ärAvbruten);
       lyckade.push(fil.name);
     } catch (err) {
       console.error(`[p360-upload] Misslyckades ladda upp ${fil.name}:`, err.message);
@@ -182,7 +172,6 @@ async function laddaUppEnFil(iframe, fil, ärAvbruten) {
   // Steg 0: Navigera till Filer-fliken om uppladdningskontrollerna saknas
   let { hiddenPathEl: hp, hiddenBtn, importList } = hittaUploadKontroller();
   if (!hp || !hiddenBtn) {
-    console.log('[p360-upload] Steg 0: Navigerar till Filer-fliken…');
     iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'FileStep');
     for (let ms = 0; ms < 10000; ms += 200) {
       await sleep(200);
@@ -192,7 +181,6 @@ async function laddaUppEnFil(iframe, fil, ärAvbruten) {
     if (!hp || !hiddenBtn) {
       throw new Error('Filer-fliken laddades inte – upload-kontroller saknas.');
     }
-    console.log('[p360-upload] Steg 0 OK: Filer-fliken laddad.');
   }
 
   // Vänta extra på "rätt" upload-kontrollvariant (LeftFolder...UploadControl...).
@@ -205,14 +193,7 @@ async function laddaUppEnFil(iframe, fil, ärAvbruten) {
     await sleep(200);
   }
 
-  console.log('[p360-upload] Valda upload-kontroller:', {
-    hiddenPathId: hp?.id || hp?.name || '',
-    hiddenBtnId: hiddenBtn?.id || hiddenBtn?.name || '',
-    importListId: importList?.id || '',
-  });
-
   // Steg 1: POST filen till FileUpload.ashx
-  console.log(`[p360-upload] Steg 1: POST ${fil.name} (${fil.size} bytes) till FileUpload.ashx (session=${userSession})`);
   const xhrSvar = await new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `/FileUpload.ashx?userSession=${userSession}`);
@@ -227,8 +208,6 @@ async function laddaUppEnFil(iframe, fil, ärAvbruten) {
     formData.append(fil.name, fil);
     xhr.send(formData);
   });
-  console.log(`[p360-upload] Steg 1 OK: XHR-svar="${xhrSvar?.substring(0, 100)}"`);
-
   // Steg 2: Sätt hidden field (hämta elementet igen efter möjlig navigering)
   ({ hiddenPathEl: hp, hiddenBtn, importList } = hittaUploadKontroller());
   if (!hp) throw new Error('hiddenUploadedFilesPath försvann efter navigering till Filer-fliken.');
@@ -256,7 +235,6 @@ async function laddaUppEnFil(iframe, fil, ärAvbruten) {
   if (canonPath) canonPath.value = uploadValue;
 
   hp.value = uploadValue;
-  console.log(`[p360-upload] Steg 2: Satte hiddenPath (${hp.id || hp.name})="${hp.value}"`);
 
   // Steg 3: Klicka hiddenUploadButton → PostBack registrerar filen med servern
   // Utan detta steget sätts aldrig SI_HiddenField_ScannedFilepath och filen bifogas inte.
@@ -288,10 +266,7 @@ async function laddaUppEnFil(iframe, fil, ärAvbruten) {
 
     // Kör alltid även kanonisk upload-postback (från spy) för att träffa rätt serverkontroll.
     if (typeof iWin.__doPostBack === 'function') {
-      try {
-        console.log('[p360-upload] Extra kanonisk upload-postback:', CANON_BTN_TARGET);
-        iWin.__doPostBack(CANON_BTN_TARGET, '');
-      } catch { /* ignorera */ }
+      try { iWin.__doPostBack(CANON_BTN_TARGET, ''); } catch { /* ignorera */ }
     }
 
     await väntaPåPRM(iWin, 15000);
@@ -341,7 +316,6 @@ async function laddaUppEnFil(iframe, fil, ärAvbruten) {
       );
     }
 
-    console.log('[p360-upload] Steg 3 OK: upload-postback körd och fil registrerad.');
     return {
       filnamn: fil.name,
       hiddenPath: hp.value,

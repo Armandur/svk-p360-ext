@@ -301,7 +301,6 @@ async function triggaDokumentSlutför(iDoc, iWin) {
         ? pb.target
         : standardWizardTarget;
       const useArg = (pb?.arg && String(pb.arg).trim().length > 0) ? pb.arg : standardWizardArg;
-      console.log('[p360-dok] Slutför postback:', { useTarget, useArg, extracted: pb });
       iWin.__doPostBack(useTarget, useArg);
       return 'postback-standardized';
     }
@@ -333,7 +332,6 @@ async function triggaDokumentSlutför(iDoc, iWin) {
         ? pb.target
         : standardWizardTarget;
       const useArg = (pb?.arg && String(pb.arg).trim().length > 0) ? pb.arg : standardWizardArg;
-      console.log('[p360-dok] Slutför postback (retry):', { useTarget, useArg, extracted: pb });
       iWin.__doPostBack(useTarget, useArg);
       return 'postback-standardized-retry';
     }
@@ -368,15 +366,12 @@ function triggaCompleteViaDom(iDoc, iWin) {
     const href = el.getAttribute?.('href') || '';
     const pb = extractPostBack(onclick) || extractPostBack(href);
     if (pb && typeof iWin?.__doPostBack === 'function') {
-      console.log('[p360-dok] Trigger complete via DOM-extraktion:', pb);
       iWin.__doPostBack(pb.target, pb.arg);
       return true;
     }
   }
 
-  // Försök 2: fallback till kanonisk target
   if (typeof iWin?.__doPostBack === 'function') {
-    console.log('[p360-dok] Trigger complete via fallback target (hårdkodad).');
     iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$CompleteWizardHiddenEventControl', '');
     return true;
   }
@@ -490,11 +485,7 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
     dok = { ...dok, handlingstyp: null };
   }
 
-  // Kontrollera avbryt innan vi öppnar formuläret
-  if (ärAvbruten?.()) {
-    console.log('[p360-dok] Avbruten före formuläröppning – hoppar över.');
-    return { cancelled: true };
-  }
+  if (ärAvbruten?.()) return { cancelled: true };
 
   // ---------------------------------------------------------------
   // 1. Öppna dokumentformuläret via PostBack
@@ -522,18 +513,13 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
   // ---------------------------------------------------------------
   // 2. Konvertera base64-filer till File-objekt
   // ---------------------------------------------------------------
-  console.log('[p360-dok] Filstatus:', 'filerBase64:', dok.filerBase64?.length || 0,
-    'filer:', dok.filer?.length || 0, 'titel:', dok.titel);
   if (dok.filerBase64 && dok.filerBase64.length > 0 && (!dok.filer || dok.filer.length === 0)) {
-    console.log('[p360-dok] Konverterar base64 → File:', dok.filerBase64.map(f =>
-      f.namn + ' base64:' + (f.base64 ? f.base64.length + ' tecken' : 'SAKNAS')));
     dok.filer = dok.filerBase64.map(f => {
       const binär = atob(f.base64);
       const bytes = new Uint8Array(binär.length);
       for (let j = 0; j < binär.length; j++) bytes[j] = binär.charCodeAt(j);
       return new File([bytes], f.namn, { type: f.typ || 'application/octet-stream' });
     });
-    console.log('[p360-dok] File-objekt skapade:', dok.filer.map(f => f.name + ' (' + f.size + ' bytes)'));
   }
 
   // ---------------------------------------------------------------
@@ -571,7 +557,6 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
         })
         .map(el => ({ id: el.id, name: el.name, value: el.value }))
         .filter(f => f.value);
-      console.log('[p360-dok] Upload-fält sparade (Filer-fliken):', uppladdningsFält);
 
       // Navigera tillbaka till Generellt för formulärfyllning och Slutför
       visaStatus('Återgår till Generellt…');
@@ -587,9 +572,7 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
       iWin = iframe.contentWindow;
 
       // Återinjicera upload-fält som rensats av GeneralStep-server-svaret
-      if (SKIP_UPLOAD_HIDDEN_INJECTION_FOR_TEST) {
-        console.log('[p360-dok] TEST: Hoppar över återinjicering av upload-hidden-fält.');
-      } else {
+      if (!SKIP_UPLOAD_HIDDEN_INJECTION_FOR_TEST) {
         for (const fält of uppladdningsFält) {
           const id = fält.id || '';
           const name = fält.name || '';
@@ -612,10 +595,7 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
           }
 
           if (kandidat) {
-            if (String(kandidat.value) !== String(fält.value)) {
-              console.log(`[p360-dok] Återställer ${id || name}: → "${fält.value}"`);
-              kandidat.value = fält.value;
-            }
+            kandidat.value = fält.value;
             continue;
           }
 
@@ -628,7 +608,6 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
             if (id) nyttEl.id = id;
             nyttEl.value = fält.value;
             form.appendChild(nyttEl);
-            console.log(`[p360-dok] Injicerade dolt fält ${id || name}: "${fält.value}"`);
           }
         }
       }
@@ -644,11 +623,6 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
   }
   iDoc = iframe.contentDocument;
   iWin = iframe.contentWindow;
-  console.log('[p360-dok] Fyller formulär med:', {
-    titel: dok.titel || '',
-    kategori: dok.kategori || '',
-    handlingstyp: dok.handlingstyp?.value || '',
-  });
   const { kontaktLagdTill } = await fyllDokumentFormulär(iDoc, iWin, dok, visaStatus);
 
   // Verifiera kritiska fält före Slutför så vi inte postar ett tomt formulär.
@@ -680,8 +654,7 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
     // Skicka formuläret från Generellt-fliken
     visaStatus('Sparar ärendedokument…');
     await väntaPåPRM(iWin, 10000);
-    const metod = await triggaDokumentSlutför(iDoc, iWin);
-    console.log(`[p360-dok] Triggade Slutför via ${metod}.`);
+    await triggaDokumentSlutför(iDoc, iWin);
     // Komplettsteg: trigga serverns "complete" för att öppna RepeatWizardDialog.
     // Utan detta kan dialogen utebli och 360° hamna i avbrutet-läge.
     try {
@@ -706,10 +679,9 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
   if (!repeatIframe) {
     waitResult = await väntaPåRepeatEllerFel(iDoc, 20000);
     if (waitResult.valideringsfel.length === 0) {
-      console.warn('[p360-dok] RepeatWizardDialog saknas efter väntan – gör ett andra Slutför-försök.');
+      console.warn('[p360-dok] RepeatWizardDialog saknas – gör ett andra Slutför-försök.');
       await väntaPåPRM(iWin, 15000);
-      const metod2 = await triggaDokumentSlutför(iDoc, iWin);
-      console.log(`[p360-dok] Andra Slutför-försök via ${metod2}.`);
+      await triggaDokumentSlutför(iDoc, iWin);
       try {
         await väntaPåPRM(iWin, 5000);
         iWin.__doPostBack?.('ctl00$PlaceHolderMain$MainView$CompleteWizardHiddenEventControl', '');
