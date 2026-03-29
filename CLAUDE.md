@@ -1112,8 +1112,9 @@ RadioPostBack-mönster: `__doPostBack('ctl00$PlaceHolderMain$MainView$ArchiveAnd
 ├── page-document-options.js  # Passiv caching av Handlingstyp-alternativ m.m.
 ├── page-document-validate.js # Validering av dokumentformulär (obligatoriska fält, handlingstyp)
 ├── page-document-fill.js    # Fyller i dokumentformulärets fält från mall
-├── page-document-upload.js  # Filuppladdning till ärendedokument (FileUpload.ashx)
-├── page-document-create.js  # Orkestrering av ärendedokumentskapande
+├── page-document-upload.js  # Filuppladdning till ärendedokument (FileUpload.ashx + öppnaDokumentMedFil)
+├── page-document-steps.js   # Hjälpfunktioner för dokumentguidens steg (väntaPå*, triggaDokumentSlutför m.fl.)
+├── page-document-create.js  # Orkestrering av ärendedokumentskapande (skapaÄrendedokument m.fl.)
 ├── page.js                  # Router i MAIN world (lyssnar på p360-anrop och dispatchar)
 ├── background.js            # Service worker – hanterar tangentbordskommandon
 ├── mall.html                # Redigeringssida för ärendemallar
@@ -1126,6 +1127,7 @@ RadioPostBack-mönster: `__doPostBack('ctl00$PlaceHolderMain$MainView$ArchiveAnd
 ├── batch.html             # Massregistrering – UI med redigerbar tabell
 ├── batch-data.js          # CSV-parsning, validering, mallbyggnad för batch
 ├── batch-table.js         # Redigerbar tabell med drag-and-drop för batch
+├── batch-utils.js         # Hjälpfunktioner för batch: flik-hantering, signalväntan, fil-konvertering
 ├── batch-run.js           # Exekveringsmotor: orkestrerar ärendeskapande per rad
 ├── batch.js               # Init, händelsehanterare, sammankoppling av batch-UI
 ├── help.html              # Inbyggd hjälpsida (öppnas via "? Hjälp" i popup)
@@ -1153,8 +1155,9 @@ Filerna injiceras i denna ordning:
 8. `page-document-validate.js`
 9. `page-document-fill.js`
 10. `page-document-upload.js`
-11. `page-document-create.js`
-12. `page.js` (router)
+11. `page-document-steps.js`
+12. `page-document-create.js`
+13. `page.js` (router)
 
 ## Dokumentmallar och instansmodell
 

@@ -55,6 +55,7 @@
         "page-document-validate.js",
         "page-document-fill.js",
         "page-document-upload.js",
+        "page-document-steps.js",
         "page-document-create.js",
         "page.js"
       ],
