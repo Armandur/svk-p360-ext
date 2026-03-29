@@ -165,7 +165,7 @@
 <body>
   <h3>360° Verktyg</h3>
 
-  <!-- Mallärenden -->
+  <!-- Mallar (ärendemallar + dokumentmallar) -->
   <div class="grupp">
     <div class="grupp-rubrik">Mallärenden</div>
     <div id="malllista">
@@ -181,9 +181,17 @@
       </div>
     </div>
     <button id="btn-ny-mall">＋ Ny mall</button>
-    <div style="display:flex;gap:4px;margin-top:4px;">
-      <button id="btn-exportera-mallar" style="flex:1;font-size:11px;padding:5px 0;border-style:dashed;color:#555;background:#fff;">↓ Exportera</button>
-      <button id="btn-importera-mallar" style="flex:1;font-size:11px;padding:5px 0;border-style:dashed;color:#555;background:#fff;">↑ Importera</button>
+
+    <div class="grupp-rubrik" style="margin-top:10px;">Dokumentmallar</div>
+    <div id="dokumentmalllista">
+      <div id="tom-dokumentmalllista" style="font-size:12px;color:#aaa;padding:4px 0;">Inga dokumentmallar.</div>
+    </div>
+    <button id="btn-ny-dokumentmall" style="border-style:dashed;color:#0078d4;background:#fff;font-size:12px;margin-top:4px;">＋ Ny dokumentmall</button>
+
+    <!-- Export / import av alla mallar -->
+    <div style="display:flex;gap:4px;margin-top:10px;padding-top:8px;border-top:1px solid #eee;">
+      <button id="btn-exportera-mallar" style="flex:1;font-size:11px;padding:5px 0;border-style:dashed;color:#555;background:#fff;">↓ Exportera mallar</button>
+      <button id="btn-importera-mallar" style="flex:1;font-size:11px;padding:5px 0;border-style:dashed;color:#555;background:#fff;">↑ Importera mallar</button>
     </div>
     <input type="file" id="import-fil-input" accept=".json" style="display:none;">
     <div id="import-panel" style="display:none;margin-top:6px;padding:8px;background:#f0f6ff;border:1px solid #c2d8f5;border-radius:4px;">
@@ -194,15 +202,6 @@
         <button id="btn-import-avbryt" style="width:auto;margin:0;font-size:11px;padding:5px;">Avbryt</button>
       </div>
     </div>
-  </div>
-
-  <!-- Dokumentmallar -->
-  <div class="grupp">
-    <div class="grupp-rubrik">Dokumentmallar</div>
-    <div id="dokumentmalllista">
-      <div id="tom-dokumentmalllista" style="font-size:12px;color:#aaa;padding:4px 0;">Inga dokumentmallar.</div>
-    </div>
-    <button id="btn-ny-dokumentmall" style="border-style:dashed;color:#0078d4;background:#fff;font-size:12px;margin-top:4px;">＋ Ny dokumentmall</button>
   </div>
 
   <!-- Filuppladdning -->
