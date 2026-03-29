@@ -1,5 +1,13 @@
 // dokument-mall.js – logik för dokumentmallredigeringssidan
 
+function escHtml(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 // KO-paragrafer
 const KO_PARAGRAFER = [
   'Kyrkoordningen 54 kap. 2 §',
