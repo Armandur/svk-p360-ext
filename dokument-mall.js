@@ -1,5 +1,14 @@
 // dokument-mall.js – logik för dokumentmallredigeringssidan
 
+// Lokal kopia – mall-data.js (där originalet finns) laddas inte på dokument-mall.html
+function escHtml(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 // KO-paragrafer
 const KO_PARAGRAFER = [
   'Kyrkoordningen 54 kap. 2 §',
@@ -117,7 +126,9 @@ function fyllSelect(elId, alternativ) {
   // Behåll första option (placeholder)
   const förstaTxt = sel.options[0]?.text || '(Ingen)';
   sel.innerHTML = `<option value="">${escHtml(förstaTxt)}</option>`;
-  for (const a of alternativ) {
+  for (const a of [...alternativ].sort((x, y) =>
+    (x.label || '').localeCompare(y.label || '', 'sv', { numeric: true })
+  )) {
     const opt = document.createElement('option');
     opt.value = a.value;
     opt.textContent = a.label;
