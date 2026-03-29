@@ -22,7 +22,7 @@ async function fyllDokumentFormulär(iDoc, iWin, dok, visaStatus) {
 
   visaStatus('Fyller i dokumentfält…');
 
-  // Handlingstyp
+  // Handlingstyp – tyst, ingen UpdatePanel
   if (dok.handlingstyp?.value) {
     await sättSelTyst(
       'PlaceHolderMain_MainView_ProcessRecordTypeControl',
@@ -30,89 +30,16 @@ async function fyllDokumentFormulär(iDoc, iWin, dok, visaStatus) {
     );
   }
 
-  // Dokumentkategori – triggar UpdatePanel (visar datumfält m.m.)
-  if (dok.kategori) {
-    await sättSel(
-      'PlaceHolderMain_MainView_TypeJournalDocumentInsertComboControl',
-      dok.kategori
-    );
-    // Polla tills UpdatePanel svarat (titelfältet finns kvar efter uppdatering)
-    for (let poll = 0; poll < 20; poll++) {
-      await sleep(150);
-      const titelFinns = iDoc.getElementById('PlaceHolderMain_MainView_TitleTextBoxControl');
-      const kontaktFält = iDoc.getElementById('PlaceHolderMain_MainView_Custom_QuickUnregContactText');
-      if (titelFinns && kontaktFält) break;
-    }
-  }
-
-  // Åtkomstgrupp
-  if (dok.atkomstgrupp?.value) {
-    await sättSelTyst(
-      'PlaceHolderMain_MainView_AccessGroupComboControl',
-      dok.atkomstgrupp.value
-    );
-  }
-
-  // Ansvarig enhet
-  if (dok.ansvarigEnhet?.value) {
-    await sättSelTyst(
-      'PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl',
-      dok.ansvarigEnhet.value
-    );
-  }
-
-  // Ansvarig person
-  if (dok.ansvarigPerson?.value) {
-    await sättSelTyst(
-      'PlaceHolderMain_MainView_ResponsibleUserComboControl',
-      dok.ansvarigPerson.value
-    );
-  }
-
-  // Projekt (typeahead – DISPLAY + hidden + dropDownList + HiddenButton-postback)
-  if (dok.projekt?.value) {
-    const projektVis = iDoc.getElementById('PlaceHolderMain_MainView_ProjectQuickSearchControl_DISPLAY');
-    const projektDolt = iDoc.getElementById('PlaceHolderMain_MainView_ProjectQuickSearchControl');
-    const projektLista = iDoc.getElementById('PlaceHolderMain_MainView_ProjectQuickSearchControl_dropDownList');
-    if (projektVis) projektVis.value = dok.projekt.display || '';
-    if (projektDolt) projektDolt.value = dok.projekt.value;
-    if (projektLista) {
-      if (!Array.from(projektLista.options).some(o => o.value === dok.projekt.value)) {
-        const opt = document.createElement('option');
-        opt.value = dok.projekt.value;
-        opt.textContent = dok.projekt.display || dok.projekt.value;
-        projektLista.appendChild(opt);
-      }
-      projektLista.value = dok.projekt.value;
-    }
-  }
-
-  // Fastighet (typeahead – samma mönster som Projekt)
-  if (dok.fastighet?.value) {
-    const fastVis = iDoc.getElementById('PlaceHolderMain_MainView_EstateGeneralTabSearchControl_DISPLAY');
-    const fastDolt = iDoc.getElementById('PlaceHolderMain_MainView_EstateGeneralTabSearchControl');
-    const fastLista = iDoc.getElementById('PlaceHolderMain_MainView_EstateGeneralTabSearchControl_dropDownList');
-    if (fastVis) fastVis.value = dok.fastighet.display || '';
-    if (fastDolt) fastDolt.value = dok.fastighet.value;
-    if (fastLista) {
-      if (!Array.from(fastLista.options).some(o => o.value === dok.fastighet.value)) {
-        const opt = document.createElement('option');
-        opt.value = dok.fastighet.value;
-        opt.textContent = dok.fastighet.display || dok.fastighet.value;
-        fastLista.appendChild(opt);
-      }
-      fastLista.value = dok.fastighet.value;
-    }
-  }
-
-  // Sparat på papper / media
-  if (dok.sparatPaPapper !== undefined && dok.sparatPaPapper !== '') {
-    await sättSelTyst('PlaceHolderMain_MainView_PaperControl', dok.sparatPaPapper);
-  }
-
-  // Skyddskod – formuläret ärver ärendets skyddskod som default, så vi måste
-  // alltid sätta värdet explicit. Om mallen säger Offentlig (0) men ärendet
-  // har KO/OSL triggar vi en UpdatePanel som tar bort sekretessfälten.
+  // ---------------------------------------------------------------
+  // Skyddskod – MÅSTE sättas FÖRE dokumentkategori.
+  //
+  // Formuläret ärver ärendets skyddskod (t.ex. KO) som default när
+  // det öppnas via ConnectedDocumentDialog. Om mallen har en annan
+  // skyddskod triggar bytet en UpdatePanel som nollställer bl.a.
+  // TypeJournalDocumentInsertComboControl. Sätts skyddskod EFTER
+  // kategori förlorar vi kategorivärdet och får felmeddelandet
+  // "Dokumentkategori är tom efter formulärfyllning".
+  // ---------------------------------------------------------------
   if (dok.skyddskod && dok.skyddskod !== '0') {
     // Sekretess – triggar UpdatePanel (paragraf-fältet dyker upp)
     await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', dok.skyddskod);
@@ -197,8 +124,90 @@ async function fyllDokumentFormulär(iDoc, iWin, dok, visaStatus) {
     }
   }
 
-  // Oregistrerad kontakt – sätts EFTER alla UpdatePanel-postbacks (kategori,
-  // skyddskod) men FÖRE datum och titel, eftersom kontakt-knappen triggar
+  // Dokumentkategori – triggar UpdatePanel (visar/döljer datumfält m.m.).
+  // Sätts EFTER skyddskod så att skyddskodets UpdatePanel inte nollställer
+  // kategori-värdet.
+  if (dok.kategori) {
+    await sättSel(
+      'PlaceHolderMain_MainView_TypeJournalDocumentInsertComboControl',
+      dok.kategori
+    );
+    // Polla tills UpdatePanel svarat (titelfältet och kontaktfältet finns kvar)
+    for (let poll = 0; poll < 20; poll++) {
+      await sleep(150);
+      const titelFinns = iDoc.getElementById('PlaceHolderMain_MainView_TitleTextBoxControl');
+      const kontaktFält = iDoc.getElementById('PlaceHolderMain_MainView_Custom_QuickUnregContactText');
+      if (titelFinns && kontaktFält) break;
+    }
+  }
+
+  // Åtkomstgrupp – tyst, ingen UpdatePanel
+  if (dok.atkomstgrupp?.value) {
+    await sättSelTyst(
+      'PlaceHolderMain_MainView_AccessGroupComboControl',
+      dok.atkomstgrupp.value
+    );
+  }
+
+  // Ansvarig enhet – tyst
+  if (dok.ansvarigEnhet?.value) {
+    await sättSelTyst(
+      'PlaceHolderMain_MainView_ResponsibleOrgUnitComboControl',
+      dok.ansvarigEnhet.value
+    );
+  }
+
+  // Ansvarig person – tyst
+  if (dok.ansvarigPerson?.value) {
+    await sättSelTyst(
+      'PlaceHolderMain_MainView_ResponsibleUserComboControl',
+      dok.ansvarigPerson.value
+    );
+  }
+
+  // Projekt (typeahead – DISPLAY + hidden + dropDownList)
+  if (dok.projekt?.value) {
+    const projektVis = iDoc.getElementById('PlaceHolderMain_MainView_ProjectQuickSearchControl_DISPLAY');
+    const projektDolt = iDoc.getElementById('PlaceHolderMain_MainView_ProjectQuickSearchControl');
+    const projektLista = iDoc.getElementById('PlaceHolderMain_MainView_ProjectQuickSearchControl_dropDownList');
+    if (projektVis) projektVis.value = dok.projekt.display || '';
+    if (projektDolt) projektDolt.value = dok.projekt.value;
+    if (projektLista) {
+      if (!Array.from(projektLista.options).some(o => o.value === dok.projekt.value)) {
+        const opt = document.createElement('option');
+        opt.value = dok.projekt.value;
+        opt.textContent = dok.projekt.display || dok.projekt.value;
+        projektLista.appendChild(opt);
+      }
+      projektLista.value = dok.projekt.value;
+    }
+  }
+
+  // Fastighet (typeahead – samma mönster som Projekt)
+  if (dok.fastighet?.value) {
+    const fastVis = iDoc.getElementById('PlaceHolderMain_MainView_EstateGeneralTabSearchControl_DISPLAY');
+    const fastDolt = iDoc.getElementById('PlaceHolderMain_MainView_EstateGeneralTabSearchControl');
+    const fastLista = iDoc.getElementById('PlaceHolderMain_MainView_EstateGeneralTabSearchControl_dropDownList');
+    if (fastVis) fastVis.value = dok.fastighet.display || '';
+    if (fastDolt) fastDolt.value = dok.fastighet.value;
+    if (fastLista) {
+      if (!Array.from(fastLista.options).some(o => o.value === dok.fastighet.value)) {
+        const opt = document.createElement('option');
+        opt.value = dok.fastighet.value;
+        opt.textContent = dok.fastighet.display || dok.fastighet.value;
+        fastLista.appendChild(opt);
+      }
+      fastLista.value = dok.fastighet.value;
+    }
+  }
+
+  // Sparat på papper / media – tyst
+  if (dok.sparatPaPapper !== undefined && dok.sparatPaPapper !== '') {
+    await sättSelTyst('PlaceHolderMain_MainView_PaperControl', dok.sparatPaPapper);
+  }
+
+  // Oregistrerad kontakt – sätts EFTER alla UpdatePanel-postbacks (skyddskod,
+  // kategori) men FÖRE datum och titel, eftersom kontakt-knappen triggar
   // en egen UpdatePanel som nollställer datumfältet.
   // OBS: För Upprättat (60005) finns inget ToContactQuickSearchControl,
   // men QuickUnregContactText finns för alla kategorier.
