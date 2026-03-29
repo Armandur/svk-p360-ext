@@ -7,30 +7,6 @@ Flytta en punkt till "Klart" när den är implementerad och testad.
 
 ## Pågående
 
-### Massregistrering av ärenden från CSV
-
-**Status: Grundflödet fungerar** – ärenden, kontakter, ärendedokument och
-statusändring skapas. Kvarvarande problem: filuppladdningens PostBack-bekräftelse
-visas inte i fillistan (filerna bifogas ändå till ärendet via hidden field).
-
-#### Kvarvarande buggar
-
-- **Filuppladdning – PostBack-bekräftelse:** XHR-upload till FileUpload.ashx
-  lyckas och filen bifogas vid sparning, men PostBack-trigget som uppdaterar
-  ImportFileListControl (fillistan i formuläret) fungerar inte. Filerna syns
-  inte visuellt i Filer-fliken men hamnar ändå i det skapade dokumentet.
-  Testat: `btn.click()`, `iWin.__doPostBack()`, script-injektion. Kan vara
-  CSP-relaterat eller en timing-fråga med PageRequestManager.
-
-#### Implementerat
-
-- Batch-gränssnitt (batch.html) med redigerbar tabell, CSV-import, dokumentslotsar
-- Ärendeskapande, kontakter, ärendedokument, statusändring per rad
-- Filkoppling från CSV-filnamn till faktiska File-objekt ("Koppla filer"-knapp)
-- Avbryt-signal som propageras genom hela kedjan (batch → ärende → dokument → upload)
-- Resultatrapport med CSV-nedladdning
-- Signal-filtrering med radIdx för att undvika stale batch-signaler
-
 ### Import av mallar från fil (TSV/CSV/Excel)
 
 Möjlighet att importera mallärenden från en tabbseparerad, kommaseparerad eller
@@ -105,6 +81,13 @@ fristående kopior.
 
 Funktioner som diskuterats men ännu inte prioriterats.
 
+- **Batch: Ladda ner dagboksblad som PDF** – efter avslutat batch-körning, hämta
+  dagboksbladet för varje skapat ärende och erbjud nedladdning som PDF direkt i
+  batch.html utan att öppna popup-fönster. Kräver att MSRS-rapportens nedladdnings-URL
+  fångas från popup-fönstret (`.msrs-printdialog-downloadlink`) och används för
+  direktnedladdning via XHR. Alternativt: navigera till varje ärendes URL, trigga
+  utskriftsdialogen och ta downloadlink-URL:en därifrån. Se "Öppna dagboksblad
+  (alla ärenden)"-knappen i resultatpanelen som förarbete för detta.
 - **Snabbsökning från popup** – sökfält i popup för att söka ärenden direkt utan att
   navigera till sökformuläret
 - **Kopiera ärendenummer** – en-knapps-kopiering av ärendets diarienummer till urklipp
@@ -155,3 +138,9 @@ Funktioner som diskuterats men ännu inte prioriterats.
 | Massregistrering: avbryt-signal genom hela kedjan | 2026-03-25 |
 | Massregistrering: resultatrapport med CSV-nedladdning | 2026-03-25 |
 | Massregistrering: radIdx-filtrering mot stale batch-signaler | 2026-03-25 |
+| Filuppladdning: ConnectedDocumentDialog-flöde (fil registrerad innan formuläret öppnas) | 2026-03-29 |
+| Massregistrering: ärendedokument utan fil (tomma dokument skapas om slot saknar fil) | 2026-03-29 |
+| Massregistrering: RepeatWizardDialog stängs automatiskt (PRM-timing-fix) | 2026-03-29 |
+| Massregistrering: varning i batch.html när handlingstypsklass inte matchar ärendets klassificering | 2026-03-29 |
+| Refaktorering: page-document-steps.js + batch-utils.js för bättre AI-navigering | 2026-03-29 |
+| Massregistrering: "Öppna dagboksblad (alla ärenden)" i resultatpanelen | 2026-03-29 |

@@ -258,14 +258,15 @@
   <h2>Massregistrering</h2>
   <p>
     Massregistrering skapar många ärenden i batch utifrån en CSV-fil eller manuellt
-    tillagda rader. Varje rad blir ett ärende med kontaktperson, ärendedokument och
-    valfri statusändring.
+    tillagda rader. Varje rad blir ett ärende med kontaktperson, valfria ärendedokument
+    och valfri statusändring.
   </p>
   <ol class="steg">
     <li><strong>Välj ärendemall</strong> – gemensam grund för alla ärenden (klassificering, åtkomstgrupp, ansvarig enhet m.m.).</li>
-    <li><strong>Konfigurera dokumentslotsar</strong> – koppla varje <code>Fil_N</code>-kolumn till en dokumentmall. Kontaktrollen (avsändare/mottagare) bestäms av dokumentmallens kategori.</li>
+    <li><strong>Konfigurera dokumentslotsar</strong> – koppla varje <code>Fil_N</code>-kolumn till en dokumentmall. Kontaktrollen (avsändare/mottagare) bestäms av dokumentmallens kategori. Slotsar utan kopplad fil skapar tomma ärendedokument.</li>
     <li><strong>Importera CSV</strong> eller lägg till rader manuellt i tabellen. Kolumner: Titel, Förnamn, Efternamn, Personnummer, Adress, Fil_1, Fil_2 m.m.</li>
-    <li><strong>Koppla filer</strong> – klicka "Koppla filer" och välj de PDF:er/filer som nämns i Fil-kolumnerna. Tillägget matchar filnamn automatiskt.</li>
+    <li><strong>Koppla filer</strong> (valfritt) – klicka "Koppla filer" och välj de PDF:er/filer som nämns i Fil-kolumnerna. Tillägget matchar filnamn automatiskt. Rader utan filer skapar tomma ärendedokument.</li>
+    <li><strong>Välj inställningar</strong> – markera eventuellt <em>Stäng ärende</em> (sätter status Avslutat) och/eller <em>Öppna dagboksblad efteråt</em> (öppnar dagboksbladet som popup direkt efter varje ärende).</li>
     <li><strong>Starta batch</strong> – ärendena skapas sekventiellt. Du kan avbryta när som helst.</li>
   </ol>
 
@@ -302,7 +303,8 @@
   </p>
   <ul>
     <li>📄 = fil kopplad</li>
-    <li>⚠ = filnamn i tabellen men ingen fil kopplad (varnar vid start)</li>
+    <li>⚠ = filnamn i tabellen men ingen fil kopplad</li>
+    <li>Dokumentslotsar utan kopplad fil skapar tomma ärendedokument (ingen fil bifogas)</li>
   </ul>
 
   <h3>Under körning</h3>
@@ -316,6 +318,17 @@
     Redan skapade ärenden och dokument finns kvar i 360° och måste makuleras manuellt
     om de inte ska behållas.
   </div>
+
+  <h3>Resultat och dagboksblad</h3>
+  <p>
+    När körningen är klar visas en resultatrapport med status per rad. Härifrån kan du:
+  </p>
+  <ul>
+    <li><strong>Ladda ned resultat-CSV</strong> – exporterar resultattabellen som CSV-fil.</li>
+    <li><strong>Öppna dagboksblad (alla ärenden)</strong> – navigerar sekventiellt till varje
+      skapat ärende och öppnar dagboksbladet som popup-fönster. Kräver att popup-fönster
+      är tillåtna för <code>p360.svenskakyrkan.se</code>.</li>
+  </ul>
 
   <h2>Funktioner i popup-menyn</h2>
   <p>Klicka på tilläggsikonen i verktygsfältet för att öppna popup-menyn.</p>

@@ -270,6 +270,7 @@ async function startaBatch(baseMall, slots, inställningar) {
         titel: rad.Titel || rad.titel || '',
         kontakt: rad.Namn || rad.namn || '',
         diarienummer: diarienummer,
+        recno: recno,
         dokument: (mall.ärendedokument || []).map(d => d._filnamn || d.titel || ''),
         status: 'klar',
       });
