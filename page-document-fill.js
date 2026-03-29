@@ -39,6 +39,9 @@ async function fyllDokumentFormulär(iDoc, iWin, dok, visaStatus) {
   // TypeJournalDocumentInsertComboControl. Sätts skyddskod EFTER
   // kategori förlorar vi kategorivärdet och får felmeddelandet
   // "Dokumentkategori är tom efter formulärfyllning".
+  //
+  // OBS: Om dok.skyddskod är undefined (ingen mall angiven) gör vi
+  // INGET – formulärets förifyllda värde lämnas intakt.
   // ---------------------------------------------------------------
   if (dok.skyddskod && dok.skyddskod !== '0') {
     // Sekretess – triggar UpdatePanel (paragraf-fältet dyker upp)
@@ -111,18 +114,17 @@ async function fyllDokumentFormulär(iDoc, iWin, dok, visaStatus) {
         );
       }
     }
-  } else {
-    // Offentlig – sätt explicit ifall ärendet har en annan skyddskod som default.
-    // Kolla om formuläret redan har Offentlig – om inte, sätt via postback.
+  } else if (dok.skyddskod === '0') {
+    // Mallen begär explicit Offentlig – ändra bara om formuläret har annan kod.
     const nuvarandeSkyddskod = iDoc.getElementById(
       'PlaceHolderMain_MainView_AccessCodeComboControl'
     )?.value;
     if (nuvarandeSkyddskod && nuvarandeSkyddskod !== '0') {
       await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', '0');
-      // Vänta på UpdatePanel-svar (sekretessfälten försvinner)
       await sleep(1500);
     }
   }
+  // Om dok.skyddskod är undefined/null: lämna formulärets förifyllda värde intakt.
 
   // Dokumentkategori – triggar UpdatePanel (visar/döljer datumfält m.m.).
   // Sätts EFTER skyddskod så att skyddskodets UpdatePanel inte nollställer

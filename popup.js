@@ -468,29 +468,77 @@ async function skickaFilDokument(dokument) {
   }
 }
 
+let uppladdningsFiler = [];
+
 document.getElementById('btn-ladda-upp-filer').addEventListener('click', () => {
   döljFelmeddelande();
   document.getElementById('fil-input').click();
 });
 
 document.getElementById('fil-input').addEventListener('change', async (e) => {
-  const filer = Array.from(e.target.files);
-  if (filer.length === 0) return;
+  uppladdningsFiler = Array.from(e.target.files);
+  if (uppladdningsFiler.length === 0) return;
+
+  // Fyll mallistan
+  const { dokumentmallar = [] } = await chrome.storage.local.get('dokumentmallar');
+  const sel = document.getElementById('fil-mall-val');
+  sel.innerHTML = '<option value="">(ingen mall – enbart fil)</option>';
+  dokumentmallar.forEach(dm => {
+    const opt = document.createElement('option');
+    opt.value = dm.id;
+    opt.textContent = dm.namn;
+    sel.appendChild(opt);
+  });
+
+  document.getElementById('fil-panel-info').textContent =
+    `${uppladdningsFiler.length} fil(er) valda – skapas som ett ärendedokument.`;
+  document.getElementById('fil-panel').style.display = '';
+
+  e.target.value = '';
+});
+
+document.getElementById('btn-fil-avbryt').addEventListener('click', () => {
+  document.getElementById('fil-panel').style.display = 'none';
+  uppladdningsFiler = [];
+});
+
+document.getElementById('btn-fil-starta').addEventListener('click', async () => {
+  if (uppladdningsFiler.length === 0) return;
+  döljFelmeddelande();
+
+  document.getElementById('fil-panel').style.display = 'none';
 
   const filStatus = document.getElementById('fil-status');
   filStatus.style.display = '';
-  filStatus.textContent = `Förbereder ${filer.length} fil(er)…`;
+  filStatus.style.color = '#555';
+
+  const mallId = document.getElementById('fil-mall-val').value;
+  let mallData = {};
+  if (mallId) {
+    const { dokumentmallar = [] } = await chrome.storage.local.get('dokumentmallar');
+    const dm = dokumentmallar.find(m => m.id === mallId);
+    if (dm) {
+      mallData = { ...dm };
+      delete mallData.id;
+      delete mallData.skapad;
+    }
+  }
 
   try {
     const filData = [];
-    for (const f of filer) {
+    for (const f of uppladdningsFiler) {
       filStatus.textContent = `Läser ${f.name}…`;
       const base64 = await filTillBase64(f);
       filData.push({ namn: f.name, typ: f.type, base64 });
     }
 
-    filStatus.textContent = `Skickar ${filer.length} fil(er) till 360°…`;
-    await skickaFilDokument([{ filerBase64: filData }]);
+    const dok = { ...mallData, filerBase64: filData };
+    if (!dok.titel) dok.titel = uppladdningsFiler.length === 1
+      ? uppladdningsFiler[0].name.replace(/\.[^.]+$/, '')
+      : '';
+
+    filStatus.textContent = `Skickar till 360°…`;
+    await skickaFilDokument([dok]);
 
     filStatus.textContent = '';
     filStatus.style.display = 'none';
@@ -499,7 +547,7 @@ document.getElementById('fil-input').addEventListener('change', async (e) => {
     filStatus.style.color = '#c0392b';
   }
 
-  e.target.value = '';
+  uppladdningsFiler = [];
 });
 
 // ------------------------------------------------------------------

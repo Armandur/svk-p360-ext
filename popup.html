@@ -197,6 +197,18 @@
     <div class="grupp-rubrik">Filuppladdning</div>
     <button id="btn-ladda-upp-filer">Ladda upp fil(er) till nytt ärendedokument</button>
     <input type="file" id="fil-input" multiple style="display:none;">
+    <!-- Panel: välj dokumentmall för fil-uppladdning -->
+    <div id="fil-panel" style="display:none;margin-top:6px;padding:8px;background:#f0f6ff;border:1px solid #c2d8f5;border-radius:4px;">
+      <div style="font-size:11px;color:#555;margin-bottom:4px;" id="fil-panel-info"></div>
+      <label style="font-size:11px;color:#555;display:block;margin-bottom:3px;">Dokumentmall (valfritt)</label>
+      <select id="fil-mall-val" style="width:100%;padding:5px 7px;border:1px solid #ccc;border-radius:3px;font-size:13px;margin-bottom:6px;box-sizing:border-box;">
+        <option value="">(ingen mall – enbart fil)</option>
+      </select>
+      <div style="display:flex;gap:4px;">
+        <button id="btn-fil-starta" style="flex:1;margin:0;padding:6px;font-size:12px;background:#0078d4;color:#fff;border-color:#0078d4;">Ladda upp</button>
+        <button id="btn-fil-avbryt" style="width:auto;margin:0;padding:6px;font-size:12px;">Avbryt</button>
+      </div>
+    </div>
     <button id="btn-batch-upload">Batch: en fil per ärendedokument</button>
     <input type="file" id="batch-fil-input" multiple style="display:none;">
     <!-- Batch-panel: välj dokumentmall och starta -->
