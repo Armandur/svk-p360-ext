@@ -247,11 +247,19 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
       reject(new Error('Timeout – användaren fyllde inte i formuläret inom 5 minuter.'));
     }, TIMEOUT);
 
-    let obs;
+    let pollId = null;
+    let resolvedFlag = false;
+
+    function resolveOnce(value) {
+      if (resolvedFlag) return;
+      resolvedFlag = true;
+      rensa();
+      resolve(value);
+    }
 
     function rensa() {
       clearTimeout(timer);
-      if (obs) obs.disconnect();
+      if (pollId) { clearInterval(pollId); pollId = null; }
       banner.remove();
       styleTag.remove();
       if (dialog) dialog.removeAttribute('data-p360-manual-dialog');
@@ -259,7 +267,6 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
 
     // Avbryt-knapp – klicka formulärets egen Avbryt så 360° stänger dialogen korrekt
     avbrytBtn.addEventListener('click', () => {
-      rensa();
       // Hitta formulär-iframen och klicka dess WizardCancelButton (kör ExecCancel)
       if (dialog) {
         const iframe = dialog.querySelector('iframe');
@@ -293,42 +300,23 @@ function väntaPåAnvändarensSlutför(iframe, tommaFält) {
           }
         });
       }, 1500);
-      resolve({ cancelled: true });
+      resolveOnce({ cancelled: true });
     });
 
-    // Bevaka DOM:en efter RepeatWizardDialog (= dokumentet sparades)
-    obs = new MutationObserver((mutations) => {
-      for (const mut of mutations) {
-        for (const node of mut.addedNodes) {
-          if (node.nodeType !== 1) continue;
-          const iframes = node.tagName === 'IFRAME' ? [node]
-            : Array.from(node.querySelectorAll?.('iframe') ?? []);
-          for (const f of iframes) {
-            try {
-              const src = f.src || f.contentDocument?.location?.href || '';
-              if (src.includes('RepeatWizardDialog')) {
-                rensa();
-                resolve({ cancelled: false, repeatIframe: f });
-                return;
-              }
-            } catch { /* cross-origin */ }
+    // Polla alla iframes var 300 ms och kolla contentDocument.location.href.
+    // MutationObserver + f.src är opålitligt – 360° sätter iframe.src via JS efter
+    // att elementet lagts till i DOM, vilket inte triggar en ny mutation.
+    // Polling fångar RepeatWizardDialog oavsett hur 360° öppnar den.
+    pollId = setInterval(() => {
+      for (const f of document.querySelectorAll('iframe')) {
+        try {
+          if ((f.contentDocument?.location?.href || '').includes('RepeatWizardDialog')) {
+            resolveOnce({ cancelled: false, repeatIframe: f });
+            return;
           }
-        }
+        } catch { /* cross-origin – ignorera */ }
       }
-    });
-    obs.observe(document.body, { childList: true, subtree: true });
-
-    // Kontrollera även redan existerande iframes
-    for (const f of document.querySelectorAll('iframe')) {
-      try {
-        const src = f.src || '';
-        if (src.includes('RepeatWizardDialog')) {
-          rensa();
-          resolve({ cancelled: false, repeatIframe: f });
-          return;
-        }
-      } catch { /* cross-origin */ }
-    }
+    }, 300);
   });
 }
 
