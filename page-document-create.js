@@ -770,23 +770,34 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
         .trim() || null;
     } catch { /* cross-origin */ }
 
-    // Stäng RepeatWizardDialog – välj "avsluta" (value=0), sedan OK
+    // Stäng RepeatWizardDialog – välj "avsluta" (ChoiceControl_0 = ingen upprepning), sedan OK.
+    // Viktigt: dispatch av change-event kan trigga en UpdatePanel-postback i dialogen.
+    // Vänta på PRM idle INNAN finish-postbacken skickas, annars ignoreras den.
     try {
       const rDoc = repeatIframe.contentDocument;
       const rWin = repeatIframe.contentWindow;
-      await waitForElement(rDoc, '#PlaceHolderMain_MainView_DialogButton', 3000);
 
+      // Vänta på att formuläret är klart
+      await waitForElement(rDoc, '[id*="ChoiceControl"], [id*="DialogButton"]', 5000);
+      await väntaPåPRM(rWin, 5000);
+
+      // Välj "Avsluta" om det inte redan är valt – ändra INTE värde om redan checked
       const avsluta = rDoc.getElementById('PlaceHolderMain_MainView_ChoiceControl_0');
-      if (avsluta) {
+      if (avsluta && !avsluta.checked) {
         avsluta.checked = true;
         avsluta.dispatchEvent(new Event('change', { bubbles: true }));
+        // Vänta på eventuell UpdatePanel-uppdatering efter change-event
+        await väntaPåPRM(rWin, 5000);
       }
 
+      await sleep(200);
       rWin.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish');
-    } catch { /* ignorera */ }
+    } catch (e) {
+      console.warn('[p360-dok] Kunde inte stänga RepeatWizardDialog automatiskt:', e?.message);
+    }
 
-    // Polla tills RepeatWizardDialog-iframen försvinner ur DOM
-    for (let poll = 0; poll < 40; poll++) {
+    // Polla tills RepeatWizardDialog-iframen försvinner ur DOM (max 12 s)
+    for (let poll = 0; poll < 80; poll++) {
       await sleep(150);
       const kvarvarande = Array.from(document.querySelectorAll('iframe')).some(f => {
         try { return (f.src || '').includes('RepeatWizardDialog'); } catch { return false; }
