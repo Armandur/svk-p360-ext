@@ -1087,8 +1087,9 @@ RadioPostBack-mönster: `__doPostBack('ctl00$PlaceHolderMain$MainView$ArchiveAnd
 > **Ping-anropen** (`GET /FileUpload.ashx/Ping`) skickas automatiskt av 360°:s JavaScript
 > och behöver inte simuleras i tillägget.
 
-> **Flera filer:** Troligtvis separeras värden med semikolon i `hiddenUploadedFilesPath`
-> (`{session1}|{namn1};{session2}|{namn2}`), men detta är ej verifierat för > 1 fil.
+> **Flera filer:** Verifierat format (spy-logg 2026-03-29) – separatorn är `|||` (tre pipes):
+> `{session1}|{namn1}|||{session2}|{namn2}|||{session3}|{namn3}`
+> P360 skapar ETT temp-dokument med alla filer bifogade och öppnar EN ConnectedDocumentDialog.
 
 ---
 

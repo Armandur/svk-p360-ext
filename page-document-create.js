@@ -52,8 +52,8 @@ async function öppnaDokumentMedFil(filer, visaStatus, ärAvbruten) {
   }
 
   // 2. Sätt hiddenUploadedFilesPath på ärendesidans upload-kontroll
-  //    Flera filer separeras med semikolon (ej verifierat för > 1 fil men troligt).
-  const uploadVärde = sökvägar.join(';');
+  //    Verifierat format (spy-logg 2026-03-29): {session}|{filnamn}|||{session}|{filnamn}|||...
+  const uploadVärde = sökvägar.join('|||');
   let pathEl = document.querySelector(
     '[id*="UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath"],' +
     `[name="${CASE_UPLOAD_PATH_NAME}"]`
