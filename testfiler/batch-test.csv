@@ -1,0 +1,7 @@
+Titel;Namn;Personnummer;Adress;Postnummer;Ort;Epost;DokTitel_1;Fil_1;DokTitel_2;Fil_2
+TEST - Anmälan om inträde i Svenska kyrkan;Sara Eriksson;19881103-7890;Tallgatan 18;567 89;Linköping;sara.eriksson@example.com;Anmälan om inträde i Svenska kyrkan;inträdesansökan_eriksson.pdf;Bevis om upptagande i Svenska kyrkan;bekräftelse_eriksson.pdf
+TEST - Anmälan om inträde i Svenska kyrkan;Omar Fransson;19950427-2345;Kungsgatan 22;345 67;Västerås;;Anmälan om inträde i Svenska kyrkan;inträdesansökan_fransson.pdf;Bevis om upptagande i Svenska kyrkan;bekräftelse_fransson.pdf
+TEST - Anmälan om inträde i Svenska kyrkan;Lars Danielsson;19900215-3456;Ekvägen 5;234 56;Uppsala;;Anmälan om inträde i Svenska kyrkan;inträdesansökan_danielsson.pdf;Bevis om upptagande i Svenska kyrkan;bekräftelse_danielsson.pdf
+TEST - Anmälan om utträde ur Svenska kyrkan;Anna Andersson;19850312-1234;Storgatan 12;123 45;Stockholm;;Anmälan om utträde ur Svenska kyrkan;utträdesansökan_andersson.pdf;Bevis om utträde ur Svenska kyrkan;bekräftelse_andersson.pdf
+TEST - Anmälan om utträde ur Svenska kyrkan;Erik Bergström;19780614-5678;Björkvägen 7;456 78;Göteborg;;Anmälan om utträde ur Svenska kyrkan;utträdesansökan_bergström.pdf;Bevis om utträde ur Svenska kyrkan;bekräftelse_bergström.pdf
+TEST - Anmälan om utträde ur Svenska kyrkan;Maria Carlsson;19920801-9012;Lindgatan 3;789 01;Malmö;maria.carlsson@example.com;Anmälan om utträde ur Svenska kyrkan;utträdesansökan_carlsson.pdf;Bevis om utträde ur Svenska kyrkan;bekräftelse_carlsson.pdf
