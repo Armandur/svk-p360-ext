@@ -503,4 +503,74 @@
       });
     }
   });
+
+  // Ladda ned dagboksblad som PDF för alla lyckade ärenden
+  document.getElementById('btn-ladda-ned-dagboksblad').addEventListener('click', async () => {
+    const lyckade = batchResultat.filter(r => r.status === 'klar' && r.recno);
+    if (lyckade.length === 0) {
+      alert('Inga lyckade ärenden med känt ärendenummer att ladda ned dagboksblad för.');
+      return;
+    }
+
+    const btn = document.getElementById('btn-ladda-ned-dagboksblad');
+    const originalText = btn.textContent;
+    btn.disabled = true;
+
+    let lyckadeNed = 0;
+    let misslyckadeNed = 0;
+
+    for (let i = 0; i < lyckade.length; i++) {
+      const r = lyckade[i];
+      btn.textContent = `Laddar ned ${i + 1}/${lyckade.length}…`;
+      try {
+        // Hämta rapportsidans HTML för att extrahera ControlID
+        const rapportUrl = `https://p360.svenskakyrkan.se/locator/Reports/Case/Innehallsforteckning/Innehallsforteckning?standalone=true&recno=${r.recno}`;
+        const htmlSvar = await fetch(rapportUrl, { credentials: 'include' });
+        if (!htmlSvar.ok) throw new Error(`HTTP ${htmlSvar.status}`);
+        const html = await htmlSvar.text();
+
+        // Extrahera ControlID ur $create(Microsoft.Reporting.WebFormsClient._InternalReportViewer, {...})
+        const match = html.match(/ControlID=([a-f0-9]{32})/);
+        if (!match) throw new Error('ControlID hittades inte i rapportsidan.');
+        const controlId = match[1];
+
+        // Bygg nedladdnings-URL (AlwaysAttachment = fil sparas direkt, inte inline)
+        const pdfUrl =
+          `https://p360.svenskakyrkan.se/Reserved.ReportViewerWebControl.axd` +
+          `?Culture=1053&CultureOverrides=True&UICulture=1053&UICultureOverrides=True` +
+          `&ReportStack=1&ControlID=${controlId}&Mode=true&OpType=Export` +
+          `&FileName=Innehallsforteckning_1053&ContentDisposition=AlwaysAttachment&Format=PDF`;
+
+        const pdfSvar = await fetch(pdfUrl, { credentials: 'include' });
+        if (!pdfSvar.ok) throw new Error(`PDF-hämtning misslyckades: HTTP ${pdfSvar.status}`);
+        const blob = await pdfSvar.blob();
+
+        // Trigga nedladdning
+        const filnamn = `dagboksblad_${r.diarienummer || r.recno}.pdf`
+          .replace(/[/\\:*?"<>|]/g, '-');
+        const objUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = objUrl;
+        a.download = filnamn;
+        a.click();
+        URL.revokeObjectURL(objUrl);
+        lyckadeNed++;
+      } catch (err) {
+        console.error(`[batch] Dagboksblad-nedladdning misslyckades för recno ${r.recno}:`, err);
+        misslyckadeNed++;
+      }
+
+      // Kort paus mellan nedladdningar för att inte överbelasta servern
+      if (i < lyckade.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 800));
+      }
+    }
+
+    btn.disabled = false;
+    btn.textContent = originalText;
+
+    if (misslyckadeNed > 0) {
+      alert(`${lyckadeNed} dagboksblad nedladdade. ${misslyckadeNed} misslyckades – se konsolen för detaljer.`);
+    }
+  });
 })();

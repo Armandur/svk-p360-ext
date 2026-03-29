@@ -81,13 +81,6 @@ fristående kopior.
 
 Funktioner som diskuterats men ännu inte prioriterats.
 
-- **Batch: Ladda ner dagboksblad som PDF** – efter avslutat batch-körning, hämta
-  dagboksbladet för varje skapat ärende och erbjud nedladdning som PDF direkt i
-  batch.html utan att öppna popup-fönster. Kräver att MSRS-rapportens nedladdnings-URL
-  fångas från popup-fönstret (`.msrs-printdialog-downloadlink`) och används för
-  direktnedladdning via XHR. Alternativt: navigera till varje ärendes URL, trigga
-  utskriftsdialogen och ta downloadlink-URL:en därifrån. Se "Öppna dagboksblad
-  (alla ärenden)"-knappen i resultatpanelen som förarbete för detta.
 - **Snabbsökning från popup** – sökfält i popup för att söka ärenden direkt utan att
   navigera till sökformuläret
 - **Kopiera ärendenummer** – en-knapps-kopiering av ärendets diarienummer till urklipp
@@ -144,3 +137,4 @@ Funktioner som diskuterats men ännu inte prioriterats.
 | Massregistrering: varning i batch.html när handlingstypsklass inte matchar ärendets klassificering | 2026-03-29 |
 | Refaktorering: page-document-steps.js + batch-utils.js för bättre AI-navigering | 2026-03-29 |
 | Massregistrering: "Öppna dagboksblad (alla ärenden)" i resultatpanelen | 2026-03-29 |
+| Massregistrering: "Ladda ned dagboksblad (PDF)" – direktnedladdning via MSRS axd-endpoint | 2026-03-29 |
