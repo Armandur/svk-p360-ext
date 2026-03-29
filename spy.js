@@ -213,6 +213,7 @@
 
         push('iframe_formulär', { url, formFält, dolda });
         push('iframe_snapshot', { url, ...snapshotUploadKontroller(iDoc, url.split('/').pop()) });
+        interceptaHiddenUploadPath(iDoc, url);
       } catch { /* cross-origin – ignorera */ }
     };
 
@@ -317,6 +318,38 @@
     S.iframeObserver.observe(document.body, { childList: true, subtree: true });
   }
 
+  // ─── Property-interceptor för hiddenUploadedFilesPath ──────────────────────
+  // Fältet sätts och används på millisekunder – snapshot-intervallet missar det.
+  // Interceptorn fångar exakt vilket värde som skrivs, oavsett timing.
+
+  function interceptaHiddenUploadPath(doc, ctx) {
+    const kandidater = Array.from(doc.querySelectorAll(
+      'input[type="hidden"][id*="hiddenUploadedFilesPath"],' +
+      'input[type="hidden"][name*="hiddenUploadedFilesPath"]'
+    ));
+    for (const el of kandidater) {
+      try {
+        const origDescriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+        let _val = el.value;
+        Object.defineProperty(el, 'value', {
+          get() { return _val; },
+          set(v) {
+            _val = v;
+            push('hidden_path_satt', {
+              ctx,
+              id: el.id || '',
+              name: el.name || '',
+              value: String(v || '').slice(0, 500),
+            });
+            console.log('[spy] hiddenUploadedFilesPath satt:', String(v || ''));
+            return origDescriptor.set?.call(el, v);
+          },
+          configurable: true,
+        });
+      } catch { /* ignorera */ }
+    }
+  }
+
   // ─── Start / Stopp ──────────────────────────────────────────────────────────
 
   function start() {
@@ -341,6 +374,7 @@
     lyssnaDragDrop(document, '');
     lyssnaFilInput(document, '');
     lyssnaKlick(document, '');
+    interceptaHiddenUploadPath(document, '');
 
     // Instrumentera redan existerande iframes
     for (const ifr of document.querySelectorAll('iframe')) {
