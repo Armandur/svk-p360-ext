@@ -55,6 +55,13 @@ fristående kopior.
 
 Funktioner som diskuterats men ännu inte prioriterats.
 
+- **Fuzzy-sökning i mallredigerarens dropdowns** – fälten för Klassificering,
+  Fastighet, Projekt, Handlingstyp och Paragraf kan innehålla väldigt många
+  alternativ (särskilt handlingstyper). Ersätt eller komplettera de vanliga
+  `<select>`-listorna med ett sökbart/fuzzy-filtrerbart fält (t.ex. ett
+  textinmatningsfält som filtrerar listan i realtid) så att användaren snabbt
+  hittar rätt utan att bläddra igenom hela listan.
+
 - **Snabbsökning från popup** – sökfält i popup för att söka ärenden direkt utan att
   navigera till sökformuläret
 - **Kopiera ärendenummer** – en-knapps-kopiering av ärendets diarienummer till urklipp
