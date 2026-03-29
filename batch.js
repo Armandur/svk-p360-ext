@@ -490,51 +490,17 @@
   });
 
   // Öppna dagboksblad för alla lyckade ärenden i resultatpanelen
-  document.getElementById('btn-öppna-dagboksblad').addEventListener('click', async () => {
+  document.getElementById('btn-öppna-dagboksblad').addEventListener('click', () => {
     const lyckade = batchResultat.filter(r => r.status === 'klar' && r.recno);
     if (lyckade.length === 0) {
       alert('Inga lyckade ärenden med känt ärendenummer att öppna dagboksblad för.');
       return;
     }
-
-    const flik = await hittaP360Flik();
-    if (!flik) {
-      alert('Ingen öppen 360°-flik hittades. Öppna 360° i en annan flik först.');
-      return;
+    for (const r of lyckade) {
+      chrome.tabs.create({
+        url: `https://p360.svenskakyrkan.se/locator/Reports/Case/Innehallsforteckning/Innehallsforteckning?standalone=true&recno=${r.recno}`,
+        active: false,
+      });
     }
-
-    const btn = document.getElementById('btn-öppna-dagboksblad');
-    const originalText = btn.textContent;
-    btn.disabled = true;
-
-    const tabId = flik.id;
-    for (let i = 0; i < lyckade.length; i++) {
-      const r = lyckade[i];
-      btn.textContent = `Öppnar ${i + 1}/${lyckade.length}…`;
-
-      // Navigera till ärendet
-      const ärendeUrl =
-        `https://p360.svenskakyrkan.se/locator/DMS/Case/Details/Simplified/61000` +
-        `?module=Case&subtype=61000&recno=${r.recno}`;
-      await chrome.tabs.update(tabId, { url: ärendeUrl });
-
-      // Vänta på att ärendesidan laddat klart
-      await väntaPåNavigation(
-        tabId,
-        /\/DMS\/Case\/Details\/|\/view\.aspx.*DMS\.Case\.Details/i,
-        30000
-      );
-      // Extra fördröjning för content scripts
-      await new Promise(resolve => setTimeout(resolve, 2500));
-
-      // Trigga dagboksblad
-      await skickaTillFlik(tabId, { action: 'dagboksblad' }, 15000);
-
-      // Ge popup tid att öppnas innan nästa ärende
-      await new Promise(resolve => setTimeout(resolve, 2000));
-    }
-
-    btn.disabled = false;
-    btn.textContent = originalText;
   });
 })();
