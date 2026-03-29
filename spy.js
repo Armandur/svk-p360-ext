@@ -50,7 +50,18 @@
 
   function push(kind, data) {
     if (!S.on) return;
-    S.logs.push({ t: ts(), k: kind, ...safe(data) });
+    let entry = { t: ts(), k: kind };
+    try {
+      const serialized = JSON.parse(JSON.stringify(data));
+      if (serialized && typeof serialized === 'object' && !Array.isArray(serialized)) {
+        Object.assign(entry, serialized);
+      } else {
+        entry.data = serialized;
+      }
+    } catch {
+      entry.data = String(data).slice(0, 500);
+    }
+    S.logs.push(entry);
     if (S.logs.length > S.maxRows) S.logs.splice(0, S.logs.length - S.maxRows);
   }
 
@@ -158,36 +169,57 @@
     if (S.instrumentedIframes.has(ifr)) return;
     S.instrumentedIframes.add(ifr);
 
+    const instrumenterad = new Set(); // undvik dubbelinstrumentering av samma URL
+
     const gör = () => {
       try {
         const iWin = ifr.contentWindow;
         const iDoc = ifr.contentDocument;
         if (!iWin || !iDoc) return;
         const url = iWin.location?.href || '';
+        // Hoppa över about:blank – iframen har inte laddat sitt riktiga innehåll ännu
+        if (!url || url === 'about:blank') return;
+        // Undvik att instrumentera samma URL två gånger
+        if (instrumenterad.has(url)) return;
+        instrumenterad.add(url);
+
         push('iframe_laddad', { url, iframeId: ifr.id || '' });
 
         patchaXHR(iWin, url);
         patchaPostBack(iWin, url);
-
-        // Drag-drop händelser i iframen
         lyssnaDragDrop(iDoc, url);
-
-        // Fil-input i iframen
         lyssnaFilInput(iDoc, url);
-
-        // Klickspårning i iframen
         lyssnaKlick(iDoc, url);
 
-        // Snapshot av upload-kontroller i iframen
+        // Snapshot av formulärfält OCH upload-kontroller i iframen
+        const formFält = Array.from(iDoc.querySelectorAll(
+          'input:not([type="hidden"]),select,textarea,button[type="submit"]'
+        )).map(el => ({
+          id: el.id || '',
+          name: el.name || '',
+          tag: el.tagName,
+          type: el.getAttribute('type') || '',
+          value: (el.value || '').slice(0, 200),
+          options: el.tagName === 'SELECT'
+            ? Array.from(el.options).map(o => ({ val: o.value, text: o.text.trim() }))
+            : undefined,
+          onclick: (el.getAttribute('onclick') || '').slice(0, 200),
+        }));
+
+        const dolda = Array.from(iDoc.querySelectorAll('input[type="hidden"]'))
+          .filter(el => (el.name || '').includes('EVENTTARGET') || (el.name || '').includes('EVENTARGUMENT') || (el.name || '').includes('VIEWSTATE') === false)
+          .slice(0, 30)
+          .map(el => ({ id: el.id || '', name: el.name || '', val: (el.value || '').slice(0, 100) }));
+
+        push('iframe_formulär', { url, formFält, dolda });
         push('iframe_snapshot', { url, ...snapshotUploadKontroller(iDoc, url.split('/').pop()) });
       } catch { /* cross-origin – ignorera */ }
     };
 
-    if (ifr.contentDocument?.readyState === 'complete') {
-      gör();
-    } else {
-      ifr.addEventListener('load', gör);
-    }
+    // Lyssna alltid på load-event för framtida navigeringar i iframen
+    ifr.addEventListener('load', gör);
+    // Försök även direkt om iframen redan har ett riktigt innehåll
+    gör();
   }
 
   // ─── Drag-drop-lyssnare ─────────────────────────────────────────────────────
@@ -363,11 +395,43 @@
     console.log('[spy] Fil sparad:', a.download);
   }
 
+  // Manuell dump av alla iframes – kör när dialog är synlig
+  function dumpIframes() {
+    const result = [];
+    for (const ifr of document.querySelectorAll('iframe')) {
+      try {
+        const iWin = ifr.contentWindow;
+        const iDoc = ifr.contentDocument;
+        const url = iWin?.location?.href || ifr.src || '';
+        if (!url || url === 'about:blank') { result.push({ url: 'about:blank', id: ifr.id }); continue; }
+        const formFält = Array.from(iDoc.querySelectorAll(
+          'input:not([type="hidden"]),select,textarea,input[type="submit"],button'
+        )).map(el => ({
+          id: el.id || '',
+          name: el.name || '',
+          tag: el.tagName,
+          type: el.getAttribute('type') || '',
+          value: (el.value || '').slice(0, 200),
+          options: el.tagName === 'SELECT'
+            ? Array.from(el.options).map(o => ({ val: o.value, text: o.text.trim() }))
+            : undefined,
+          onclick: (el.getAttribute('onclick') || '').slice(0, 300),
+          href: (el.getAttribute('href') || '').slice(0, 200),
+        }));
+        result.push({ id: ifr.id, url, formFält });
+        if (S.on) push('manuell_dump', { url, formFält });
+      } catch (e) { result.push({ id: ifr.id, url: ifr.src, fel: e.message }); }
+    }
+    console.log('[spy] dumpIframes:', result);
+    return result;
+  }
+
   window.__p360Spy = {
     start,
     stopp,
     stopAndSave,
     snapshot: (etikett) => snapshotAllt(etikett || 'manuell'),
+    dumpIframes,
     logs: () => S.logs,
     state: S,
   };
@@ -375,5 +439,6 @@
   console.log('[spy v2] Laddad.');
   console.log('  __p360Spy.start()           – börja spela in');
   console.log('  __p360Spy.snapshot("text")  – manuell snapshot');
+  console.log('  __p360Spy.dumpIframes()     – dumpa alla iframes nu (kör när dialog är öppen)');
   console.log('  __p360Spy.stopAndSave()     – spara JSON-fil');
 })();
