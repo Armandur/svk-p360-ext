@@ -1030,6 +1030,66 @@ fullständiga sökvägen efter PostBack:
 iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'FileStep');
 ```
 
+### Filuppladdning via ärendesidans upload-yta – föredraget flöde (kartlagt 2026-03-29)
+
+Det finns ett enklare och mer robust sätt att bifoga filer till ett nytt ärendedokument:
+via ärendesidans egna drag-and-drop-yta (eller fil-väljaren som är kopplad till samma kontroll).
+Detta flöde behöver **inte** navigera till Filer-fliken inne i dokumentguiden.
+
+Fil-väljarens `<input type="file">` och drag-and-drop-containern använder exakt samma
+upload-kontroll och triggar identiskt flöde – det spelar ingen roll om användaren drar
+eller klickar "Välj fil".
+
+**Element-ID:n på ärendesidan (ej inuti en iframe):**
+
+| Element | ID / POST-nyckel |
+|---|---|
+| Drag-drop-container | `PlaceHolderMain_MainView_LeftFolderView1_ViewControl_UploadControl_DocumentMultiFileUploadControl_dragdropContainer` |
+| Hidden path-fält | `ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath` |
+| Hidden upload-knapp | `ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton` |
+
+**Fullständigt flöde (verifierat via spy-logg 2026-03-29):**
+
+```
+1.  GET  /FileUpload.ashx/Ping?_={timestamp}            – session-check
+2.  POST /FileUpload.ashx?userSession={id}              – ladda upp filen
+    FormData-nyckel = filnamnet, body = filinnehållet
+3.  GET  /FileUpload.ashx/Ping?_={timestamp}            – bekräftelse
+4.  Sätt hiddenUploadedFilesPath.value = "{userSession}|{filnamn}"
+5.  __doPostBack('...hiddenUploadButton', '')           – server skapar temp-dokument
+    → POST /view.aspx (UpdatePanel) → ConnectedDocumentDialog läggs till i DOM
+6.  ConnectedDocumentDialog öppnas som iframe i huvud-dokumentet
+7.  Välj radio value="3" (ArchiveAndTemplateComboBox_2) → Ärendedokument subtype 61000
+    (Observerat: value 1, 2, 3 – value 3 → Document/New/61000)
+8.  __doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish')
+9.  Document/New/61000 öppnas med filen REDAN registrerad (recno i URL)
+10. Fyll i formulärfält (titel, kategori, handlingstyp m.m.) och klicka Slutför
+```
+
+**Varför detta flöde är bättre:**
+- Ingen `FileStep`-navigering inne i dokumentguiden
+- Ingen re-injektion av dolda fält efter `GeneralStep`-postback
+- Filen är redan bifogad när formuläret öppnas – inget manuellt state att hålla reda på
+- Titel förfylls automatiskt med filnamnet (kan skrivas över)
+
+**ConnectedDocumentDialog – formulärstruktur (spy-logg 2026-03-29):**
+
+| Element | Typ | Värde | Funktion |
+|---|---|---|---|
+| `ArchiveAndTemplateComboBox_0` | RADIO | `1` | Alternativ 1 (okänt) |
+| `ArchiveAndTemplateComboBox_1` | RADIO | `2` | Alternativ 2 (okänt) |
+| `ArchiveAndTemplateComboBox_2` | RADIO | `3` | **Ärendedokument** (→ Document/New/61000) |
+| `Finish-Button` | BUTTON | – | `__doPostBack('...DialogButton', 'finish')` |
+| `Cancel-Button` | BUTTON | – | `__doPostBack('...DialogButton', 'cancel')` |
+
+RadioPostBack-mönster: `__doPostBack('ctl00$PlaceHolderMain$MainView$ArchiveAndTemplateComboBox$2', '')`
+
+> **Ping-anropen** (`GET /FileUpload.ashx/Ping`) skickas automatiskt av 360°:s JavaScript
+> och behöver inte simuleras i tillägget.
+
+> **Flera filer:** Troligtvis separeras värden med semikolon i `hiddenUploadedFilesPath`
+> (`{session1}|{namn1};{session2}|{namn2}`), men detta är ej verifierat för > 1 fil.
+
 ---
 
 ## Projektstruktur

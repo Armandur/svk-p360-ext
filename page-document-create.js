@@ -5,6 +5,114 @@
 //   page-document-fill.js (fyllDokumentFormulär)
 
 /**
+ * Öppnar ett nytt ärendedokumentformulär via ärendesidans upload-yta (drag-and-drop
+ * eller fil-väljare).  Laddar upp filen direkt på ärendesidan, hanterar den
+ * automatiskt öppnade ConnectedDocumentDialog och returnerar Document/New-iframen
+ * med filen redan registrerad på servern.
+ *
+ * Kartlagt 2026-03-29 via spy-logg. Flöde:
+ *   1. POST /FileUpload.ashx?userSession={id}  – en POST per fil
+ *   2. Sätt hiddenUploadedFilesPath på ärendesidans upload-kontroll
+ *   3. Klicka hiddenUploadButton på ärendesidan → server skapar temp-dokument med recno
+ *   4. ConnectedDocumentDialog öppnas (3 radioknappar, value 1/2/3)
+ *   5. Välj radio value="3" (→ Ärendedokument subtype 61000, bekräftat i spy-logg)
+ *   6. Klicka Finish → Document/New/61000 öppnas med filen redan registrerad
+ *
+ * @param {File[]} filer       - Filer att ladda upp
+ * @param {Function} visaStatus
+ * @param {Function} [ärAvbruten]
+ * @returns {Promise<HTMLIFrameElement>} Document/New-iframen
+ */
+async function öppnaDokumentMedFil(filer, visaStatus, ärAvbruten) {
+  const CASE_UPLOAD_BTN_TARGET =
+    'ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl' +
+    '$UploadControl_DocumentMultiFileUploadControl_hiddenUploadButton';
+  const CASE_UPLOAD_PATH_NAME =
+    'ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl' +
+    '$UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath';
+
+  // 1. Ladda upp varje fil till FileUpload.ashx
+  const sökvägar = [];
+  for (const fil of filer) {
+    if (ärAvbruten?.()) throw new Error('Avbruten');
+    visaStatus(`Laddar upp ${fil.name}…`);
+    const userSession = Math.floor(Math.random() * 1000000000);
+    await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `/FileUpload.ashx?userSession=${userSession}`);
+      xhr.onload = () => xhr.status === 200 ? resolve() : reject(new Error(`HTTP ${xhr.status}`));
+      xhr.onerror = () => reject(new Error('Nätverksfel vid uppladdning'));
+      xhr.timeout = 120000;
+      xhr.ontimeout = () => reject(new Error('Timeout vid uppladdning'));
+      const fd = new FormData();
+      fd.append(fil.name, fil);
+      xhr.send(fd);
+    });
+    sökvägar.push(`${userSession}|${fil.name}`);
+  }
+
+  // 2. Sätt hiddenUploadedFilesPath på ärendesidans upload-kontroll
+  //    Flera filer separeras med semikolon (ej verifierat för > 1 fil men troligt).
+  const uploadVärde = sökvägar.join(';');
+  let pathEl = document.querySelector(
+    '[id*="UploadControl_DocumentMultiFileUploadControl_hiddenUploadedFilesPath"],' +
+    `[name="${CASE_UPLOAD_PATH_NAME}"]`
+  );
+  if (!pathEl) {
+    // Skapa fältet om det saknas i DOM (kan hända om ärendesidan inte renderat kontrollerna)
+    const form = document.forms?.[0];
+    if (!form) throw new Error('Formulär saknas på ärendesidan.');
+    pathEl = document.createElement('input');
+    pathEl.type = 'hidden';
+    pathEl.name = CASE_UPLOAD_PATH_NAME;
+    form.appendChild(pathEl);
+  }
+  pathEl.value = uploadVärde;
+
+  // 3. Trigga hiddenUploadButton → server skapar temp-dokument och öppnar dialog
+  visaStatus('Registrerar fil på servern…');
+  __doPostBack(CASE_UPLOAD_BTN_TARGET, '');
+
+  // 4. Vänta på ConnectedDocumentDialog
+  visaStatus('Väntar på ConnectedDocumentDialog…');
+  const connIframe = await waitForNyIframe('ConnectedDocumentDialog', 15000);
+  if (!connIframe) throw new Error('ConnectedDocumentDialog öppnades inte.');
+
+  // Vänta tills formuläret i dialogen är redo
+  const cDoc = connIframe.contentDocument;
+  const cWin = connIframe.contentWindow;
+  if (!cDoc || !cWin) throw new Error('ConnectedDocumentDialog är inte tillgänglig (cross-origin?).');
+  await waitForElement(cDoc, 'input[type="radio"][id*="ArchiveAndTemplateComboBox"]', 8000);
+
+  // 5. Välj radio value="3" (Ärendedokument/subtype 61000, bekräftat i spy-logg 2026-03-29)
+  const radioBtn = cDoc.querySelector(
+    'input[type="radio"][id*="ArchiveAndTemplateComboBox_2"],' +
+    'input[type="radio"][name*="ArchiveAndTemplateComboBox"][value="3"]'
+  );
+  if (radioBtn && !radioBtn.checked) {
+    radioBtn.click();
+    await sleep(600); // Vänta kort på eventuell UpdatePanel
+  }
+
+  // 6. Klicka Finish i ConnectedDocumentDialog
+  visaStatus('Väljer dokumenttyp (Ärendedokument)…');
+  const prm = cWin.Sys?.WebForms?.PageRequestManager?.getInstance?.();
+  if (prm) {
+    for (let ms = 0; ms < 5000; ms += 100) {
+      if (!prm.get_isInAsyncPostBack()) break;
+      await sleep(100);
+    }
+  }
+  cWin.__doPostBack('ctl00$PlaceHolderMain$MainView$DialogButton', 'finish');
+
+  // 7. Vänta på Document/New-iframen (filen är redan registrerad)
+  visaStatus('Öppnar dokumentformulär…');
+  const docIframe = await waitForNyIframe('Document/New', 20000);
+  if (!docIframe) throw new Error('Dokumentformuläret öppnades inte efter ConnectedDocumentDialog.');
+  return docIframe;
+}
+
+/**
  * Visar dokumentformuläret för användaren och väntar på att de klickar Slutför
  * eller Avbryt.
  *
@@ -441,10 +549,6 @@ async function säkerställGenerelltFlik(iframe) {
  */
 async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
   visaStatus = visaStatus || (() => {});
-  // Tillfälligt testläge: injicera inte upload-hidden-fälten efter att vi byter tillbaka
-  // till Generellt-fliken. Detta för att isolera om reinjiceringen orsakar/utlöser felet.
-  // Efter test: sätt tillbaka till false.
-  const SKIP_UPLOAD_HIDDEN_INJECTION_FOR_TEST = false;
 
   // ---------------------------------------------------------------
   // 0. Validera handlingstyp mot ärendets klassificering
@@ -488,31 +592,16 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
   if (ärAvbruten?.()) return { cancelled: true };
 
   // ---------------------------------------------------------------
-  // 1. Öppna dokumentformuläret via PostBack
+  // 1–3. Öppna dokumentformulär (med eller utan filer)
+  //
+  //   MED filer: ladda upp via ärendesidans upload-yta → ConnectedDocumentDialog
+  //              → Document/New öppnas med filen redan registrerad på servern.
+  //              (Kartlagt 2026-03-29, se CLAUDE.md – ConnectedDocumentDialog-flöde)
+  //
+  //   UTAN filer: öppna formuläret direkt via DocumentActionMenuControl.
   // ---------------------------------------------------------------
-  visaStatus('Öppnar dokumentformulär…');
-  __doPostBack(
-    'ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu',
-    '61000'
-  );
 
-  // Vänta på att iframe laddas (kan vara /Document/New/ eller view.aspx-id)
-  const iframe = await waitForNyIframe('Document/New', 15000)
-              || await waitForNyIframe('70158b84-a8eb-492a-a546-277ee96e16f9', 5000);
-  if (!iframe) throw new Error('Dokumentformuläret öppnades inte.');
-
-  let iDoc = iframe.contentDocument;
-  let iWin = iframe.contentWindow;
-
-  // Vänta på att formuläret laddats
-  const titelFält = await waitForElement(
-    iDoc, '#PlaceHolderMain_MainView_TitleTextBoxControl', 10000
-  );
-  if (!titelFält) throw new Error('Dokumentformuläret laddades inte korrekt.');
-
-  // ---------------------------------------------------------------
-  // 2. Konvertera base64-filer till File-objekt
-  // ---------------------------------------------------------------
+  // Konvertera base64-filer till File-objekt (används i båda grenarna)
   if (dok.filerBase64 && dok.filerBase64.length > 0 && (!dok.filer || dok.filer.length === 0)) {
     dok.filer = dok.filerBase64.map(f => {
       const binär = atob(f.base64);
@@ -522,107 +611,34 @@ async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
     });
   }
 
-  // ---------------------------------------------------------------
-  // 3. Ladda upp filer (om filer finns) INNAN formulärfyllning.
-  //
-  //    Ordning är kritisk: om fälten fylls i FÖRE steg 3-postbacken
-  //    (hiddenUploadButton) ser 360°:s server ett "komplett" formulär
-  //    i ViewState och skapar dokumentet automatiskt – vilket navigerar
-  //    huvudramen och dödar MAIN-world-körningen mitt i flödet.
-  //
-  //    Lösning: ladda upp på ett tomt formulär (inga fält satta ännu),
-  //    spara SI_HiddenField_ScannedFilepath / hiddenUploadedFiles från
-  //    Filer-flikens DOM, navigera tillbaka till Generellt, återinjicera
-  //    sparade fält (de rensas av server-svaret för GeneralStep), fyll
-  //    sedan i fälten och skicka från Generellt.
-  // ---------------------------------------------------------------
+  let iframe;
   if (dok.filer && dok.filer.length > 0) {
-    visaStatus('Laddar upp filer…');
-    const uploadRes = await laddaUppFiler(iframe, dok.filer, visaStatus, ärAvbruten);
-    if (uploadRes.misslyckade.length > 0) {
-      throw new Error(
-        'Följande filer kunde inte registreras i dokumentet: ' +
-        uploadRes.misslyckade.join(', ')
-      );
-    }
-
-    if (uploadRes.lyckade.length > 0) {
-      // Spara upload-relaterade hidden fields INNAN navigering tillbaka.
-      // SI_HiddenField_ScannedFilepath sätts av servern i Filer-flikens
-      // UpdatePanel-region och försvinner när servern renderar Generellt igen.
-      const uppladdningsFält = Array.from(iDoc.querySelectorAll('input[type="hidden"]'))
-        .filter(el => {
-          const key = (el.id + '|' + el.name).toLowerCase();
-          return key.includes('scannedfilepath') || key.includes('hiddenuploadedfiles');
-        })
-        .map(el => ({ id: el.id, name: el.name, value: el.value }))
-        .filter(f => f.value);
-
-      // Navigera tillbaka till Generellt för formulärfyllning och Slutför
-      visaStatus('Återgår till Generellt…');
-      await väntaPåPRM(iWin, 5000);
-      iWin.__doPostBack('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'GeneralStep');
-      await waitForElement(iDoc, '#PlaceHolderMain_MainView_TitleTextBoxControl', 8000);
-      await väntaPåPRM(iWin, 5000);
-      const ärGenerelltRedo = await säkerställGenerelltFlik(iframe);
-      if (!ärGenerelltRedo) {
-        throw new Error('Kunde inte återgå till Generellt-fliken efter filuppladdning.');
-      }
-      iDoc = iframe.contentDocument;
-      iWin = iframe.contentWindow;
-
-      // Återinjicera upload-fält som rensats av GeneralStep-server-svaret
-      if (!SKIP_UPLOAD_HIDDEN_INJECTION_FOR_TEST) {
-        for (const fält of uppladdningsFält) {
-          const id = fält.id || '';
-          const name = fält.name || '';
-
-          // Dedupe: undvik flera hidden-inputs med samma name/id (kan ge flera värden i postback).
-          // Ta bort alla matchande (förutom den första) innan vi skriver värdet.
-          let kandidat = null;
-          if (id) {
-            const alla = Array.from(iDoc.querySelectorAll(`input[type="hidden"]#${CSS.escape(id)}`));
-            if (alla.length > 0) {
-              kandidat = alla[0];
-              for (const extra of alla.slice(1)) extra.remove();
-            }
-          } else if (name) {
-            const alla = Array.from(iDoc.querySelectorAll(`input[type="hidden"][name="${CSS.escape(name)}"]`));
-            if (alla.length > 0) {
-              kandidat = alla[0];
-              for (const extra of alla.slice(1)) extra.remove();
-            }
-          }
-
-          if (kandidat) {
-            kandidat.value = fält.value;
-            continue;
-          }
-
-          if (name) {
-            const form = iDoc.forms?.[0];
-            if (!form) continue;
-            const nyttEl = iDoc.createElement('input');
-            nyttEl.type = 'hidden';
-            nyttEl.name = name;
-            if (id) nyttEl.id = id;
-            nyttEl.value = fält.value;
-            form.appendChild(nyttEl);
-          }
-        }
-      }
-    }
+    // Ny väg: upload via ärendesidan → ConnectedDocumentDialog → Document/New
+    iframe = await öppnaDokumentMedFil(dok.filer, visaStatus, ärAvbruten);
+  } else {
+    // Gammal väg: öppna tomt formulär direkt
+    visaStatus('Öppnar dokumentformulär…');
+    __doPostBack(
+      'ctl00$PlaceHolderMain$MainView$LeftFolderView1_ViewControl$DocumentActionMenuControl_DropDownMenu',
+      '61000'
+    );
+    iframe = await waitForNyIframe('Document/New', 15000)
+          || await waitForNyIframe('70158b84-a8eb-492a-a546-277ee96e16f9', 5000);
+    if (!iframe) throw new Error('Dokumentformuläret öppnades inte.');
   }
 
+  // Vänta på att titelfältet finns (säkerhet för båda grenarna)
+  await waitForElement(iframe.contentDocument, '#PlaceHolderMain_MainView_TitleTextBoxControl', 10000);
+
   // ---------------------------------------------------------------
-  // 4. Fyll i fält på Generellt-fliken (efter eventuell filuppladdning)
+  // 4. Fyll i fält på Generellt-fliken
   // ---------------------------------------------------------------
   const generelltRedo = await säkerställGenerelltFlik(iframe);
   if (!generelltRedo) {
     throw new Error('Dokumentformuläret är inte på Generellt-fliken (basfält saknas).');
   }
-  iDoc = iframe.contentDocument;
-  iWin = iframe.contentWindow;
+  let iDoc = iframe.contentDocument;
+  let iWin = iframe.contentWindow;
   const { kontaktLagdTill } = await fyllDokumentFormulär(iDoc, iWin, dok, visaStatus);
 
   // Verifiera kritiska fält före Slutför så vi inte postar ett tomt formulär.
