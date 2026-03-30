@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <title>Hämta information från PDF</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      font-size: 14px;
+      background: #f5f5f5;
+      min-height: 100vh;
+    }
+    .huvud {
+      background: #0078d4;
+      color: #fff;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .huvud h1 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .sidindikator {
+      font-size: 12px;
+      opacity: 0.85;
+    }
+    .innehall {
+      display: flex;
+      height: calc(100vh - 44px);
+    }
+    .pdf-kolumn {
+      flex: 1;
+      overflow: auto;
+      background: #888;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 16px;
+    }
+    .pdf-wrapper {
+      position: relative;
+      display: inline-block;
+      line-height: 0;
+    }
+    #pdf-canvas {
+      display: block;
+      max-width: 100%;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+    .ocr-overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      cursor: crosshair;
+      z-index: 10;
+    }
+    .ocr-rektangel {
+      position: absolute;
+      border: 2px solid #ff5722;
+      background: rgba(255,87,34,0.15);
+      pointer-events: none;
+    }
+    .hoger-kolumn {
+      width: 310px;
+      flex-shrink: 0;
+      background: #fff;
+      border-left: 1px solid #ddd;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .sidnav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      border-bottom: 1px solid #eee;
+      background: #fafafa;
+    }
+    .sidnav button {
+      padding: 4px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      background: #f0f0f0;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+    .sidnav button:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+    .sidnav .sidtext {
+      font-size: 12px;
+      color: #555;
+    }
+    .text-sektion {
+      padding: 10px 12px;
+      border-bottom: 1px solid #eee;
+      flex: 1;
+      overflow-y: auto;
+      min-height: 80px;
+    }
+    .text-sektion h3 {
+      margin: 0 0 6px 0;
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #888;
+      letter-spacing: 0.5px;
+    }
+    .text-rad {
+      padding: 4px 8px;
+      font-size: 12px;
+      cursor: pointer;
+      border-radius: 3px;
+      border: 1px solid transparent;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+    .text-rad:hover {
+      background: #e8f4fd;
+      border-color: #90caf9;
+    }
+    .ocr-tips {
+      font-size: 12px;
+      color: #666;
+      padding: 6px 0;
+      line-height: 1.5;
+    }
+
+    /* Fältväljare */
+    .falt-valjare {
+      padding: 8px 12px;
+      border-bottom: 1px solid #eee;
+      background: #fafafa;
+    }
+    .falt-valjare .rubrik {
+      font-size: 10px;
+      text-transform: uppercase;
+      color: #888;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
+    }
+    .falt-knappar {
+      display: flex;
+      gap: 4px;
+    }
+    .falt-knapp {
+      flex: 1;
+      padding: 4px 6px;
+      font-size: 11px;
+      cursor: pointer;
+      background: #f0f0f0;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .falt-knapp.aktiv {
+      background: #0078d4;
+      color: #fff;
+      border-color: #0078d4;
+    }
+
+    /* Nedre sektion med fält */
+    .nedre-sektion {
+      padding: 10px 12px;
+      border-top: 1px solid #eee;
+    }
+    .falt-rad {
+      margin-bottom: 7px;
+    }
+    .falt-rad label {
+      display: block;
+      font-size: 11px;
+      color: #555;
+      margin-bottom: 2px;
+    }
+    .falt-rad input[type=text] {
+      width: 100%;
+      padding: 5px 8px;
+      font-size: 12px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+    .falt-rad input[type=text]:focus {
+      outline: none;
+      border-color: #0078d4;
+    }
+    .falt-rad input[type=text].aktivt-falt {
+      border-color: #0078d4;
+      background: #f0f7ff;
+    }
+    #btn-rita-rektangel {
+      width: 100%;
+      padding: 5px;
+      font-size: 11px;
+      cursor: pointer;
+      background: #fff3e0;
+      border: 1px solid #ffb74d;
+      border-radius: 3px;
+      margin-bottom: 8px;
+    }
+    #btn-rita-rektangel:hover { background: #ffe0b2; }
+    #btn-rita-rektangel.aktiv {
+      background: #ff5722;
+      color: #fff;
+      border-color: #e64a19;
+    }
+    #ocr-status {
+      font-size: 11px;
+      color: #0078d4;
+      min-height: 15px;
+      margin-bottom: 6px;
+    }
+    .knapp-rad {
+      display: flex;
+      gap: 6px;
+    }
+    .knapp-rad button {
+      flex: 1;
+      padding: 7px;
+      font-size: 13px;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #f5f5f5;
+    }
+    #btn-anvand {
+      background: #0078d4;
+      color: #fff;
+      border-color: #0078d4;
+    }
+    #btn-anvand:hover { background: #006cbf; }
+    #btn-avbryt:hover { background: #e8e8e8; }
+  </style>
+</head>
+<body>
+  <div class="huvud">
+    <h1 id="huvud-rubrik">Hämta information från PDF</h1>
+    <span class="sidindikator" id="sid-text"></span>
+  </div>
+
+  <div class="innehall">
+    <div class="pdf-kolumn">
+      <div class="pdf-wrapper" id="pdf-wrapper">
+        <canvas id="pdf-canvas"></canvas>
+      </div>
+    </div>
+
+    <div class="hoger-kolumn">
+      <div class="sidnav">
+        <button id="btn-foreg" disabled>◄ Föreg.</button>
+        <span class="sidtext" id="sidnav-text">–</span>
+        <button id="btn-nasta" disabled>Nästa ►</button>
+      </div>
+
+      <div class="text-sektion" id="text-sektion">
+        <h3>Extraherad text – klicka för att fylla markerat fält</h3>
+        <div id="text-lista"></div>
+        <div class="ocr-tips" id="ocr-tips" style="display:none;">
+          Inga textrader hittades (skannad PDF). Rita en rektangel kring
+          texten du vill hämta.
+        </div>
+      </div>
+
+      <!-- Fältväljare: vilket fält textrads-klick och OCR fyller -->
+      <div class="falt-valjare">
+        <div class="rubrik">Fyll i fält</div>
+        <div class="falt-knappar">
+          <button class="falt-knapp aktiv" data-falt="kontakt" id="faltknapp-kontakt">Avsändare</button>
+          <button class="falt-knapp" data-falt="datum" id="faltknapp-datum">Datum</button>
+          <button class="falt-knapp" data-falt="titel" id="faltknapp-titel">Titel</button>
+        </div>
+      </div>
+
+      <div class="nedre-sektion">
+        <button id="btn-rita-rektangel">✎ Rita rektangel för OCR</button>
+
+        <div class="falt-rad">
+          <label id="kontakt-etikett">Avsändare:</label>
+          <input type="text" id="resultat-kontakt" class="aktivt-falt" placeholder="Skriv eller välj ovan">
+        </div>
+        <div class="falt-rad">
+          <label id="datum-etikett">Ankomstdatum:</label>
+          <input type="text" id="resultat-datum" placeholder="ÅÅÅÅ-MM-DD">
+        </div>
+        <div class="falt-rad">
+          <label>Titel:</label>
+          <input type="text" id="resultat-titel" placeholder="Skriv eller välj ovan">
+        </div>
+
+        <div id="ocr-status"></div>
+        <div class="knapp-rad">
+          <button id="btn-anvand">Använd</button>
+          <button id="btn-avbryt">Avbryt</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="ocr-kontakt.js"></script>
+</body>
+</html>

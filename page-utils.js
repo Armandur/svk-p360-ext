@@ -119,12 +119,19 @@ function waitForNyIframe(urlFragment, timeout = 10000) {
       if (resolved) return;
     }
 
-    // Bevaka tillägg av nya iframes
+    // Bevaka tillägg av nya iframes.
+    // Hanterar även fallet när iframen är inkapslad i t.ex. en <dialog> som läggs
+    // till i ett enda DOM-anrop (innerHTML / createElement+append) – då innehåller
+    // addedNodes bara rotelementet, inte den kapslade iframen.
     const observer = new MutationObserver(mutations => {
       for (const mut of mutations) {
         for (const node of mut.addedNodes) {
-          if (node.nodeType === 1 && node.tagName === 'IFRAME') {
-            kolla(node);
+          if (node.nodeType !== 1) continue;
+          const iframes = node.tagName === 'IFRAME'
+            ? [node]
+            : Array.from(node.querySelectorAll('iframe'));
+          for (const f of iframes) {
+            kolla(f);
             if (resolved) return;
           }
         }

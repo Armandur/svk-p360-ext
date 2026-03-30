@@ -114,7 +114,7 @@
 </head>
 <body>
   <h1>360° Hjälptillägg</h1>
-  <div class="version">Svenska kyrkan &mdash; Hjälpmedel för P360/360° &mdash; v1.1</div>
+  <div class="version">Svenska kyrkan &mdash; Hjälpmedel för P360/360° &mdash; v1.3</div>
 
   <h2>Om tillägget</h2>
   <p>
@@ -136,7 +136,7 @@
       <tr>
         <td>Dagboksblad</td>
         <td><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd></td>
-        <td>Öppnar dagboksbladet och visar utskriftsdialogen automatiskt</td>
+        <td>Öppnar dagboksbladet i en ny flik och visar webbläsarens utskriftsdialog automatiskt</td>
       </tr>
       <tr>
         <td>Växla status</td>
@@ -255,6 +255,52 @@
       ett eget ärendedokument med valfri dokumentmall.</li>
   </ul>
 
+  <h3>Hämta information från PDF (OCR)</h3>
+  <p>
+    När du laddar upp PDF-filer kan tillägget automatiskt läsa ut avsändare/mottagare,
+    ankomstdatum och titel direkt ur handlingen, utan manuell inmatning.
+    Klicka på knappen <strong>Hämta info från PDF</strong> för att öppna PDF-visaren.
+  </p>
+  <p>
+    I PDF-visaren finns tre sätt att fylla i ett fält:
+  </p>
+  <ul>
+    <li><strong>Klicka på en textrad</strong> i den extraherade textlistan till höger –
+      raden kopieras direkt till det aktiva fältet.</li>
+    <li><strong>Rita en rektangel</strong> (knappen <em>Rita rektangel för OCR</em>) –
+      markera ett valfritt område i PDF-bilden och tillägget kör OCR på det avsnittet
+      med Tesseract. Passar för skannade dokument utan digital text.</li>
+    <li><strong>Skriv manuellt</strong> i fältet.</li>
+  </ul>
+  <p>
+    Välj vilket fält som ska ta emot nästa text med knapparna
+    <em>Avsändare / Mottagare</em>, <em>Datum</em> eller <em>Titel</em>.
+    Datumfältet normaliserar automatiskt vanliga format (t.ex.&nbsp;<code>2026 03-30</code>
+    eller&nbsp;<code>30-03-2026</code>) till&nbsp;<code>ÅÅÅÅ-MM-DD</code>.
+  </p>
+  <div class="notera">
+    <strong>Titel:</strong> Om dokumentmallen redan har en titel definierad visas en
+    informationsruta med mallens titel. Bocka i <em>Ersätt med OCR-extraherad titel</em>
+    om du vill använda den OCR-lästa titeln istället.
+  </div>
+  <p>
+    Klicka <strong>Använd</strong> när du är klar – tillägget startar omedelbart
+    dokumentskapandet i den öppna 360°-fliken och stänger PDF-visaren.
+  </p>
+
+  <h4>Batch – per-fils information</h4>
+  <p>
+    I batch-läget visas en filnavigator (<strong>◀ Fil X/Y: filnamn ▶</strong>)
+    högst upp i högerkolumnen. Navigera mellan filerna och fyll i kontakt,
+    datum och titel individuellt för varje fil. Värden sparas automatiskt
+    när du byter fil, och varje ärendedokument får sina egna uppgifter när
+    du klickar <strong>Använd</strong>.
+  </p>
+  <p>
+    Filer som inte är PDF:er visar en platshållare med filnamnet – du kan
+    ändå fylla i fälten manuellt för den filen.
+  </p>
+
   <h2>Massregistrering</h2>
   <p>
     Massregistrering skapar många ärenden i batch utifrån en CSV-fil eller manuellt
@@ -267,6 +313,7 @@
     <li><strong>Importera CSV</strong> eller lägg till rader manuellt i tabellen. Kolumner: Titel, Förnamn, Efternamn, Personnummer, Adress, Fil_1, Fil_2 m.m.</li>
     <li><strong>Koppla filer</strong> (valfritt) – klicka "Koppla filer" och välj de PDF:er/filer som nämns i Fil-kolumnerna. Tillägget matchar filnamn automatiskt. Rader utan filer skapar tomma ärendedokument.</li>
     <li><strong>Välj inställningar</strong> – markera eventuellt <em>Stäng ärende</em> (sätter status Avslutat) och/eller <em>Öppna dagboksblad efteråt</em> (öppnar dagboksbladet som popup direkt efter varje ärende).</li>
+    <li><strong>Förhandsgranska</strong> – en sammanfattning visas med alla ärenden och dokument som ska skapas (ärendetitel, ärendepart, dokumentkategori, kontakt, datum, fil). Bekräfta för att starta.</li>
     <li><strong>Starta batch</strong> – ärendena skapas sekventiellt. Du kan avbryta när som helst.</li>
   </ol>
 
@@ -279,9 +326,8 @@
       <tr><th>Kolumn</th><th>Obligatorisk</th><th>Beskrivning</th></tr>
     </thead>
     <tbody>
-      <tr><td>Titel</td><td>Ja</td><td>Ärendetitel</td></tr>
-      <tr><td>Förnamn</td><td>Ja</td><td>Kontaktpersonens förnamn</td></tr>
-      <tr><td>Efternamn</td><td>Ja</td><td>Kontaktpersonens efternamn</td></tr>
+      <tr><td>Titel <em>(visas som Ärendetitel)</em></td><td>Ja</td><td>Ärendetitel</td></tr>
+      <tr><td>Namn <em>(visas som Ärendepart)</em></td><td>Ja</td><td>Kontaktpersonens fullständiga namn (ärendepart)</td></tr>
       <tr><td>Personnummer</td><td>Nej</td><td>Pers/org-nummer</td></tr>
       <tr><td>Adress</td><td>Nej</td><td>Postadress</td></tr>
       <tr><td>Postnummer</td><td>Nej</td><td>Postnummer</td></tr>
@@ -289,8 +335,11 @@
       <tr><td>Epost</td><td>Nej</td><td>E-postadress</td></tr>
       <tr><td>Telefon</td><td>Nej</td><td>Telefonnummer</td></tr>
       <tr><td>Fil_1, Fil_2, …</td><td>Nej</td><td>Filnamn som kopplas till dokumentslotsar</td></tr>
+      <tr><td>DokKontakt_1, DokKontakt_2, …</td><td>Nej</td><td>Oregistrerad kontakt per ärendedokument. I tabellen styr en kryssruta per cell om ärendepartens namn (<em>Namn</em>) ska användas (ikryssad, default) eller om ett eget värde ska anges (avbockad). Tom avbockad cell = ingen dokumentkontakt. Vid CSV-import: har kolumnen ett värde bockas kryssrutan av automatiskt, annars ikryssad.</td></tr>
+      <tr><td>DokTitel_1, DokTitel_2, …</td><td>Nej</td><td>Dokumenttitel per ärendedokument. Överstyr titeln i dokumentmallen.</td></tr>
+      <tr><td>DokDatum_1, DokDatum_2, …</td><td>Nej</td><td>Datum per ärendedokument (ÅÅÅÅ-MM-DD). Inkommande = ankomstdatum, Utgående = expedierat datum, Upprättat = upprättat datum. Tom = Ankomstdatum används som fallback för inkommande.</td></tr>
       <tr><td>Kommentar</td><td>Nej</td><td>Ärendekommentar (flik 5 i formuläret)</td></tr>
-      <tr><td>Ankomstdatum</td><td>Nej</td><td>Datum för inkommande dokument</td></tr>
+      <tr><td>Ankomstdatum</td><td>Nej</td><td>Fallback-datum för inkommande ärendedokument (om DokDatum_N saknas). Sätts även som ärendets ankomstdatum.</td></tr>
       <tr><td>Status</td><td>Nej</td><td>Överstyr status (t.ex. "Avslutat")</td></tr>
     </tbody>
   </table>
@@ -319,18 +368,41 @@
     om de inte ska behållas.
   </div>
 
+  <h3>OCR i massregistrering</h3>
+  <p>
+    Varje PDF-fil i en Fil-cell har en 🔍-knapp. Klicka den för att öppna PDF:en i
+    OCR-visaren och hämta avsändare/mottagare, datum och titel för just det
+    ärendedokumentet. Värdena skrivs tillbaka till rätt <code>DokKontakt_N</code>,
+    <code>DokDatum_N</code> och <code>DokTitel_N</code>-kolumner i tabellen.
+    När en OCR-kontakt skrivs in bockas kryssrutan <em>Använd ärendepart</em> av
+    automatiskt så att den OCR-extraherade kontakten används för ärendedokumentet.
+  </p>
+  <p>
+    Du kan även sätta <strong>ärendepartens namn</strong> direkt i samma OCR-session:
+    bocka i <em>Ange ärendepart separat</em> för att visa ett extra fält och en
+    <em>Ärendepart</em>-knapp i fältväljaren. Fyll i ärendepartens namn (manuellt
+    eller via klick i textraden) och klicka <strong>Använd</strong> – både
+    dokumentkontakt och ärendepart sparas till tabellen på en gång.
+    Om ärendepart redan är satt för raden visas en varning när du aktiverar togglen.
+  </p>
+
   <h3>Resultat och dagboksblad</h3>
   <p>
     När körningen är klar visas en resultatrapport med status per rad. Härifrån kan du:
   </p>
   <ul>
     <li><strong>Ladda ned resultat-CSV</strong> – exporterar resultattabellen som CSV-fil.</li>
-    <li><strong>Öppna dagboksblad</strong> – hämtar dagboksbladet för alla lyckade ärenden
-      parallellt och öppnar varje dagboksblad som en PDF-fil i en bakgrundsflik. PDF:en
-      visas direkt i Chromes inbyggda PDF-visare och är redo att skrivas ut.</li>
-    <li><strong>Ladda ned dagboksblad (PDF)</strong> – hämtar dagboksbladet som PDF direkt
-      och sparar en fil per ärende (<code>dagboksblad_{diarienummer}.pdf</code>). Kräver
-      ingen öppen 360°-flik.</li>
+    <li><strong>Öppna dagboksblad (flikar)</strong> – hämtar dagboksbladet för alla lyckade
+      ärenden parallellt och öppnar varje dagboksblad som en PDF-fil i en bakgrundsflik.</li>
+    <li><strong>Öppna sammanfogad PDF</strong> <em>(visas när &gt;1 lyckades)</em> – slår ihop
+      alla dagboksblad till en enda PDF och öppnar den i en ny flik. Praktiskt när alla
+      dagboksblad ska skrivas ut med ett enda utskriftskommando.</li>
+    <li><strong>Ladda ned dagboksblad (PDF)</strong> – sparar en fil per ärende
+      (<code>dagboksblad_{diarienummer}.pdf</code>).</li>
+    <li><strong>Ladda ned som ZIP</strong> <em>(visas när &gt;1 lyckades)</em> – samlar alla
+      dagboksblads-PDF:er i en zip-fil (<code>dagboksblad-ÅÅÅÅ-MM-DD.zip</code>).</li>
+    <li><strong>Ladda ned sammanfogad PDF</strong> <em>(visas när &gt;1 lyckades)</em> – en
+      enda PDF med alla dagboksbladssidor efter varandra.</li>
   </ul>
 
   <h2>Funktioner i popup-menyn</h2>
@@ -344,8 +416,8 @@
       <tr>
         <td><strong>Dagboksblad</strong></td>
         <td>
-          Öppnar dagboksbladet i ett popup-fönster och visar utskriftsdialogen automatiskt.
-          Kräver att popup-fönster är tillåtna för p360.svenskakyrkan.se.
+          Öppnar dagboksbladet som PDF i en ny fokuserad flik och visar
+          webbläsarens utskriftsdialog automatiskt. Välj skrivare och tryck Enter.
         </td>
       </tr>
       <tr>
@@ -402,7 +474,6 @@
     dig på en ärendesida. Försök att använda det på andra sidor ger ett felmeddelande.
   </div>
   <ul>
-    <li>Dagboksbladsfunktionen kräver att popup-fönster är tillåtna för <code>p360.svenskakyrkan.se</code>.</li>
     <li>Massregistrering kräver att 360° är öppet i en annan flik.</li>
     <li>
       Efter en uppdatering av tillägget kan det behöva laddas om via

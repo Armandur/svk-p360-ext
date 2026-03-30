@@ -5,7 +5,13 @@
 let batchRader = [];
 let synligaKolumner = new Set(['Titel', 'Namn']);
 let filKolumner = ['Fil_1']; // Standard: en filkolumn
+let dokKontaktKolumner = ['DokKontakt_1']; // Oregistrerad kontakt per slot (override)
 let dokTitelKolumner = ['DokTitel_1']; // Överlagring av dokumenttitel per slot
+let dokDatumKolumner = ['DokDatum_1']; // Datum per slot (ankomst/skickat/upprättat)
+
+// Referens till slotskonfigurationen (sätts av batch.js) – används för att hämta kategori till OCR
+let batchSlotsar = [];
+function uppdateraBatchSlotsar(s) { batchSlotsar = s; }
 
 /**
  * Returnerar aktuella rader (för exekvering).
@@ -20,10 +26,14 @@ function hämtaBatchRader() {
  */
 function uppdateraFilKolumner(antalSlots) {
   filKolumner = [];
+  dokKontaktKolumner = [];
   dokTitelKolumner = [];
+  dokDatumKolumner = [];
   for (let i = 1; i <= Math.max(antalSlots, 1); i++) {
     filKolumner.push(`Fil_${i}`);
+    dokKontaktKolumner.push(`DokKontakt_${i}`);
     dokTitelKolumner.push(`DokTitel_${i}`);
+    dokDatumKolumner.push(`DokDatum_${i}`);
   }
   renderaTabell();
 }
@@ -40,8 +50,17 @@ function läggTillRad(data) {
   for (const fk of filKolumner) {
     rad[fk] = data?.[fk] || '';
   }
+  for (const ck of dokKontaktKolumner) {
+    rad[ck] = data?.[ck] || '';
+    // Arv-flagga: default true (använd ärendepart); false om explicit kontakt angetts
+    const arvKey = `DokKontaktArv_${dokKontaktKolumner.indexOf(ck) + 1}`;
+    rad[arvKey] = data?.[arvKey] !== undefined ? data[arvKey] : true;
+  }
   for (const dk of dokTitelKolumner) {
     rad[dk] = data?.[dk] || '';
+  }
+  for (const ddk of dokDatumKolumner) {
+    rad[ddk] = data?.[ddk] || '';
   }
   if (data?._filer) rad._filer = data._filer;
   batchRader.push(rad);
@@ -86,8 +105,17 @@ function importeraRader(csvRader) {
     for (const fk of filKolumner) {
       ny[fk] = rad[fk] || '';
     }
+    for (let i = 0; i < dokKontaktKolumner.length; i++) {
+      const ck = dokKontaktKolumner[i];
+      ny[ck] = rad[ck] || '';
+      // Arv deriveras från om explicit kontakt finns i CSV; annars default true
+      ny[`DokKontaktArv_${i + 1}`] = !ny[ck];
+    }
     for (const dk of dokTitelKolumner) {
       ny[dk] = rad[dk] || '';
+    }
+    for (const ddk of dokDatumKolumner) {
+      ny[ddk] = rad[ddk] || '';
     }
     batchRader.push(ny);
   }
@@ -105,7 +133,11 @@ function sparaFrånTabell() {
   trRader.forEach((tr, idx) => {
     if (idx >= batchRader.length) return;
     tr.querySelectorAll('input[data-kol]').forEach(inp => {
-      batchRader[idx][inp.dataset.kol] = inp.value;
+      if (inp.type === 'checkbox') {
+        batchRader[idx][inp.dataset.kol] = inp.checked;
+      } else {
+        batchRader[idx][inp.dataset.kol] = inp.value;
+      }
     });
     tr.querySelectorAll('select[data-kol]').forEach(sel => {
       batchRader[idx][sel.dataset.kol] = sel.value;
@@ -164,13 +196,20 @@ function renderaTabell() {
   huvud.innerHTML = '<th>#</th>';
   for (const kol of kolumner) {
     const th = document.createElement('th');
-    th.textContent = kol;
+    const def = BATCH_KOLUMNER[kol];
+    th.textContent = def?.visningsnamn || kol;
     huvud.appendChild(th);
   }
   for (let fi = 0; fi < filKolumner.length; fi++) {
+    const thKontakt = document.createElement('th');
+    thKontakt.textContent = dokKontaktKolumner[fi];
+    huvud.appendChild(thKontakt);
     const thTitel = document.createElement('th');
     thTitel.textContent = dokTitelKolumner[fi];
     huvud.appendChild(thTitel);
+    const thDatum = document.createElement('th');
+    thDatum.textContent = dokDatumKolumner[fi];
+    huvud.appendChild(thDatum);
     const thFil = document.createElement('th');
     thFil.textContent = filKolumner[fi];
     huvud.appendChild(thFil);
@@ -220,8 +259,40 @@ function renderaTabell() {
       tr.appendChild(td);
     }
 
-    // Dokumenttitel + Fil-celler (parvis)
+    // DokKontakt + DokTitel + DokDatum + Fil-celler (per slot)
     for (let fi = 0; fi < filKolumner.length; fi++) {
+      // DokKontakt_N – kryssruta (ärendepart) + valfritt textfält
+      const ck = dokKontaktKolumner[fi];
+      const arvKey = `DokKontaktArv_${fi + 1}`;
+      const arvChecked = rad[arvKey] !== false; // default true
+      const tdKontakt = document.createElement('td');
+      tdKontakt.style.whiteSpace = 'nowrap';
+
+      const arvChk = document.createElement('input');
+      arvChk.type = 'checkbox';
+      arvChk.dataset.kol = arvKey;
+      arvChk.checked = arvChecked;
+      arvChk.title = 'Använd ärendepart (Namn) som kontakt för detta ärendedokument';
+      arvChk.style.cssText = 'margin-right:4px;vertical-align:middle;cursor:pointer;';
+
+      const kontaktInp = document.createElement('input');
+      kontaktInp.type = 'text';
+      kontaktInp.dataset.kol = ck;
+      kontaktInp.value = rad[ck] || '';
+      kontaktInp.placeholder = 'Annan kontakt…';
+      kontaktInp.style.cssText = 'width:110px;';
+      kontaktInp.disabled = arvChecked;
+      if (arvChecked) kontaktInp.placeholder = '(ärendepart)';
+
+      arvChk.addEventListener('change', () => {
+        kontaktInp.disabled = arvChk.checked;
+        kontaktInp.placeholder = arvChk.checked ? '(ärendepart)' : 'Annan kontakt…';
+      });
+
+      tdKontakt.appendChild(arvChk);
+      tdKontakt.appendChild(kontaktInp);
+      tr.appendChild(tdKontakt);
+
       // DokTitel_N – textinput för titelöverstyrning
       const dk = dokTitelKolumner[fi];
       const tdTitel = document.createElement('td');
@@ -233,13 +304,25 @@ function renderaTabell() {
       tdTitel.appendChild(titelInp);
       tr.appendChild(tdTitel);
 
+      // DokDatum_N – datuminput per slot
+      const ddk = dokDatumKolumner[fi];
+      const tdDatum = document.createElement('td');
+      const datumInp = document.createElement('input');
+      datumInp.type = 'text';
+      datumInp.dataset.kol = ddk;
+      datumInp.value = rad[ddk] || '';
+      datumInp.placeholder = 'ÅÅÅÅ-MM-DD';
+      datumInp.style.cssText = 'width:95px;';
+      tdDatum.appendChild(datumInp);
+      tr.appendChild(tdDatum);
+
       // Fil_N – filväljare
       const fk = filKolumner[fi];
       const td = document.createElement('td');
       td.className = 'fil-cell';
       td.dataset.radIdx = idx;
       td.dataset.filIdx = fi;
-      renderaFilCell(td, rad, fi, fk);
+      renderaFilCell(td, rad, fi, fk, idx);
       kopplaDragDropCell(td, idx, fi);
       tr.appendChild(td);
     }
@@ -266,7 +349,7 @@ function renderaTabell() {
 /**
  * Renderar innehållet i en fil-cell.
  */
-function renderaFilCell(td, rad, filIdx, filKolumn) {
+function renderaFilCell(td, rad, filIdx, filKolumn, radIdx) {
   td.innerHTML = '';
   const filObj = rad._filer?.[filIdx];
   const filnamn = filObj ? filObj.name : (rad[filKolumn] || '');
@@ -288,6 +371,36 @@ function renderaFilCell(td, rad, filIdx, filKolumn) {
       if (rad._filer) rad._filer[filIdx] = null;
       renderaTabell();
     });
+
+    // OCR-knapp för PDF-filer med kopplad File-objekt
+    if (filObj && (filObj.type === 'application/pdf' || filObj.name.toLowerCase().endsWith('.pdf'))) {
+      const ocrBtn = document.createElement('button');
+      ocrBtn.className = 'fil-ocr-knapp';
+      ocrBtn.textContent = '🔍';
+      ocrBtn.title = 'Hämta avsändare/mottagare, datum och titel från PDF (OCR)';
+      ocrBtn.style.cssText =
+        'margin-left:3px;padding:1px 5px;font-size:11px;cursor:pointer;' +
+        'border:1px solid #9ab;border-radius:3px;background:#eef4ff;line-height:1.4;';
+      ocrBtn.addEventListener('click', async () => {
+        const base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(filObj);
+        });
+        const kategori = batchSlotsar[filIdx]?.dokumentmall?.kategori || '110';
+        await chrome.storage.local.set({
+          ocrContext: { typ: 'batch-rad', radIdx, filIdx, kategori, tid: Date.now(),
+            befintligÄrendepart: batchRader[radIdx]?.Namn || '' },
+          tempOcrFil: base64,
+        });
+        chrome.tabs.create({
+          url: chrome.runtime.getURL(`ocr-kontakt.html?storageKey=tempOcrFil&kategori=${kategori}`),
+        });
+      });
+      div.appendChild(ocrBtn);
+    }
+
     td.appendChild(div);
   } else {
     const btn = document.createElement('button');
@@ -367,8 +480,15 @@ function initDragZon() {
       for (const fk of filKolumner) {
         rad[fk] = '';
       }
+      for (let i = 0; i < dokKontaktKolumner.length; i++) {
+        rad[dokKontaktKolumner[i]] = '';
+        rad[`DokKontaktArv_${i + 1}`] = true; // default: använd ärendepart
+      }
       for (const dk of dokTitelKolumner) {
         rad[dk] = '';
+      }
+      for (const ddk of dokDatumKolumner) {
+        rad[ddk] = '';
       }
       rad[filKolumner[0]] = fil.name;
       batchRader.push(rad);
@@ -392,8 +512,11 @@ function sättRadStatus(idx, status, text) {
  * Aktiverar/avaktiverar startknappen baserat på antal rader.
  */
 function uppdateraStartKnapp() {
-  const btn = document.getElementById('btn-starta-batch');
-  if (btn) btn.disabled = batchRader.length === 0;
+  const harRader = batchRader.length > 0;
+  const start = document.getElementById('btn-starta-batch');
+  if (start) start.disabled = !harRader;
+  const koppla = document.getElementById('btn-koppla-filer');
+  if (koppla) koppla.disabled = !harRader;
 }
 
 /**
