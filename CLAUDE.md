@@ -87,6 +87,8 @@ document.getElementById(
 ├── batch.html / batch-data.js / batch-table.js / batch-utils.js / batch-run.js / batch.js
 ├── help.html / help.js          # Inbyggd hjälpsida
 ├── arendepaus.html              # Paussida vid ärendeskapande
+├── ocr-kontakt.html / ocr-kontakt.js  # PDF-visare med OCR för avsändare/mottagare (kat 110/111)
+├── lib/                         # Bundlade bibliotek (pdf.js v4, Tesseract.js v5 + språkdata)
 ├── docs/                        # P360 teknisk referens (se ovan)
 ├── CLAUDE.md
 └── ROADMAP.md
@@ -130,7 +132,7 @@ Chrome tillåter max 4 `suggested_key`. Konfigureras via `chrome://extensions/sh
 
 ## Kodstil
 
-- Vanilla JavaScript (ES2020+), inga externa beroenden
+- Vanilla JavaScript (ES2020+), inga externa beroenden (undantag: `lib/` med pdf.js + Tesseract.js)
 - Kommentarer och texter på **svenska**
 - Felmeddelanden ska vara tydliga och icke-tekniska
 - Kontrollera alltid rätt sida är aktiv innan åtgärd

@@ -37,6 +37,10 @@
       "128": "icons/icon128.png"
     }
   },
+  "web_accessible_resources": [{
+    "resources": ["lib/*"],
+    "matches": ["<all_urls>"]
+  }],
   "content_scripts": [
     {
       "matches": ["https://p360.svenskakyrkan.se/*"],

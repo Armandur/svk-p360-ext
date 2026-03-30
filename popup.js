@@ -597,6 +597,70 @@ document.getElementById('fil-input').addEventListener('change', async (e) => {
 document.getElementById('btn-fil-avbryt').addEventListener('click', () => {
   document.getElementById('fil-panel').style.display = 'none';
   uppladdningsFiler = [];
+  document.getElementById('fil-ocr-sektion').style.display = 'none';
+  document.getElementById('fil-ocr-resultat').style.display = 'none';
+  document.getElementById('fil-ocr-namn').value = '';
+});
+
+// Visa/dölj OCR-sektion baserat på vald mall och om PDF är vald
+document.getElementById('fil-mall-val').addEventListener('change', async (e) => {
+  const mallId = e.target.value;
+  const ocrSektion = document.getElementById('fil-ocr-sektion');
+
+  if (!mallId) { ocrSektion.style.display = 'none'; return; }
+
+  const { dokumentmallar = [] } = await chrome.storage.local.get('dokumentmallar');
+  const mall = dokumentmallar.find(m => m.id === mallId);
+  const harPdf = uppladdningsFiler.some(
+    f => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf')
+  );
+
+  if (mall && ['110', '111'].includes(mall.kategori) && harPdf) {
+    ocrSektion.style.display = '';
+    document.getElementById('fil-ocr-label').textContent =
+      mall.kategori === '110' ? 'Avsändare:' : 'Mottagare:';
+    // Rensa eventuellt gammalt resultat
+    document.getElementById('fil-ocr-resultat').style.display = 'none';
+    document.getElementById('fil-ocr-namn').value = '';
+  } else {
+    ocrSektion.style.display = 'none';
+  }
+});
+
+// Öppna OCR-sidan och konvertera PDF till base64
+document.getElementById('btn-fil-ocr').addEventListener('click', async () => {
+  const pdfFil = uppladdningsFiler.find(
+    f => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf')
+  );
+  if (!pdfFil) return;
+
+  const base64 = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('Kunde inte läsa filen.'));
+    reader.readAsDataURL(pdfFil);
+  });
+
+  await chrome.storage.local.set({ tempOcrFil: base64 });
+
+  const mallId = document.getElementById('fil-mall-val').value;
+  const { dokumentmallar = [] } = await chrome.storage.local.get('dokumentmallar');
+  const mall = dokumentmallar.find(m => m.id === mallId);
+  const kategori = mall?.kategori || '110';
+
+  chrome.tabs.create({
+    url: chrome.runtime.getURL(`ocr-kontakt.html?storageKey=tempOcrFil&kategori=${kategori}`),
+  });
+});
+
+// Lyssna på OCR-resultat (samma mönster som tempDokInstans)
+chrome.storage.onChanged.addListener((changes) => {
+  if (changes.ocrResultat?.newValue) {
+    const { namn } = changes.ocrResultat.newValue;
+    document.getElementById('fil-ocr-namn').value = namn;
+    document.getElementById('fil-ocr-resultat').style.display = '';
+    chrome.storage.local.remove('ocrResultat');
+  }
 });
 
 document.getElementById('btn-fil-starta').addEventListener('click', async () => {
@@ -619,6 +683,12 @@ document.getElementById('btn-fil-starta').addEventListener('click', async () => 
       delete mallData.id;
       delete mallData.skapad;
     }
+  }
+
+  // Inkludera OCR-resultat om det finns
+  const ocrNamn = document.getElementById('fil-ocr-namn')?.value?.trim();
+  if (ocrNamn) {
+    mallData.oregistreradKontakt = ocrNamn;
   }
 
   try {
@@ -682,6 +752,22 @@ document.getElementById('batch-fil-input').addEventListener('change', async (e) 
 document.getElementById('btn-batch-avbryt').addEventListener('click', () => {
   document.getElementById('batch-panel').style.display = 'none';
   batchFiler = [];
+  document.getElementById('batch-ocr-sektion').style.display = 'none';
+});
+
+// Visa/dölj batch-OCR-info baserat på vald mall
+document.getElementById('batch-mall-val').addEventListener('change', async (e) => {
+  const mallId = e.target.value;
+  const ocrSektion = document.getElementById('batch-ocr-sektion');
+  if (!mallId) { ocrSektion.style.display = 'none'; return; }
+
+  const { dokumentmallar = [] } = await chrome.storage.local.get('dokumentmallar');
+  const mall = dokumentmallar.find(m => m.id === mallId);
+  const harPdf = batchFiler.some(
+    f => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf')
+  );
+
+  ocrSektion.style.display = (mall && ['110', '111'].includes(mall.kategori) && harPdf) ? '' : 'none';
 });
 
 document.getElementById('btn-batch-starta').addEventListener('click', async () => {
@@ -704,6 +790,47 @@ document.getElementById('btn-batch-starta').addEventListener('click', async () =
     }
   }
 
+  // OCR: hämta avsändare/mottagare per PDF-fil om mallen har kategori 110/111
+  const ocrResultatBatch = {};
+  const mallKategori = mallData.kategori || '';
+  if (['110', '111'].includes(mallKategori)) {
+    for (let i = 0; i < batchFiler.length; i++) {
+      const f = batchFiler[i];
+      if (f.type !== 'application/pdf' && !f.name.toLowerCase().endsWith('.pdf')) continue;
+
+      filStatus.textContent = `OCR för fil ${i + 1}/${batchFiler.length}: ${f.name}…`;
+
+      const base64Data = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error('Kunde inte läsa filen.'));
+        reader.readAsDataURL(f);
+      });
+
+      const storageNyckel = `tempOcrFil_batch_${i}`;
+      await chrome.storage.local.set({ [storageNyckel]: base64Data });
+
+      // Öppna OCR-sidan och vänta på att användaren bekräftar
+      const ocrNamn = await new Promise((resolve) => {
+        const lyssnare = (changes) => {
+          if (changes.ocrResultat?.newValue) {
+            chrome.storage.onChanged.removeListener(lyssnare);
+            chrome.storage.local.remove('ocrResultat');
+            resolve(changes.ocrResultat.newValue.namn);
+          }
+        };
+        chrome.storage.onChanged.addListener(lyssnare);
+        chrome.tabs.create({
+          url: chrome.runtime.getURL(
+            `ocr-kontakt.html?storageKey=${storageNyckel}&kategori=${mallKategori}`
+          ),
+        });
+      });
+
+      ocrResultatBatch[i] = ocrNamn;
+    }
+  }
+
   const dokument = [];
   for (let i = 0; i < batchFiler.length; i++) {
     const f = batchFiler[i];
@@ -716,6 +843,9 @@ document.getElementById('btn-batch-starta').addEventListener('click', async () =
     };
     if (!dok.titel) {
       dok.titel = f.name.replace(/\.[^.]+$/, '');
+    }
+    if (ocrResultatBatch[i]) {
+      dok.oregistreradKontakt = ocrResultatBatch[i];
     }
     dokument.push(dok);
   }

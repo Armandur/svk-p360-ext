@@ -217,6 +217,18 @@
       <select id="fil-mall-val" style="width:100%;padding:5px 7px;border:1px solid #ccc;border-radius:3px;font-size:13px;margin-bottom:6px;box-sizing:border-box;">
         <option value="">(ingen mall – enbart fil)</option>
       </select>
+      <!-- OCR-kontaktsektion – visas om vald mall har kategori 110/111 och PDF är vald -->
+      <div id="fil-ocr-sektion" style="display:none;margin-bottom:6px;">
+        <button id="btn-fil-ocr" type="button"
+          style="width:100%;margin:0;padding:5px;font-size:11px;background:#fff3e0;border:1px solid #ffb74d;border-radius:3px;cursor:pointer;text-align:left;">
+          📄 Hämta avsändare/mottagare från PDF
+        </button>
+        <div id="fil-ocr-resultat" style="display:none;margin-top:4px;">
+          <label style="font-size:10px;color:#555;" id="fil-ocr-label">Avsändare:</label>
+          <input id="fil-ocr-namn" type="text"
+            style="width:100%;padding:4px;font-size:12px;border:1px solid #ccc;border-radius:3px;box-sizing:border-box;">
+        </div>
+      </div>
       <div style="display:flex;gap:4px;">
         <button id="btn-fil-starta" style="flex:1;margin:0;padding:6px;font-size:12px;background:#0078d4;color:#fff;border-color:#0078d4;">Ladda upp</button>
         <button id="btn-fil-avbryt" style="width:auto;margin:0;padding:6px;font-size:12px;">Avbryt</button>
@@ -231,6 +243,12 @@
       <select id="batch-mall-val" style="width:100%;padding:5px 7px;border:1px solid #ccc;border-radius:3px;font-size:13px;margin-bottom:6px;box-sizing:border-box;">
         <option value="">(ingen mall – enbart fil)</option>
       </select>
+      <!-- OCR-kontaktsektion för batch -->
+      <div id="batch-ocr-sektion" style="display:none;margin-bottom:6px;">
+        <div style="font-size:11px;color:#555;padding:3px 0;">
+          OCR körs automatiskt per PDF-fil när du startar batchen.
+        </div>
+      </div>
       <div style="display:flex;gap:4px;">
         <button id="btn-batch-starta" style="flex:1;margin:0;padding:6px;font-size:12px;background:#0078d4;color:#fff;border-color:#0078d4;">Starta batch</button>
         <button id="btn-batch-avbryt" style="width:auto;margin:0;padding:6px;font-size:12px;">Avbryt</button>
