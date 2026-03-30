@@ -326,8 +326,7 @@
     </thead>
     <tbody>
       <tr><td>Titel</td><td>Ja</td><td>Ärendetitel</td></tr>
-      <tr><td>Förnamn</td><td>Ja</td><td>Kontaktpersonens förnamn</td></tr>
-      <tr><td>Efternamn</td><td>Ja</td><td>Kontaktpersonens efternamn</td></tr>
+      <tr><td>Namn</td><td>Ja</td><td>Kontaktpersonens fullständiga namn (ärendepart)</td></tr>
       <tr><td>Personnummer</td><td>Nej</td><td>Pers/org-nummer</td></tr>
       <tr><td>Adress</td><td>Nej</td><td>Postadress</td></tr>
       <tr><td>Postnummer</td><td>Nej</td><td>Postnummer</td></tr>
@@ -335,8 +334,11 @@
       <tr><td>Epost</td><td>Nej</td><td>E-postadress</td></tr>
       <tr><td>Telefon</td><td>Nej</td><td>Telefonnummer</td></tr>
       <tr><td>Fil_1, Fil_2, …</td><td>Nej</td><td>Filnamn som kopplas till dokumentslotsar</td></tr>
+      <tr><td>DokKontakt_1, DokKontakt_2, …</td><td>Nej</td><td>Oregistrerad kontakt per ärendedokument. Tom = ärendepartens namn (Namn) används som fallback.</td></tr>
+      <tr><td>DokTitel_1, DokTitel_2, …</td><td>Nej</td><td>Dokumenttitel per ärendedokument. Överstyr titeln i dokumentmallen.</td></tr>
+      <tr><td>DokDatum_1, DokDatum_2, …</td><td>Nej</td><td>Datum per ärendedokument (ÅÅÅÅ-MM-DD). Inkommande = ankomstdatum, Utgående = expedierat datum, Upprättat = upprättat datum. Tom = Ankomstdatum används som fallback för inkommande.</td></tr>
       <tr><td>Kommentar</td><td>Nej</td><td>Ärendekommentar (flik 5 i formuläret)</td></tr>
-      <tr><td>Ankomstdatum</td><td>Nej</td><td>Datum för inkommande dokument</td></tr>
+      <tr><td>Ankomstdatum</td><td>Nej</td><td>Fallback-datum för inkommande ärendedokument (om DokDatum_N saknas). Sätts även som ärendets ankomstdatum.</td></tr>
       <tr><td>Status</td><td>Nej</td><td>Överstyr status (t.ex. "Avslutat")</td></tr>
     </tbody>
   </table>
@@ -365,18 +367,35 @@
     om de inte ska behållas.
   </div>
 
+  <h3>OCR i massregistrering</h3>
+  <p>
+    Varje PDF-fil i en Fil-cell har en 🔍-knapp. Klicka den för att öppna PDF:en i
+    OCR-visaren och hämta avsändare/mottagare, datum och titel för just det
+    ärendedokumentet. Värdena skrivs tillbaka till rätt <code>DokKontakt_N</code>,
+    <code>DokDatum_N</code> och <code>DokTitel_N</code>-kolumner i tabellen.
+  </p>
+  <p>
+    Ärendepartens kontakt (<strong>Namn</strong>-kolumnen) sätts separat och påverkas
+    inte av OCR-knappen på fil-cellen.
+  </p>
+
   <h3>Resultat och dagboksblad</h3>
   <p>
     När körningen är klar visas en resultatrapport med status per rad. Härifrån kan du:
   </p>
   <ul>
     <li><strong>Ladda ned resultat-CSV</strong> – exporterar resultattabellen som CSV-fil.</li>
-    <li><strong>Öppna dagboksblad</strong> – hämtar dagboksbladet för alla lyckade ärenden
-      parallellt och öppnar varje dagboksblad som en PDF-fil i en bakgrundsflik. PDF:en
-      visas direkt i Chromes inbyggda PDF-visare och är redo att skrivas ut.</li>
-    <li><strong>Ladda ned dagboksblad (PDF)</strong> – hämtar dagboksbladet som PDF direkt
-      och sparar en fil per ärende (<code>dagboksblad_{diarienummer}.pdf</code>). Kräver
-      ingen öppen 360°-flik.</li>
+    <li><strong>Öppna dagboksblad (flikar)</strong> – hämtar dagboksbladet för alla lyckade
+      ärenden parallellt och öppnar varje dagboksblad som en PDF-fil i en bakgrundsflik.</li>
+    <li><strong>Öppna sammanfogad PDF</strong> <em>(visas när &gt;1 lyckades)</em> – slår ihop
+      alla dagboksblad till en enda PDF och öppnar den i en ny flik. Praktiskt när alla
+      dagboksblad ska skrivas ut med ett enda utskriftskommando.</li>
+    <li><strong>Ladda ned dagboksblad (PDF)</strong> – sparar en fil per ärende
+      (<code>dagboksblad_{diarienummer}.pdf</code>).</li>
+    <li><strong>Ladda ned som ZIP</strong> <em>(visas när &gt;1 lyckades)</em> – samlar alla
+      dagboksblads-PDF:er i en zip-fil (<code>dagboksblad-ÅÅÅÅ-MM-DD.zip</code>).</li>
+    <li><strong>Ladda ned sammanfogad PDF</strong> <em>(visas när &gt;1 lyckades)</em> – en
+      enda PDF med alla dagboksbladssidor efter varandra.</li>
   </ul>
 
   <h2>Funktioner i popup-menyn</h2>

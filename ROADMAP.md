@@ -128,3 +128,12 @@ Funktioner som diskuterats men ännu inte prioriterats.
 | OCR: varning när mallen har en fördefinierad titel, med kryssruta för att ersätta den | 2026-03-30 |
 | OCR: per-fils OCR-värden i batch-läge med filnavigator (◀ Fil X/Y ▶) | 2026-03-30 |
 | OCR: PDF-väljare för flera PDF-filer vid enskild filuppladdning | 2026-03-30 |
+| Massregistrering: OCR-knapp per fil-cell (🔍) i batch-tabellen | 2026-03-30 |
+| Massregistrering: DokKontakt_N – oregistrerad kontakt per ärendedokument med fallback på ärendepart | 2026-03-30 |
+| Massregistrering: DokDatum_N – datum per ärendedokument (inkommande/utgående/upprättat) | 2026-03-30 |
+| Massregistrering: kolumnrubrik "Titel" → "Ärendetitel" via visningsnamn | 2026-03-30 |
+| OCR: ärendetitel fylls inte längre i automatiskt från OCR i batch-rad-läge | 2026-03-30 |
+| OCR: datumnormalisering hanterar flera separatortecken i följd (t.ex. "2026 -03- 30") | 2026-03-30 |
+| Massregistrering: ladda ned dagboksblad som ZIP | 2026-03-30 |
+| Massregistrering: ladda ned sammanfogad PDF (alla dagboksblad i en fil) | 2026-03-30 |
+| Massregistrering: öppna sammanfogad PDF i ny flik | 2026-03-30 |
