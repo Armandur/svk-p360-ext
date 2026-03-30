@@ -345,8 +345,8 @@ Object.entries(fältKartläggning).forEach(([nyckel, id]) => {
 function normaliseraDatum(text) {
   const t = text.trim();
 
-  // YYYY-MM-DD (med valfria separatorer inkl. blanktecken, t.ex. "2026 03-30")
-  const ååååFörst = t.match(/^(\d{4})[\s\-./](\d{1,2})[\s\-./](\d{1,2})$/);
+  // YYYY-MM-DD (ett eller flera separatortecken, t.ex. "2026 -03- 30", "2026 03-30")
+  const ååååFörst = t.match(/^(\d{4})[\s\-./]+(\d{1,2})[\s\-./]+(\d{1,2})$/);
   if (ååååFörst) {
     const [, å, m, d] = ååååFörst;
     const dt = new Date(+å, +m - 1, +d);
@@ -356,7 +356,7 @@ function normaliseraDatum(text) {
   }
 
   // DD[-/ .]MM[-/ .]YYYY — europeiskt format
-  const ddFörst = t.match(/^(\d{1,2})[\s\-./](\d{1,2})[\s\-./](\d{4})$/);
+  const ddFörst = t.match(/^(\d{1,2})[\s\-./]+(\d{1,2})[\s\-./]+(\d{4})$/);
   if (ddFörst) {
     const [, d, m, å] = ddFörst;
     const dt = new Date(+å, +m - 1, +d);
