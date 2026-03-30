@@ -5,8 +5,8 @@
 // typ: 'text' (default), 'select' (dropdown med cachade alternativ)
 const BATCH_KOLUMNER = {
   // Alltid synliga
-  Titel:         { fält: 'titel',         obligatorisk: true,  standard: true },
-  Namn:          { fält: 'namn',          obligatorisk: true,  standard: true },
+  Titel:         { fält: 'titel',         obligatorisk: true,  standard: true,  visningsnamn: 'Ärendetitel' },
+  Namn:          { fält: 'namn',          obligatorisk: true,  standard: true,  visningsnamn: 'Ärendepart' },
   // Valfria – kontakt
   Personnummer:  { fält: 'personnummer',  obligatorisk: false, standard: false },
   Adress:        { fält: 'adress',        obligatorisk: false, standard: false },
@@ -199,6 +199,30 @@ function detekteraDokTitelKolumner(headers) {
 }
 
 /**
+ * Identifierar DokKontakt_N-kolumner i CSV-headers.
+ * @returns {string[]} T.ex. ['DokKontakt_1', 'DokKontakt_2']
+ */
+function detekteraDokKontaktKolumner(headers) {
+  return headers.filter(h => /^DokKontakt_\d+$/i.test(h)).sort((a, b) => {
+    const na = parseInt(a.split('_')[1]);
+    const nb = parseInt(b.split('_')[1]);
+    return na - nb;
+  });
+}
+
+/**
+ * Identifierar DokDatum_N-kolumner i CSV-headers.
+ * @returns {string[]} T.ex. ['DokDatum_1', 'DokDatum_2']
+ */
+function detekteraDokDatumKolumner(headers) {
+  return headers.filter(h => /^DokDatum_\d+$/i.test(h)).sort((a, b) => {
+    const na = parseInt(a.split('_')[1]);
+    const nb = parseInt(b.split('_')[1]);
+    return na - nb;
+  });
+}
+
+/**
  * Validerar en rad mot ärendemallen och dokumentslotsar.
  * @returns {string[]} Lista med felmeddelanden (tom = OK)
  */
@@ -308,15 +332,22 @@ function byggMallFrånRad(baseMall, rad, slots, aktivaKolumner) {
       dokMall.titel = rad[dokTitelKolumn];
     }
 
-    // Lägg till kontaktperson som avsändare/mottagare via oregistreradKontakt
-    // (fyllDokumentFormulär använder dok.oregistreradKontakt för snabb-fältet)
-    if (kontakt.namn) {
-      dokMall.oregistreradKontakt = kontakt.namn;
+    // Oregistrerad kontakt per slot – styrs av DokKontaktArv_N-kryssrutan
+    // true (eller saknas) = använd ärendepart; false = använd DokKontakt_N-fältet
+    const dokKontaktKolumn = `DokKontakt_${s + 1}`;
+    const arvNyckel = `DokKontaktArv_${s + 1}`;
+    const brukArv = rad[arvNyckel] !== false;
+    const dokKontaktNamn = brukArv ? (kontakt.namn || '') : (rad[dokKontaktKolumn] || '');
+    if (dokKontaktNamn) {
+      dokMall.oregistreradKontakt = dokKontaktNamn;
     }
 
-    // Ankomstdatum för inkommande
-    if (dokMall.kategori === '110' && (rad.Ankomstdatum || rad.ankomstdatum)) {
-      dokMall.ankomstdatum = rad.Ankomstdatum || rad.ankomstdatum;
+    // Datum per slot (DokDatum_N) – prioriteras; fallback: Ankomstdatum för inkommande
+    const dokDatumKolumn = `DokDatum_${s + 1}`;
+    if (rad[dokDatumKolumn]) {
+      dokMall.datum = rad[dokDatumKolumn];
+    } else if (dokMall.kategori === '110' && (rad.Ankomstdatum || rad.ankomstdatum)) {
+      dokMall.datum = rad.Ankomstdatum || rad.ankomstdatum;
     }
 
     // Fil-referens (filnamn eller File-objekt lagras separat, ej obligatoriskt)
@@ -366,9 +397,15 @@ function exporteraBatchCSV(metadata) {
   for (const [namn] of Object.entries(BATCH_KOLUMNER)) {
     if (batchRader.some(r => r[namn])) aktiva.push(namn);
   }
-  // Lägg till fil- och dokumenttitelkolumner
+  // Lägg till fil- och per-slot-kolumner
+  for (const ck of dokKontaktKolumner) {
+    if (batchRader.some(r => r[ck])) aktiva.push(ck);
+  }
   for (const dk of dokTitelKolumner) {
     if (batchRader.some(r => r[dk])) aktiva.push(dk);
+  }
+  for (const ddk of dokDatumKolumner) {
+    if (batchRader.some(r => r[ddk])) aktiva.push(ddk);
   }
   for (const fk of filKolumner) {
     if (batchRader.some(r => r[fk])) aktiva.push(fk);

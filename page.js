@@ -10,7 +10,6 @@ window.addEventListener('p360-anrop', async (event) => {
   const { id, action, data } = event.detail;
 
   const postbackNycklar = {
-    dagboksblad:          'key_innehallsforteckning',
     redigeraEgenskaper:   'EditCase',
     registreraUtlaning:   'RegisterLoan',
     gallring:             'SetScrapCode',
@@ -27,8 +26,6 @@ window.addEventListener('p360-anrop', async (event) => {
       await sättStatus('8');
     } else if (action === 'växlaStatus') {
       await växlaStatus();
-    } else if (action === 'dagboksblad') {
-      await triggerDagboksblad();
     } else if (action === 'läsInAlternativ') {
       const alternativ = await läsInAlternativ();
       window.dispatchEvent(new CustomEvent('p360-svar', { detail: { id, success: true, data: alternativ } }));

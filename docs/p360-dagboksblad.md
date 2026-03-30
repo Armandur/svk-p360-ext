@@ -2,19 +2,23 @@
 
 ---
 
-## Dagboksblad via Report Viewer (popup)
+## Dagboksblad via ControlID (popup-knapp och tangentbordsgenväg)
 
-Dagboksbladet öppnas via PostBack-nyckeln `key_innehallsforteckning`. 360° anropar
-`window.open()` med en URL till MSRS Report Viewer.
+Dagboksbladet öppnas som inline-PDF i en ny fokuserad flik. Logiken körs i
+service workern (`background.js`) som har tillgång till `chrome.tabs` och
+`chrome.scripting`.
 
-### Flöde i `triggerDagboksblad()` (`page-dagboksblad.js`)
+### Flöde i `öppnaDagboksblad(recno)` (`background.js`)
 
-1. **Fånga popup-referensen** – `window.open` patchas tillfälligt, återställs efter första anrop
-2. **Vänta på Report Viewer** – polla tills `popup.$find('ctl00_PlaceHolderMain_MainView_ReportView')` returnerar instans (max 10 s)
-3. **Visa utskriftsdialogen** – `rv.invokePrintDialog()`
-4. **Klicka Print-knappen** – `.msrs-printdialog-divprintbutton`
+1. **Hämta rapport-HTML** – `fetch('...Innehallsforteckning?standalone=true&recno={recno}', { credentials: 'include' })`
+2. **Extrahera ControlID** – `html.match(/ControlID=([a-f0-9]{32})/)`
+3. **Öppna PDF-flik** – `chrome.tabs.create({ url: pdfUrl, active: true })` med `ContentDisposition=AlwaysInline`
+4. **Vänta på laddning** – polla `chrome.tabs.get(tab.id)` tills `status === 'complete'` (max 15 s)
+5. **Trigga utskrift** – `chrome.scripting.executeScript({ target: { tabId }, func: () => window.print() })`
 
-> Popup-fönster måste vara tillåtna för `p360.svenskakyrkan.se` i Chrome.
+**Anropsvägar:**
+- Popup-knapp: `popup.js` → `content.js` (extraherar recno ur URL) → `chrome.runtime.sendMessage` → `background.js`
+- Tangentbordsgenväg (Alt+Shift+D): `background.js` extraherar recno direkt ur `tab.url` via `chrome.tabs.query`
 
 ---
 

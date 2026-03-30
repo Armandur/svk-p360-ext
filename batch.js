@@ -1,5 +1,6 @@
 // batch.js – Init, händelsehanterare och sammankoppling för massregistrering
 // Beror på mall-data.js, batch-data.js, batch-table.js, batch-run.js
+// Förhandsvisningsmodal: batch-preview.js  |  Dagboksblad/PDF: batch-dagboksblad.js
 
 (async function init() {
   // Kontrollera att en 360°-flik finns
@@ -193,6 +194,9 @@
     }
   }
 
+  // Synka slotsar till batch-table.js så att OCR-knappen kan läsa kategori per slot
+  function synkaBatchSlotsar() { uppdateraBatchSlotsar(slotsar); }
+
   // Rendera dokumentslotsar
   function renderaSlotsar() {
     const lista = document.getElementById('slot-lista');
@@ -251,6 +255,7 @@
     });
 
     kontrolleraSlotKompatibilitet();
+    synkaBatchSlotsar();
   }
 
   function renderaSlotRoll(el, slot) {
@@ -294,8 +299,13 @@
       const { headers, rader } = parsCSV(csvText);
       // Detektera filkolumner i CSV
       const csvFilKol = detekteraFilKolumner(headers);
+      const csvDokKontaktKol = detekteraDokKontaktKolumner(headers);
       const csvDokTitelKol = detekteraDokTitelKolumner(headers);
-      const maxSlots = Math.max(csvFilKol.length, csvDokTitelKol.length);
+      const csvDokDatumKol = detekteraDokDatumKolumner(headers);
+      const maxSlots = Math.max(
+        csvFilKol.length, csvDokKontaktKol.length,
+        csvDokTitelKol.length, csvDokDatumKol.length,
+      );
       if (maxSlots > 0) {
         // Uppdatera antal slots om CSV har fler fil-/titelkolumner
         while (slotsar.length < maxSlots) {
@@ -459,6 +469,10 @@
       dagboksblad: document.getElementById('batch-dagboksblad').checked,
     };
 
+    // Förhandsvisning – användaren bekräftar innan körning startar
+    const bekräftad = await visaFörhandsvisning(baseMall, aktivaSlots);
+    if (!bekräftad) return;
+
     // Visa/dölj knappar
     document.getElementById('btn-starta-batch').style.display = 'none';
     document.getElementById('btn-avbryt-batch').style.display = '';
@@ -488,113 +502,30 @@
     a.click();
     URL.revokeObjectURL(url);
   });
-
-  // Öppna dagboksblad som PDF-flikar för alla lyckade ärenden
-  document.getElementById('btn-öppna-dagboksblad').addEventListener('click', async () => {
-    const lyckade = batchResultat.filter(r => r.status === 'klar' && r.recno);
-    if (lyckade.length === 0) {
-      alert('Inga lyckade ärenden med känt ärendenummer att öppna dagboksblad för.');
-      return;
-    }
-
-    const btn = document.getElementById('btn-öppna-dagboksblad');
-    const originalText = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = 'Hämtar…';
-
-    // Hämta ControlIDs parallellt – rapportsidorna är snabba att fetcha
-    const pdfUrls = await Promise.all(lyckade.map(async (r) => {
-      try {
-        const html = await fetch(
-          `https://p360.svenskakyrkan.se/locator/Reports/Case/Innehallsforteckning/Innehallsforteckning?standalone=true&recno=${r.recno}`,
-          { credentials: 'include' }
-        ).then(res => res.text());
-        const match = html.match(/ControlID=([a-f0-9]{32})/);
-        if (!match) return null;
-        return `https://p360.svenskakyrkan.se/Reserved.ReportViewerWebControl.axd` +
-          `?Culture=1053&CultureOverrides=True&UICulture=1053&UICultureOverrides=True` +
-          `&ReportStack=1&ControlID=${match[1]}&Mode=true&OpType=Export` +
-          `&FileName=Innehallsforteckning_1053&ContentDisposition=AlwaysInline&Format=PDF`;
-      } catch {
-        return null;
-      }
-    }));
-
-    for (const url of pdfUrls) {
-      if (url) chrome.tabs.create({ url, active: false });
-    }
-
-    btn.disabled = false;
-    btn.textContent = originalText;
-  });
-
-  // Ladda ned dagboksblad som PDF för alla lyckade ärenden
-  document.getElementById('btn-ladda-ned-dagboksblad').addEventListener('click', async () => {
-    const lyckade = batchResultat.filter(r => r.status === 'klar' && r.recno);
-    if (lyckade.length === 0) {
-      alert('Inga lyckade ärenden med känt ärendenummer att ladda ned dagboksblad för.');
-      return;
-    }
-
-    const btn = document.getElementById('btn-ladda-ned-dagboksblad');
-    const originalText = btn.textContent;
-    btn.disabled = true;
-
-    let lyckadeNed = 0;
-    let misslyckadeNed = 0;
-
-    for (let i = 0; i < lyckade.length; i++) {
-      const r = lyckade[i];
-      btn.textContent = `Laddar ned ${i + 1}/${lyckade.length}…`;
-      try {
-        // Hämta rapportsidans HTML för att extrahera ControlID
-        const rapportUrl = `https://p360.svenskakyrkan.se/locator/Reports/Case/Innehallsforteckning/Innehallsforteckning?standalone=true&recno=${r.recno}`;
-        const htmlSvar = await fetch(rapportUrl, { credentials: 'include' });
-        if (!htmlSvar.ok) throw new Error(`HTTP ${htmlSvar.status}`);
-        const html = await htmlSvar.text();
-
-        // Extrahera ControlID ur $create(Microsoft.Reporting.WebFormsClient._InternalReportViewer, {...})
-        const match = html.match(/ControlID=([a-f0-9]{32})/);
-        if (!match) throw new Error('ControlID hittades inte i rapportsidan.');
-        const controlId = match[1];
-
-        // Bygg nedladdnings-URL (AlwaysAttachment = fil sparas direkt, inte inline)
-        const pdfUrl =
-          `https://p360.svenskakyrkan.se/Reserved.ReportViewerWebControl.axd` +
-          `?Culture=1053&CultureOverrides=True&UICulture=1053&UICultureOverrides=True` +
-          `&ReportStack=1&ControlID=${controlId}&Mode=true&OpType=Export` +
-          `&FileName=Innehallsforteckning_1053&ContentDisposition=AlwaysAttachment&Format=PDF`;
-
-        const pdfSvar = await fetch(pdfUrl, { credentials: 'include' });
-        if (!pdfSvar.ok) throw new Error(`PDF-hämtning misslyckades: HTTP ${pdfSvar.status}`);
-        const blob = await pdfSvar.blob();
-
-        // Trigga nedladdning
-        const filnamn = `dagboksblad_${r.diarienummer || r.recno}.pdf`
-          .replace(/[/\\:*?"<>|]/g, '-');
-        const objUrl = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = objUrl;
-        a.download = filnamn;
-        a.click();
-        URL.revokeObjectURL(objUrl);
-        lyckadeNed++;
-      } catch (err) {
-        console.error(`[batch] Dagboksblad-nedladdning misslyckades för recno ${r.recno}:`, err);
-        misslyckadeNed++;
-      }
-
-      // Kort paus mellan nedladdningar för att inte överbelasta servern
-      if (i < lyckade.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 800));
-      }
-    }
-
-    btn.disabled = false;
-    btn.textContent = originalText;
-
-    if (misslyckadeNed > 0) {
-      alert(`${lyckadeNed} dagboksblad nedladdade. ${misslyckadeNed} misslyckades – se konsolen för detaljer.`);
-    }
-  });
 })();
+
+// Lyssnar på OCR-resultat från ocr-kontakt.html (batch-rad-läge).
+// Skriver tillbaka kontakt, datum och titel till rätt rad i tabellen.
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action !== 'ocrBatchRad') return;
+  const { radIdx, filIdx, kontakt, datum, titel, ärendepart } = request;
+  sparaFrånTabell();
+  const rad = batchRader[radIdx];
+  if (!rad) { sendResponse({ success: false, fel: 'Rad saknas' }); return; }
+  if (kontakt && dokKontaktKolumner[filIdx]) {
+    rad[dokKontaktKolumner[filIdx]] = kontakt;
+    // Bocka av arv-kryssrutan – kontakten är nu explicit, inte ärendeparten
+    rad[`DokKontaktArv_${filIdx + 1}`] = false;
+  }
+  if (ärendepart) {
+    rad.Namn = ärendepart;
+  }
+  if (datum && dokDatumKolumner[filIdx]) {
+    rad[dokDatumKolumner[filIdx]] = datum;
+  }
+  if (titel && dokTitelKolumner[filIdx]) {
+    rad[dokTitelKolumner[filIdx]] = titel;
+  }
+  renderaTabell();
+  sendResponse({ success: true });
+});

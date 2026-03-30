@@ -263,6 +263,24 @@ window.__p360OnMessageHandler = (request, sender, sendResponse) => {
     return;
   }
 
+  // Dagboksblad – skickas vidare till service worker (background.js) som har
+  // tillgång till chrome.tabs och chrome.scripting.
+  if (request.action === 'dagboksblad') {
+    if (!ärPåÄrendesida()) {
+      sendResponse({ success: false, fel: 'Navigera till ett ärende i 360° först.' });
+      return;
+    }
+    const recno = läsRecnoFrånUrl(window.location.href);
+    if (!recno) {
+      sendResponse({ success: false, fel: 'Kunde inte läsa ärendenummer från URL.' });
+      return;
+    }
+    chrome.runtime.sendMessage({ action: 'dagboksblad', recno })
+      .then(svar => sendResponse(svar))
+      .catch(err => sendResponse({ success: false, fel: err.message }));
+    return true; // håll kanalen öppen för async svar
+  }
+
   if (!ÅTGÄRDER_UTAN_SIDKRAV.has(request.action) && !ärPåÄrendesida()) {
     sendResponse({ success: false, fel: 'Navigera till ett ärende i 360° först.' });
     return;

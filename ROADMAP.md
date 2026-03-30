@@ -121,3 +121,26 @@ Funktioner som diskuterats men ännu inte prioriterats.
 | Massregistrering: "Ladda ned dagboksblad (PDF)" – direktnedladdning via MSRS axd-endpoint | 2026-03-29 |
 | Export av mallar (ärendemallar + dokumentmallar) till JSON-fil | 2026-03-29 |
 | Import av mallar från JSON-fil med val: slå samman eller ersätt allt | 2026-03-29 |
+| OCR-funktion: PDF-visare med textextraktion (pdf.js) och rektangel-OCR (Tesseract.js LSTM) | 2026-03-30 |
+| OCR: hämta avsändare/mottagare, ankomstdatum och titel från PDF-handlingar | 2026-03-30 |
+| OCR: startar ärendedokumentskapande direkt från OCR-sidan utan att öppna popup | 2026-03-30 |
+| OCR: datumnormalisering till YYYY-MM-DD (blandade separatorer, svenska månadsnamn, YYYYMMDD m.m.) | 2026-03-30 |
+| OCR: varning när mallen har en fördefinierad titel, med kryssruta för att ersätta den | 2026-03-30 |
+| OCR: per-fils OCR-värden i batch-läge med filnavigator (◀ Fil X/Y ▶) | 2026-03-30 |
+| OCR: PDF-väljare för flera PDF-filer vid enskild filuppladdning | 2026-03-30 |
+| Massregistrering: OCR-knapp per fil-cell (🔍) i batch-tabellen | 2026-03-30 |
+| Massregistrering: DokKontakt_N – oregistrerad kontakt per ärendedokument med explicit kryssruta (ärendepart/annan) per rad | 2026-03-30 |
+| Massregistrering: DokDatum_N – datum per ärendedokument (inkommande/utgående/upprättat) | 2026-03-30 |
+| Massregistrering: kolumnrubrik "Titel" → "Ärendetitel" och "Namn" → "Ärendepart" via visningsnamn | 2026-03-30 |
+| OCR: ärendetitel fylls inte längre i automatiskt från OCR i batch-rad-läge | 2026-03-30 |
+| OCR: datumnormalisering hanterar flera separatortecken i följd (t.ex. "2026 -03- 30") | 2026-03-30 |
+| Massregistrering: ladda ned dagboksblad som ZIP | 2026-03-30 |
+| Massregistrering: ladda ned sammanfogad PDF (alla dagboksblad i en fil) | 2026-03-30 |
+| Massregistrering: öppna sammanfogad PDF i ny flik | 2026-03-30 |
+| Massregistrering: inaktivera "Koppla filer" tills rader finns i tabellen | 2026-03-30 |
+| batch.html: utfällbart hjälpavsnitt (flöde, kolumner, OCR, efter körning) | 2026-03-30 |
+| Massregistrering: förhandsvisning av ärenden och ärendedokument innan körning (modal) | 2026-03-30 |
+| OCR batch-rad: toggle för att ange ärendepart separat (kontakt + ärendepart kan sättas i samma OCR-session) | 2026-03-30 |
+| Refaktorering: popup.js → popup-mallar.js + popup-fil.js; batch.js → batch-preview.js + batch-dagboksblad.js | 2026-03-30 |
+| Buggfix: ärendedokumentmall från popup fyllde inte i formuläret (waitForNyIframe + väntaPåPRM) | 2026-03-30 |
+| Dagboksblad: ny flik med fokus + webbläsarens utskriftsdialog via service worker (ControlID-fetch, ersätter PostBack+popup) | 2026-03-30 |

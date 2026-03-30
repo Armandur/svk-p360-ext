@@ -66,10 +66,10 @@ document.getElementById(
 ```
 /
 ├── manifest.json
-├── popup.html / popup.js        # Popup-UI + logik
+├── popup.html / popup.js / popup-mallar.js / popup-fil.js   # Popup-UI + logik
 ├── content.js                   # ISOLATED world – skickar meddelanden till MAIN world
+│                                #   Dagboksblad hanteras direkt här (fetch → ControlID → ny flik + window.print)
 ├── page-utils.js                # Delade hjälpfunktioner (MAIN world)
-├── page-dagboksblad.js          # Dagboksblad + utskriftsdialog
 ├── page-status.js               # Sätt/växla status
 ├── page-arende-options.js       # Läser formuläralternativ (NY_ÄRENDE_URL, läsInAlternativ)
 ├── page-arende-contacts.js      # Oregistrerade externa kontakter
@@ -84,9 +84,15 @@ document.getElementById(
 ├── background.js                # Service worker – tangentbordskommandon
 ├── mall.html / mall-data.js / mall-kontakter.js / mall-dokument.js / mall.js
 ├── dokument-mall.html / dokument-mall.js   # Dokumentmallredigerare (?instans=1)
-├── batch.html / batch-data.js / batch-table.js / batch-utils.js / batch-run.js / batch.js
+├── batch.html / batch-data.js / batch-table.js / batch-utils.js / batch-run.js / batch-export.js / batch-preview.js / batch-dagboksblad.js / batch.js
+│                                      # batch-export.js: ZIP-skapande (pure JS) + PDF-merge (pdf-lib)
+│                                      # batch-preview.js: förhandsvisningsmodal  |  batch-dagboksblad.js: dagboksblads-PDF:er
 ├── help.html / help.js          # Inbyggd hjälpsida
 ├── arendepaus.html              # Paussida vid ärendeskapande
+├── ocr-kontakt.html / ocr-kontakt.js  # PDF-visare med OCR: kontakt, datum, titel (kat 110/111)
+│                                      # Batch: per-fils navigator + individuella fältvärden
+│                                      # Startar dokumentskapande direkt mot öppen P360-flik
+├── lib/                         # Bundlade bibliotek (pdf.js v4, Tesseract.js v5 + språkdata)
 ├── docs/                        # P360 teknisk referens (se ovan)
 ├── CLAUDE.md
 └── ROADMAP.md
@@ -95,18 +101,17 @@ document.getElementById(
 ### MAIN-world körordning (manifest.json)
 
 1. `page-utils.js`
-2. `page-dagboksblad.js`
-3. `page-status.js`
-4. `page-arende-options.js`
-5. `page-arende-contacts.js`
-6. `page-arende-create.js`
-7. `page-document-options.js`
-8. `page-document-validate.js`
-9. `page-document-fill.js`
-10. `page-document-upload.js`
-11. `page-document-steps.js`
-12. `page-document-create.js`
-13. `page.js` (router)
+2. `page-status.js`
+3. `page-arende-options.js`
+4. `page-arende-contacts.js`
+5. `page-arende-create.js`
+6. `page-document-options.js`
+7. `page-document-validate.js`
+8. `page-document-fill.js`
+9. `page-document-upload.js`
+10. `page-document-steps.js`
+11. `page-document-create.js`
+12. `page.js` (router)
 
 ## Dokumentmallar och instansmodell
 
@@ -130,7 +135,7 @@ Chrome tillåter max 4 `suggested_key`. Konfigureras via `chrome://extensions/sh
 
 ## Kodstil
 
-- Vanilla JavaScript (ES2020+), inga externa beroenden
+- Vanilla JavaScript (ES2020+), inga externa beroenden (undantag: `lib/` med pdf.js + Tesseract.js)
 - Kommentarer och texter på **svenska**
 - Felmeddelanden ska vara tydliga och icke-tekniska
 - Kontrollera alltid rätt sida är aktiv innan åtgärd
