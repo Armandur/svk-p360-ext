@@ -251,7 +251,22 @@ async function hämtaTesseractWorker() {
   statusEl.textContent = 'Laddar OCR-motor…';
   statusEl.style.color = '#0078d4';
 
-  // Tesseract.js laddas som klassiskt skript (UMD-bundle) i html
+  // MV3-patch: Tesseract.js skapar ett blob-URL-worker med importScripts(workerPath)
+  // inuti bloben. Blob-workerns CSP blockerar anrop till chrome-extension://-URL:er.
+  // Vi patchar window.Worker så att blob-URL:er omdirigeras direkt till extension-filen,
+  // vilket ger workern korrekt extension-origin och rätt CSP.
+  if (!window._tesseractWorkerPatched) {
+    const _OriginalWorker = window.Worker;
+    const _workerUrl = chrome.runtime.getURL('lib/tesseract-worker.min.js');
+    window.Worker = function PatchadWorker(url, options) {
+      if (typeof url === 'string' && url.startsWith('blob:')) url = _workerUrl;
+      return new _OriginalWorker(url, options);
+    };
+    window.Worker.prototype = _OriginalWorker.prototype;
+    window._tesseractWorkerPatched = true;
+  }
+
+  // Tesseract.js laddas som klassiskt skript (UMD-bundle)
   // Vi måste ladda det dynamiskt eftersom ocr-kontakt.js är en modul
   await laddaSkript(chrome.runtime.getURL('lib/tesseract.min.js'));
 
