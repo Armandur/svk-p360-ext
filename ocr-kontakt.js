@@ -358,22 +358,121 @@ async function körOCR(canvas) {
   }
 }
 
-// --- Bekräfta och returnera resultat ---
+// --- Starta uppladdning direkt från OCR-sidan ---
+// Bygger dokument-arrayen från ocrContext + OCR-värden och skickar till P360-fliken.
+// Returnerar true om meddelandet skickades, false om ingen P360-flik hittades.
+async function startaUppladning(kontakt, ankomstdatum, titel) {
+  const { ocrContext } = await chrome.storage.local.get('ocrContext');
+  if (!ocrContext) return false;
+
+  // Kräver en öppen P360-flik
+  const [tab] = await chrome.tabs.query({ url: 'https://p360.svenskakyrkan.se/*' });
+  if (!tab) return false;
+
+  const { mallId, filerData, typ } = ocrContext;
+
+  // Hämta och förbered malldata
+  const { dokumentmallar = [] } = await chrome.storage.local.get('dokumentmallar');
+  const dm = dokumentmallar.find(m => m.id === mallId);
+  let mallData = {};
+  if (dm) {
+    mallData = { ...dm };
+    delete mallData.id;
+    delete mallData.skapad;
+  }
+  if (kontakt)    mallData.oregistreradKontakt = kontakt;
+  if (ankomstdatum) mallData.datum = ankomstdatum;
+  if (titel && !mallData.titel) mallData.titel = titel;
+
+  // Bygg dokument-array (enskild fil = alla filer i ett dok, batch = ett dok per fil)
+  const dokument = [];
+  if (typ === 'fil') {
+    const filerBase64 = filerData.map(f => ({
+      namn: f.namn, typ: f.typ,
+      base64: f.base64.includes(',') ? f.base64.split(',')[1] : f.base64,
+    }));
+    const dok = { ...mallData, filerBase64 };
+    if (!dok.titel) dok.titel = filerData.length === 1
+      ? filerData[0].namn.replace(/\.[^.]+$/, '') : '';
+    dokument.push(dok);
+  } else {
+    for (const f of filerData) {
+      const base64 = f.base64.includes(',') ? f.base64.split(',')[1] : f.base64;
+      const dok = { ...mallData, filerBase64: [{ namn: f.namn, typ: f.typ, base64 }] };
+      if (!dok.titel) dok.titel = f.namn.replace(/\.[^.]+$/, '');
+      if (titel && !mallData.titel) dok.titel = titel;
+      dokument.push(dok);
+    }
+  }
+
+  // Spara stora filer till storage (undviker 64 MB-gränsen på sendMessage)
+  const filStorage = {};
+  for (let i = 0; i < dokument.length; i++) {
+    if (dokument[i].filerBase64?.length) {
+      const nyckel = `tempFiler_${i}`;
+      filStorage[nyckel] = dokument[i].filerBase64;
+      dokument[i] = { ...dokument[i], filerStorageNyckel: nyckel };
+      delete dokument[i].filerBase64;
+    }
+  }
+  if (Object.keys(filStorage).length > 0) {
+    await chrome.storage.local.set(filStorage);
+  }
+
+  let lyckades = false;
+  try {
+    chrome.tabs.update(tab.id, { active: true });
+    try {
+      await chrome.tabs.sendMessage(tab.id, { action: 'skapaÄrendedokument', dokument });
+      lyckades = true;
+    } catch {
+      // content.js kanske inte är laddat – injicera och försök igen
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id }, files: ['content.js'], world: 'ISOLATED',
+      });
+      await new Promise(r => setTimeout(r, 300));
+      await chrome.tabs.sendMessage(tab.id, { action: 'skapaÄrendedokument', dokument });
+      lyckades = true;
+    }
+  } catch {
+    lyckades = false;
+  } finally {
+    await chrome.storage.local.remove(Object.keys(filStorage));
+  }
+
+  if (lyckades) {
+    await chrome.storage.local.remove(['ocrContext', 'ocrResultat', storageKey]);
+  }
+  return lyckades;
+}
+
+// --- Bekräfta och starta uppladdning ---
 document.getElementById('btn-anvand').addEventListener('click', async () => {
-  const kontakt     = document.getElementById('resultat-kontakt').value.trim();
+  const kontakt      = document.getElementById('resultat-kontakt').value.trim();
   const ankomstdatum = document.getElementById('resultat-datum').value.trim();
-  const titel       = document.getElementById('resultat-titel').value.trim();
+  const titel        = document.getElementById('resultat-titel').value.trim();
 
   if (!kontakt && !ankomstdatum && !titel) {
-    // Inget ifyllt – markera aktivt fält
     document.getElementById(aktivtFältId).focus();
     return;
   }
 
-  await chrome.storage.local.set({
-    ocrResultat: { kontakt, ankomstdatum, titel, tid: Date.now() },
-  });
-  await chrome.storage.local.remove(storageKey);
+  const statusEl = document.getElementById('ocr-status');
+  statusEl.style.color = '#0078d4';
+  statusEl.textContent = 'Startar uppladdning…';
+
+  // Försök skicka direkt till P360-fliken (om ocrContext finns och P360 är öppet)
+  const lyckades = await startaUppladning(kontakt, ankomstdatum, titel);
+
+  if (!lyckades) {
+    // Ingen P360-flik – spara resultat och låt popup ta vid vid nästa öppning
+    await chrome.storage.local.set({
+      ocrResultat: { kontakt, ankomstdatum, titel, tid: Date.now() },
+    });
+    await chrome.storage.local.remove(storageKey);
+    statusEl.textContent = '';
+  }
+
   if (tesseractWorker) {
     try { await tesseractWorker.terminate(); } catch { /* ignorera */ }
   }
@@ -381,7 +480,7 @@ document.getElementById('btn-anvand').addEventListener('click', async () => {
 });
 
 document.getElementById('btn-avbryt').addEventListener('click', async () => {
-  await chrome.storage.local.remove(storageKey);
+  await chrome.storage.local.remove([storageKey, 'ocrContext', 'ocrResultat']);
   if (tesseractWorker) {
     try { await tesseractWorker.terminate(); } catch { /* ignorera */ }
   }
