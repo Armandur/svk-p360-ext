@@ -129,7 +129,7 @@ Funktioner som diskuterats men ännu inte prioriterats.
 | OCR: per-fils OCR-värden i batch-läge med filnavigator (◀ Fil X/Y ▶) | 2026-03-30 |
 | OCR: PDF-väljare för flera PDF-filer vid enskild filuppladdning | 2026-03-30 |
 | Massregistrering: OCR-knapp per fil-cell (🔍) i batch-tabellen | 2026-03-30 |
-| Massregistrering: DokKontakt_N – oregistrerad kontakt per ärendedokument med fallback på ärendepart | 2026-03-30 |
+| Massregistrering: DokKontakt_N – oregistrerad kontakt per ärendedokument med explicit kryssruta (ärendepart/annan) per rad | 2026-03-30 |
 | Massregistrering: DokDatum_N – datum per ärendedokument (inkommande/utgående/upprättat) | 2026-03-30 |
 | Massregistrering: kolumnrubrik "Titel" → "Ärendetitel" via visningsnamn | 2026-03-30 |
 | OCR: ärendetitel fylls inte längre i automatiskt från OCR i batch-rad-läge | 2026-03-30 |

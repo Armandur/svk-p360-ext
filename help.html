@@ -334,7 +334,7 @@
       <tr><td>Epost</td><td>Nej</td><td>E-postadress</td></tr>
       <tr><td>Telefon</td><td>Nej</td><td>Telefonnummer</td></tr>
       <tr><td>Fil_1, Fil_2, …</td><td>Nej</td><td>Filnamn som kopplas till dokumentslotsar</td></tr>
-      <tr><td>DokKontakt_1, DokKontakt_2, …</td><td>Nej</td><td>Oregistrerad kontakt per ärendedokument. Tom = ärendepartens namn (Namn) används som fallback.</td></tr>
+      <tr><td>DokKontakt_1, DokKontakt_2, …</td><td>Nej</td><td>Oregistrerad kontakt per ärendedokument. I tabellen styr en kryssruta per cell om ärendepartens namn (<em>Namn</em>) ska användas (ikryssad, default) eller om ett eget värde ska anges (avbockad). Tom avbockad cell = ingen dokumentkontakt. Vid CSV-import: har kolumnen ett värde bockas kryssrutan av automatiskt, annars ikryssad.</td></tr>
       <tr><td>DokTitel_1, DokTitel_2, …</td><td>Nej</td><td>Dokumenttitel per ärendedokument. Överstyr titeln i dokumentmallen.</td></tr>
       <tr><td>DokDatum_1, DokDatum_2, …</td><td>Nej</td><td>Datum per ärendedokument (ÅÅÅÅ-MM-DD). Inkommande = ankomstdatum, Utgående = expedierat datum, Upprättat = upprättat datum. Tom = Ankomstdatum används som fallback för inkommande.</td></tr>
       <tr><td>Kommentar</td><td>Nej</td><td>Ärendekommentar (flik 5 i formuläret)</td></tr>
@@ -373,6 +373,8 @@
     OCR-visaren och hämta avsändare/mottagare, datum och titel för just det
     ärendedokumentet. Värdena skrivs tillbaka till rätt <code>DokKontakt_N</code>,
     <code>DokDatum_N</code> och <code>DokTitel_N</code>-kolumner i tabellen.
+    När OCR-kontakten skrivs in bockas kryssrutan <em>Använd ärendepart</em> av
+    automatiskt så att den OCR-extraherade kontakten används.
   </p>
   <p>
     Ärendepartens kontakt (<strong>Namn</strong>-kolumnen) sätts separat och påverkas
