@@ -10,6 +10,9 @@ const params = new URLSearchParams(location.search);
 const storageKey = params.get('storageKey') || 'tempOcrFil';
 const kategori = params.get('kategori') || '110';
 
+// Hämta OCR-kontext (innehåller lista över alla filer för uppladdning)
+const { ocrContext } = await chrome.storage.local.get('ocrContext');
+
 // Anpassa etiketter efter kategori
 const ärInkommande = kategori === '110';
 document.getElementById('huvud-rubrik').textContent =
@@ -33,24 +36,63 @@ if (!filBase64) {
   throw new Error('Ingen fildata i storage');
 }
 
-// Konvertera base64 → Uint8Array
-const base64Sträng = filBase64.includes(',') ? filBase64.split(',')[1] : filBase64;
-const binär = atob(base64Sträng);
-const bytes = new Uint8Array(binär.length);
-for (let i = 0; i < binär.length; i++) bytes[i] = binär.charCodeAt(i);
-
-// Ladda PDF
 let pdfDok;
-try {
-  pdfDok = await pdfjsLib.getDocument({ data: bytes }).promise;
-} catch (e) {
-  document.getElementById('ocr-status').textContent = 'Fel: Kunde inte öppna PDF.';
-  document.getElementById('ocr-status').style.color = '#c0392b';
-  throw e;
+let aktuelltSidnummer = 1;
+let antalSidor = 0;
+
+async function öppnaPdf(base64Str) {
+  const b64 = base64Str.includes(',') ? base64Str.split(',')[1] : base64Str;
+  const binär = atob(b64);
+  const bytes = new Uint8Array(binär.length);
+  for (let i = 0; i < binär.length; i++) bytes[i] = binär.charCodeAt(i);
+  try {
+    pdfDok = await pdfjsLib.getDocument({ data: bytes }).promise;
+  } catch (e) {
+    document.getElementById('ocr-status').textContent = 'Fel: Kunde inte öppna PDF.';
+    document.getElementById('ocr-status').style.color = '#c0392b';
+    throw e;
+  }
+  aktuelltSidnummer = 1;
+  antalSidor = pdfDok.numPages;
+  await renderaSida(1);
 }
 
-let aktuelltSidnummer = 1;
-const antalSidor = pdfDok.numPages;
+// Visa PDF-väljare om kontexten innehåller flera PDF-filer
+const allaPdfFiler = (ocrContext?.filerData || []).filter(
+  f => f.typ === 'application/pdf' || (f.namn || '').toLowerCase().endsWith('.pdf')
+);
+if (allaPdfFiler.length > 1) {
+  const valjareDiv = document.createElement('div');
+  valjareDiv.style.cssText =
+    'padding:6px 12px;border-bottom:1px solid #eee;background:#fafafa;';
+  const rubrik = document.createElement('div');
+  rubrik.style.cssText =
+    'font-size:10px;text-transform:uppercase;color:#888;letter-spacing:0.5px;margin-bottom:3px;';
+  rubrik.textContent = 'Välj PDF att visa';
+  const sel = document.createElement('select');
+  sel.id = 'pdf-val-select';
+  sel.style.cssText =
+    'width:100%;padding:4px 6px;font-size:11px;border:1px solid #ccc;border-radius:3px;';
+  allaPdfFiler.forEach((f, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = f.namn;
+    sel.appendChild(opt);
+  });
+  sel.addEventListener('change', async () => {
+    const vald = allaPdfFiler[parseInt(sel.value, 10)];
+    if (vald) {
+      document.getElementById('ocr-status').textContent = 'Laddar PDF…';
+      await öppnaPdf(vald.base64);
+      document.getElementById('ocr-status').textContent = '';
+    }
+  });
+  valjareDiv.appendChild(rubrik);
+  valjareDiv.appendChild(sel);
+  const hogerKolumn = document.querySelector('.hoger-kolumn');
+  const sidnav = document.querySelector('.sidnav');
+  hogerKolumn.insertBefore(valjareDiv, sidnav);
+}
 
 function uppdateraSidnav() {
   document.getElementById('sidnav-text').textContent =
@@ -419,11 +461,19 @@ async function startaUppladning(kontakt, ankomstdatum, titel) {
     await chrome.storage.local.set(filStorage);
   }
 
+  // Skicka meddelandet utan att invänta hela dokumentskapandet (fire-and-forget).
+  // Promise.race fångar anslutningsfel (infaller omedelbart) men väntar inte på svar.
+  const skicka = (tabId) => {
+    const p = chrome.tabs.sendMessage(tabId, { action: 'skapaÄrendedokument', dokument });
+    p.catch(() => {}); // tysta obehandlad avvisning om timern vinner
+    return Promise.race([p, new Promise(r => setTimeout(r, 400))]);
+  };
+
   let lyckades = false;
   try {
     chrome.tabs.update(tab.id, { active: true });
     try {
-      await chrome.tabs.sendMessage(tab.id, { action: 'skapaÄrendedokument', dokument });
+      await skicka(tab.id);
       lyckades = true;
     } catch {
       // content.js kanske inte är laddat – injicera och försök igen
@@ -431,12 +481,12 @@ async function startaUppladning(kontakt, ankomstdatum, titel) {
         target: { tabId: tab.id }, files: ['content.js'], world: 'ISOLATED',
       });
       await new Promise(r => setTimeout(r, 300));
-      await chrome.tabs.sendMessage(tab.id, { action: 'skapaÄrendedokument', dokument });
+      await skicka(tab.id);
       lyckades = true;
     }
   } catch {
     lyckades = false;
-  } finally {
+    // Rensa fildata om meddelandet inte gick fram (content.js hinner inte städa)
     await chrome.storage.local.remove(Object.keys(filStorage));
   }
 
@@ -487,5 +537,5 @@ document.getElementById('btn-avbryt').addEventListener('click', async () => {
   window.close();
 });
 
-// --- Starta rendering av första sidan ---
-await renderaSida(1);
+// --- Ladda och rendera första sidan ---
+await öppnaPdf(filBase64);
