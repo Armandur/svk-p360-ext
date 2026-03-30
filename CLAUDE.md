@@ -68,8 +68,8 @@ document.getElementById(
 ├── manifest.json
 ├── popup.html / popup.js / popup-mallar.js / popup-fil.js   # Popup-UI + logik
 ├── content.js                   # ISOLATED world – skickar meddelanden till MAIN world
+│                                #   Dagboksblad hanteras direkt här (fetch → ControlID → ny flik + window.print)
 ├── page-utils.js                # Delade hjälpfunktioner (MAIN world)
-├── page-dagboksblad.js          # Dagboksblad + utskriftsdialog
 ├── page-status.js               # Sätt/växla status
 ├── page-arende-options.js       # Läser formuläralternativ (NY_ÄRENDE_URL, läsInAlternativ)
 ├── page-arende-contacts.js      # Oregistrerade externa kontakter

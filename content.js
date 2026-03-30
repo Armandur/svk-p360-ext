@@ -263,6 +263,72 @@ window.__p360OnMessageHandler = (request, sender, sendResponse) => {
     return;
   }
 
+  // Dagboksblad – hanteras direkt i ISOLATED world.
+  // Hämtar ControlID via fetch, öppnar PDF-fliken med fokus och triggar
+  // webbläsarens utskriftsdialog automatiskt när fliken laddats klart.
+  if (request.action === 'dagboksblad') {
+    if (!ärPåÄrendesida()) {
+      sendResponse({ success: false, fel: 'Navigera till ett ärende i 360° först.' });
+      return;
+    }
+    const recno = läsRecnoFrånUrl(window.location.href);
+    if (!recno) {
+      sendResponse({ success: false, fel: 'Kunde inte läsa ärendenummer från URL.' });
+      return;
+    }
+    let svarSkickat = false;
+    (async () => {
+      let tabId = null;
+      try {
+        const rapportUrl =
+          `https://p360.svenskakyrkan.se/locator/Reports/Case/Innehallsforteckning/` +
+          `Innehallsforteckning?standalone=true&recno=${recno}`;
+        const htmlSvar = await fetch(rapportUrl, { credentials: 'include' });
+        if (!htmlSvar.ok) throw new Error(`HTTP ${htmlSvar.status}`);
+        const html = await htmlSvar.text();
+        const match = html.match(/ControlID=([a-f0-9]{32})/);
+        if (!match) throw new Error('ControlID hittades inte i dagboksbladet.');
+        const pdfUrl =
+          `https://p360.svenskakyrkan.se/Reserved.ReportViewerWebControl.axd` +
+          `?Culture=1053&CultureOverrides=True&UICulture=1053&UICultureOverrides=True` +
+          `&ReportStack=1&ControlID=${match[1]}&Mode=true&OpType=Export` +
+          `&FileName=Innehallsforteckning_1053&ContentDisposition=AlwaysInline&Format=PDF`;
+        const tab = await chrome.tabs.create({ url: pdfUrl, active: true });
+        tabId = tab.id;
+        sendResponse({ success: true });
+        svarSkickat = true;
+        // Vänta på att fliken laddats klart, sedan trigga webbläsarens utskriftsdialog
+        await new Promise(resolve => {
+          const start = Date.now();
+          const poll = setInterval(async () => {
+            if (Date.now() - start > 15000) {
+              clearInterval(poll);
+              resolve();
+              return;
+            }
+            try {
+              const t = await chrome.tabs.get(tabId);
+              if (t.status === 'complete') {
+                clearInterval(poll);
+                resolve();
+              }
+            } catch {
+              clearInterval(poll);
+              resolve();
+            }
+          }, 500);
+        });
+        await chrome.scripting.executeScript({
+          target: { tabId },
+          func: () => window.print()
+        });
+      } catch (err) {
+        if (!svarSkickat) sendResponse({ success: false, fel: err.message });
+      }
+    })();
+    return true; // håll kanalen öppen för async svar
+  }
+
   if (!ÅTGÄRDER_UTAN_SIDKRAV.has(request.action) && !ärPåÄrendesida()) {
     sendResponse({ success: false, fel: 'Navigera till ett ärende i 360° först.' });
     return;

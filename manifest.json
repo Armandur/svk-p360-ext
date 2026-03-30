@@ -53,7 +53,6 @@
       "matches": ["https://p360.svenskakyrkan.se/*"],
       "js": [
         "page-utils.js",
-        "page-dagboksblad.js",
         "page-status.js",
         "page-arende-options.js",
         "page-arende-contacts.js",
