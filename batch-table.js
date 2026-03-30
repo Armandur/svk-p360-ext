@@ -287,7 +287,6 @@ function renderaTabell() {
       arvChk.addEventListener('change', () => {
         kontaktInp.disabled = arvChk.checked;
         kontaktInp.placeholder = arvChk.checked ? '(ärendepart)' : 'Annan kontakt…';
-        if (arvChk.checked) kontaktInp.value = '';
       });
 
       tdKontakt.appendChild(arvChk);

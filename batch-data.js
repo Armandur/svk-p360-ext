@@ -6,7 +6,7 @@
 const BATCH_KOLUMNER = {
   // Alltid synliga
   Titel:         { fält: 'titel',         obligatorisk: true,  standard: true,  visningsnamn: 'Ärendetitel' },
-  Namn:          { fält: 'namn',          obligatorisk: true,  standard: true },
+  Namn:          { fält: 'namn',          obligatorisk: true,  standard: true,  visningsnamn: 'Ärendepart' },
   // Valfria – kontakt
   Personnummer:  { fält: 'personnummer',  obligatorisk: false, standard: false },
   Adress:        { fält: 'adress',        obligatorisk: false, standard: false },
