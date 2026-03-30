@@ -511,8 +511,11 @@ function sättRadStatus(idx, status, text) {
  * Aktiverar/avaktiverar startknappen baserat på antal rader.
  */
 function uppdateraStartKnapp() {
-  const btn = document.getElementById('btn-starta-batch');
-  if (btn) btn.disabled = batchRader.length === 0;
+  const harRader = batchRader.length > 0;
+  const start = document.getElementById('btn-starta-batch');
+  if (start) start.disabled = !harRader;
+  const koppla = document.getElementById('btn-koppla-filer');
+  if (koppla) koppla.disabled = !harRader;
 }
 
 /**
