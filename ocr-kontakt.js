@@ -255,14 +255,18 @@ async function hämtaTesseractWorker() {
   // Vi måste ladda det dynamiskt eftersom ocr-kontakt.js är en modul
   await laddaSkript(chrome.runtime.getURL('lib/tesseract.min.js'));
 
+  // langPath utelämnas → Tesseract.js hämtar från jsDelivr CDN vid första användning
+  // och cachar resultatet i IndexedDB (cacheMethod 'write' är standard)
   tesseractWorker = await Tesseract.createWorker('swe+eng', 1, {
     workerPath: chrome.runtime.getURL('lib/tesseract-worker.min.js'),
     corePath: chrome.runtime.getURL('lib/tesseract-core-simd.wasm.js'),
-    langPath: chrome.runtime.getURL('lib/'),
-    cacheMethod: 'none',
+    lstmOnly: true,   // använder 4.0.0_best_int (~2.9 MB eng + ~2.4 MB swe, cachas i IndexedDB)
     logger: (m) => {
       if (m.status === 'loading language traineddata') {
-        statusEl.textContent = `Laddar språkdata… ${Math.round((m.progress || 0) * 100)}%`;
+        const pct = Math.round((m.progress || 0) * 100);
+        statusEl.textContent = pct < 100
+          ? `Laddar ned språkdata första gången… ${pct}%`
+          : 'Förbereder OCR…';
       } else if (m.status === 'recognizing text') {
         statusEl.textContent = `OCR: ${Math.round((m.progress || 0) * 100)}%`;
       } else if (m.status === 'initialized api') {
