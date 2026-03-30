@@ -134,13 +134,16 @@ async function fyllDokumentFormulär(iDoc, iWin, dok, visaStatus) {
       'PlaceHolderMain_MainView_TypeJournalDocumentInsertComboControl',
       dok.kategori
     );
-    // Polla tills UpdatePanel svarat (titelfältet och kontaktfältet finns kvar)
+    // Polla tills titelfält och kontaktfält finns (kan försvinna tillfälligt under UpdatePanel).
     for (let poll = 0; poll < 20; poll++) {
       await sleep(150);
       const titelFinns = iDoc.getElementById('PlaceHolderMain_MainView_TitleTextBoxControl');
       const kontaktFält = iDoc.getElementById('PlaceHolderMain_MainView_Custom_QuickUnregContactText');
       if (titelFinns && kontaktFält) break;
     }
+    // Vänta tills PRM är idle – annars riskerar fält satta nedan att nollställas
+    // av ett pågående UpdatePanel-svar (om fälten ovan inte temporärt försvann).
+    await väntaPåPRM(iWin, 5000);
   }
 
   // Åtkomstgrupp – tyst, ingen UpdatePanel
