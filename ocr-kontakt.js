@@ -31,6 +31,22 @@ document.getElementById('faltknapp-kontakt').textContent =
 document.getElementById('datum-etikett').textContent =
   ärInkommande ? 'Ankomstdatum:' : 'Datum:';
 
+// I batch-rad-läge: visa val för vart kontakten ska skickas
+if (ocrContext?.typ === 'batch-rad') {
+  const kontaktFältRad = document.getElementById('resultat-kontakt').closest('.falt-rad');
+  const målDiv = document.createElement('div');
+  målDiv.style.cssText = 'margin-top:5px;font-size:11px;color:#555;display:flex;gap:12px;flex-wrap:wrap;';
+  målDiv.innerHTML =
+    `<span style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.04em;align-self:center;">Kontakt avser:</span>` +
+    `<label style="display:flex;align-items:center;gap:4px;cursor:pointer;">` +
+      `<input type="radio" name="kontakt-mal" value="dokument" checked> Ärendedokument` +
+    `</label>` +
+    `<label style="display:flex;align-items:center;gap:4px;cursor:pointer;">` +
+      `<input type="radio" name="kontakt-mal" value="ärendepart"> Ärendepart` +
+    `</label>`;
+  kontaktFältRad.after(målDiv);
+}
+
 // --- Hämta PDF-data från storage ---
 const storageData = await chrome.storage.local.get(storageKey);
 const filBase64 = storageData[storageKey];
@@ -711,11 +727,13 @@ document.getElementById('btn-anvand').addEventListener('click', async () => {
   // Specialfall: batch-rad – skicka tillbaka värden till massregistreringsfliken
   if (ocrContext?.typ === 'batch-rad') {
     const { radIdx, filIdx } = ocrContext;
+    const valtMål = document.querySelector('input[name="kontakt-mal"]:checked')?.value || 'dokument';
     const batchUrl = chrome.runtime.getURL('batch.html');
     const [batchTab] = await chrome.tabs.query({ url: batchUrl });
     if (batchTab) {
       const p = chrome.tabs.sendMessage(batchTab.id, {
         action: 'ocrBatchRad', radIdx, filIdx, kontakt, datum: ankomstdatum, titel,
+        kontaktMål: valtMål,
       });
       p.catch(() => {});
       await Promise.race([p, new Promise(r => setTimeout(r, 400))]);
