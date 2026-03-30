@@ -5,7 +5,7 @@
 // typ: 'text' (default), 'select' (dropdown med cachade alternativ)
 const BATCH_KOLUMNER = {
   // Alltid synliga
-  Titel:         { fält: 'titel',         obligatorisk: true,  standard: true },
+  Titel:         { fält: 'titel',         obligatorisk: true,  standard: true,  visningsnamn: 'Ärendetitel' },
   Namn:          { fält: 'namn',          obligatorisk: true,  standard: true },
   // Valfria – kontakt
   Personnummer:  { fält: 'personnummer',  obligatorisk: false, standard: false },
@@ -199,6 +199,18 @@ function detekteraDokTitelKolumner(headers) {
 }
 
 /**
+ * Identifierar DokDatum_N-kolumner i CSV-headers.
+ * @returns {string[]} T.ex. ['DokDatum_1', 'DokDatum_2']
+ */
+function detekteraDokDatumKolumner(headers) {
+  return headers.filter(h => /^DokDatum_\d+$/i.test(h)).sort((a, b) => {
+    const na = parseInt(a.split('_')[1]);
+    const nb = parseInt(b.split('_')[1]);
+    return na - nb;
+  });
+}
+
+/**
  * Validerar en rad mot ärendemallen och dokumentslotsar.
  * @returns {string[]} Lista med felmeddelanden (tom = OK)
  */
@@ -314,9 +326,12 @@ function byggMallFrånRad(baseMall, rad, slots, aktivaKolumner) {
       dokMall.oregistreradKontakt = kontakt.namn;
     }
 
-    // Ankomstdatum för inkommande
-    if (dokMall.kategori === '110' && (rad.Ankomstdatum || rad.ankomstdatum)) {
-      dokMall.ankomstdatum = rad.Ankomstdatum || rad.ankomstdatum;
+    // Datum per slot (DokDatum_N) – prioriteras; fallback: Ankomstdatum för inkommande
+    const dokDatumKolumn = `DokDatum_${s + 1}`;
+    if (rad[dokDatumKolumn]) {
+      dokMall.datum = rad[dokDatumKolumn];
+    } else if (dokMall.kategori === '110' && (rad.Ankomstdatum || rad.ankomstdatum)) {
+      dokMall.datum = rad.Ankomstdatum || rad.ankomstdatum;
     }
 
     // Fil-referens (filnamn eller File-objekt lagras separat, ej obligatoriskt)
@@ -366,9 +381,12 @@ function exporteraBatchCSV(metadata) {
   for (const [namn] of Object.entries(BATCH_KOLUMNER)) {
     if (batchRader.some(r => r[namn])) aktiva.push(namn);
   }
-  // Lägg till fil- och dokumenttitelkolumner
+  // Lägg till fil-, dokumenttitel- och dokumentdatumkolumner
   for (const dk of dokTitelKolumner) {
     if (batchRader.some(r => r[dk])) aktiva.push(dk);
+  }
+  for (const ddk of dokDatumKolumner) {
+    if (batchRader.some(r => r[ddk])) aktiva.push(ddk);
   }
   for (const fk of filKolumner) {
     if (batchRader.some(r => r[fk])) aktiva.push(fk);

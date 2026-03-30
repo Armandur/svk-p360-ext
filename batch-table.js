@@ -6,6 +6,7 @@ let batchRader = [];
 let synligaKolumner = new Set(['Titel', 'Namn']);
 let filKolumner = ['Fil_1']; // Standard: en filkolumn
 let dokTitelKolumner = ['DokTitel_1']; // Överlagring av dokumenttitel per slot
+let dokDatumKolumner = ['DokDatum_1']; // Datum per slot (ankomst/skickat/upprättat)
 
 // Referens till slotskonfigurationen (sätts av batch.js) – används för att hämta kategori till OCR
 let batchSlotsar = [];
@@ -25,9 +26,11 @@ function hämtaBatchRader() {
 function uppdateraFilKolumner(antalSlots) {
   filKolumner = [];
   dokTitelKolumner = [];
+  dokDatumKolumner = [];
   for (let i = 1; i <= Math.max(antalSlots, 1); i++) {
     filKolumner.push(`Fil_${i}`);
     dokTitelKolumner.push(`DokTitel_${i}`);
+    dokDatumKolumner.push(`DokDatum_${i}`);
   }
   renderaTabell();
 }
@@ -46,6 +49,9 @@ function läggTillRad(data) {
   }
   for (const dk of dokTitelKolumner) {
     rad[dk] = data?.[dk] || '';
+  }
+  for (const ddk of dokDatumKolumner) {
+    rad[ddk] = data?.[ddk] || '';
   }
   if (data?._filer) rad._filer = data._filer;
   batchRader.push(rad);
@@ -92,6 +98,9 @@ function importeraRader(csvRader) {
     }
     for (const dk of dokTitelKolumner) {
       ny[dk] = rad[dk] || '';
+    }
+    for (const ddk of dokDatumKolumner) {
+      ny[ddk] = rad[ddk] || '';
     }
     batchRader.push(ny);
   }
@@ -168,13 +177,17 @@ function renderaTabell() {
   huvud.innerHTML = '<th>#</th>';
   for (const kol of kolumner) {
     const th = document.createElement('th');
-    th.textContent = kol;
+    const def = BATCH_KOLUMNER[kol];
+    th.textContent = def?.visningsnamn || kol;
     huvud.appendChild(th);
   }
   for (let fi = 0; fi < filKolumner.length; fi++) {
     const thTitel = document.createElement('th');
     thTitel.textContent = dokTitelKolumner[fi];
     huvud.appendChild(thTitel);
+    const thDatum = document.createElement('th');
+    thDatum.textContent = dokDatumKolumner[fi];
+    huvud.appendChild(thDatum);
     const thFil = document.createElement('th');
     thFil.textContent = filKolumner[fi];
     huvud.appendChild(thFil);
@@ -224,7 +237,7 @@ function renderaTabell() {
       tr.appendChild(td);
     }
 
-    // Dokumenttitel + Fil-celler (parvis)
+    // Dokumenttitel + Dokumentdatum + Fil-celler (per slot)
     for (let fi = 0; fi < filKolumner.length; fi++) {
       // DokTitel_N – textinput för titelöverstyrning
       const dk = dokTitelKolumner[fi];
@@ -236,6 +249,18 @@ function renderaTabell() {
       titelInp.placeholder = 'Dokumenttitel…';
       tdTitel.appendChild(titelInp);
       tr.appendChild(tdTitel);
+
+      // DokDatum_N – datuminput per slot
+      const ddk = dokDatumKolumner[fi];
+      const tdDatum = document.createElement('td');
+      const datumInp = document.createElement('input');
+      datumInp.type = 'text';
+      datumInp.dataset.kol = ddk;
+      datumInp.value = rad[ddk] || '';
+      datumInp.placeholder = 'ÅÅÅÅ-MM-DD';
+      datumInp.style.cssText = 'width:95px;';
+      tdDatum.appendChild(datumInp);
+      tr.appendChild(tdDatum);
 
       // Fil_N – filväljare
       const fk = filKolumner[fi];
@@ -402,6 +427,9 @@ function initDragZon() {
       }
       for (const dk of dokTitelKolumner) {
         rad[dk] = '';
+      }
+      for (const ddk of dokDatumKolumner) {
+        rad[ddk] = '';
       }
       rad[filKolumner[0]] = fil.name;
       batchRader.push(rad);

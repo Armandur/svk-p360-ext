@@ -299,7 +299,8 @@
       // Detektera filkolumner i CSV
       const csvFilKol = detekteraFilKolumner(headers);
       const csvDokTitelKol = detekteraDokTitelKolumner(headers);
-      const maxSlots = Math.max(csvFilKol.length, csvDokTitelKol.length);
+      const csvDokDatumKol = detekteraDokDatumKolumner(headers);
+      const maxSlots = Math.max(csvFilKol.length, csvDokTitelKol.length, csvDokDatumKol.length);
       if (maxSlots > 0) {
         // Uppdatera antal slots om CSV har fler fil-/titelkolumner
         while (slotsar.length < maxSlots) {
@@ -612,13 +613,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   const rad = batchRader[radIdx];
   if (!rad) { sendResponse({ success: false, fel: 'Rad saknas' }); return; }
   if (kontakt) rad.Namn = kontakt;
-  if (datum) {
-    rad.Ankomstdatum = datum;
-    synligaKolumner.add('Ankomstdatum'); // Säkerställ att kolumnen är synlig
+  if (datum && dokDatumKolumner[filIdx]) {
+    rad[dokDatumKolumner[filIdx]] = datum;
   }
-  if (titel) {
-    if (dokTitelKolumner[filIdx]) rad[dokTitelKolumner[filIdx]] = titel;
-    if (!rad.Titel) rad.Titel = titel; // Fyll ärendetiteln om den är tom
+  if (titel && dokTitelKolumner[filIdx]) {
+    rad[dokTitelKolumner[filIdx]] = titel;
   }
   renderaTabell();
   sendResponse({ success: true });
