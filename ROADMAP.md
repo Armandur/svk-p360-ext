@@ -121,3 +121,10 @@ Funktioner som diskuterats men ännu inte prioriterats.
 | Massregistrering: "Ladda ned dagboksblad (PDF)" – direktnedladdning via MSRS axd-endpoint | 2026-03-29 |
 | Export av mallar (ärendemallar + dokumentmallar) till JSON-fil | 2026-03-29 |
 | Import av mallar från JSON-fil med val: slå samman eller ersätt allt | 2026-03-29 |
+| OCR-funktion: PDF-visare med textextraktion (pdf.js) och rektangel-OCR (Tesseract.js LSTM) | 2026-03-30 |
+| OCR: hämta avsändare/mottagare, ankomstdatum och titel från PDF-handlingar | 2026-03-30 |
+| OCR: startar ärendedokumentskapande direkt från OCR-sidan utan att öppna popup | 2026-03-30 |
+| OCR: datumnormalisering till YYYY-MM-DD (blandade separatorer, svenska månadsnamn, YYYYMMDD m.m.) | 2026-03-30 |
+| OCR: varning när mallen har en fördefinierad titel, med kryssruta för att ersätta den | 2026-03-30 |
+| OCR: per-fils OCR-värden i batch-läge med filnavigator (◀ Fil X/Y ▶) | 2026-03-30 |
+| OCR: PDF-väljare för flera PDF-filer vid enskild filuppladdning | 2026-03-30 |

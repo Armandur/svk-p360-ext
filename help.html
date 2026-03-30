@@ -255,6 +255,52 @@
       ett eget ärendedokument med valfri dokumentmall.</li>
   </ul>
 
+  <h3>Hämta information från PDF (OCR)</h3>
+  <p>
+    När du laddar upp PDF-filer kan tillägget automatiskt läsa ut avsändare/mottagare,
+    ankomstdatum och titel direkt ur handlingen, utan manuell inmatning.
+    Klicka på knappen <strong>Hämta info från PDF</strong> för att öppna PDF-visaren.
+  </p>
+  <p>
+    I PDF-visaren finns tre sätt att fylla i ett fält:
+  </p>
+  <ul>
+    <li><strong>Klicka på en textrad</strong> i den extraherade textlistan till höger –
+      raden kopieras direkt till det aktiva fältet.</li>
+    <li><strong>Rita en rektangel</strong> (knappen <em>Rita rektangel för OCR</em>) –
+      markera ett valfritt område i PDF-bilden och tillägget kör OCR på det avsnittet
+      med Tesseract. Passar för skannade dokument utan digital text.</li>
+    <li><strong>Skriv manuellt</strong> i fältet.</li>
+  </ul>
+  <p>
+    Välj vilket fält som ska ta emot nästa text med knapparna
+    <em>Avsändare / Mottagare</em>, <em>Datum</em> eller <em>Titel</em>.
+    Datumfältet normaliserar automatiskt vanliga format (t.ex.&nbsp;<code>2026 03-30</code>
+    eller&nbsp;<code>30-03-2026</code>) till&nbsp;<code>ÅÅÅÅ-MM-DD</code>.
+  </p>
+  <div class="notera">
+    <strong>Titel:</strong> Om dokumentmallen redan har en titel definierad visas en
+    informationsruta med mallens titel. Bocka i <em>Ersätt med OCR-extraherad titel</em>
+    om du vill använda den OCR-lästa titeln istället.
+  </div>
+  <p>
+    Klicka <strong>Använd</strong> när du är klar – tillägget startar omedelbart
+    dokumentskapandet i den öppna 360°-fliken och stänger PDF-visaren.
+  </p>
+
+  <h4>Batch – per-fils information</h4>
+  <p>
+    I batch-läget visas en filnavigator (<strong>◀ Fil X/Y: filnamn ▶</strong>)
+    högst upp i högerkolumnen. Navigera mellan filerna och fyll i kontakt,
+    datum och titel individuellt för varje fil. Värden sparas automatiskt
+    när du byter fil, och varje ärendedokument får sina egna uppgifter när
+    du klickar <strong>Använd</strong>.
+  </p>
+  <p>
+    Filer som inte är PDF:er visar en platshållare med filnamnet – du kan
+    ändå fylla i fälten manuellt för den filen.
+  </p>
+
   <h2>Massregistrering</h2>
   <p>
     Massregistrering skapar många ärenden i batch utifrån en CSV-fil eller manuellt

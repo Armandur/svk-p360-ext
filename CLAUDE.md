@@ -87,7 +87,9 @@ document.getElementById(
 ├── batch.html / batch-data.js / batch-table.js / batch-utils.js / batch-run.js / batch.js
 ├── help.html / help.js          # Inbyggd hjälpsida
 ├── arendepaus.html              # Paussida vid ärendeskapande
-├── ocr-kontakt.html / ocr-kontakt.js  # PDF-visare med OCR för avsändare/mottagare (kat 110/111)
+├── ocr-kontakt.html / ocr-kontakt.js  # PDF-visare med OCR: kontakt, datum, titel (kat 110/111)
+│                                      # Batch: per-fils navigator + individuella fältvärden
+│                                      # Startar dokumentskapande direkt mot öppen P360-flik
 ├── lib/                         # Bundlade bibliotek (pdf.js v4, Tesseract.js v5 + språkdata)
 ├── docs/                        # P360 teknisk referens (se ovan)
 ├── CLAUDE.md
