@@ -785,13 +785,14 @@ document.getElementById('btn-fil-starta').addEventListener('click', async () => 
     }
   }
 
-  // OCR-fält åsidosätter mallens värden (om ifyllda)
+  // OCR-fält åsidosätter mallens värden (om ifyllda).
+  // Undantag: om mallen redan har en titel används den – OCR-titel är bara fallback.
   const ocrKontakt = document.getElementById('fil-ocr-kontakt')?.value?.trim();
   const ocrDatum   = document.getElementById('fil-ocr-datum')?.value?.trim();
   const ocrTitel   = document.getElementById('fil-ocr-titel')?.value?.trim();
   if (ocrKontakt) mallData.oregistreradKontakt = ocrKontakt;
   if (ocrDatum)   mallData.datum = ocrDatum;
-  if (ocrTitel)   mallData.titel = ocrTitel;
+  if (ocrTitel && !mallData.titel) mallData.titel = ocrTitel;
 
   try {
     const filData = [];
@@ -940,7 +941,8 @@ document.getElementById('btn-batch-starta').addEventListener('click', async () =
     }
   }
 
-  // OCR-fält (gemensamma för alla filer i batchen) åsidosätter mallens värden om ifyllda
+  // OCR-fält (gemensamma för alla filer i batchen) åsidosätter mallens värden om ifyllda.
+  // Undantag: om mallen redan har en titel används den – OCR-titel är bara fallback.
   const ocrKontakt = document.getElementById('batch-ocr-kontakt')?.value?.trim();
   const ocrDatum   = document.getElementById('batch-ocr-datum')?.value?.trim();
   const ocrTitel   = document.getElementById('batch-ocr-titel')?.value?.trim();
@@ -971,10 +973,9 @@ document.getElementById('btn-batch-starta').addEventListener('click', async () =
     };
     if (!dok.titel) dok.titel = namn.replace(/\.[^.]+$/, '');
 
-    // OCR-fält åsidosätter – tomma fält lämnas åt mallensvärden
     if (ocrKontakt) dok.oregistreradKontakt = ocrKontakt;
     if (ocrDatum)   dok.datum = ocrDatum;
-    if (ocrTitel)   dok.titel = ocrTitel;
+    if (ocrTitel && !mallData.titel) dok.titel = ocrTitel;
 
     dokument.push(dok);
   }
