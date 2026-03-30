@@ -390,7 +390,8 @@ function renderaFilCell(td, rad, filIdx, filKolumn, radIdx) {
         });
         const kategori = batchSlotsar[filIdx]?.dokumentmall?.kategori || '110';
         await chrome.storage.local.set({
-          ocrContext: { typ: 'batch-rad', radIdx, filIdx, kategori, tid: Date.now() },
+          ocrContext: { typ: 'batch-rad', radIdx, filIdx, kategori, tid: Date.now(),
+            befintligÄrendepart: batchRader[radIdx]?.Namn || '' },
           tempOcrFil: base64,
         });
         chrome.tabs.create({

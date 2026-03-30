@@ -31,20 +31,74 @@ document.getElementById('faltknapp-kontakt').textContent =
 document.getElementById('datum-etikett').textContent =
   ärInkommande ? 'Ankomstdatum:' : 'Datum:';
 
-// I batch-rad-läge: visa val för vart kontakten ska skickas
+// I batch-rad-läge: visa toggle för att ange ärendepart separat
 if (ocrContext?.typ === 'batch-rad') {
   const kontaktFältRad = document.getElementById('resultat-kontakt').closest('.falt-rad');
-  const målDiv = document.createElement('div');
-  målDiv.style.cssText = 'margin-top:5px;font-size:11px;color:#555;display:flex;gap:12px;flex-wrap:wrap;';
-  målDiv.innerHTML =
-    `<span style="color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.04em;align-self:center;">Kontakt avser:</span>` +
-    `<label style="display:flex;align-items:center;gap:4px;cursor:pointer;">` +
-      `<input type="radio" name="kontakt-mal" value="dokument" checked> Ärendedokument` +
-    `</label>` +
-    `<label style="display:flex;align-items:center;gap:4px;cursor:pointer;">` +
-      `<input type="radio" name="kontakt-mal" value="ärendepart"> Ärendepart` +
-    `</label>`;
-  kontaktFältRad.after(målDiv);
+  const befintligÄrendepart = ocrContext.befintligÄrendepart || '';
+
+  // Toggle-kryssruta
+  const toggleDiv = document.createElement('div');
+  toggleDiv.style.cssText = 'margin-top:6px;margin-bottom:2px;';
+  const toggleLabel = document.createElement('label');
+  toggleLabel.style.cssText = 'display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:#555;';
+  const toggleChk = document.createElement('input');
+  toggleChk.type = 'checkbox';
+  toggleChk.id = 'toggle-ärendepart';
+  toggleLabel.appendChild(toggleChk);
+  toggleLabel.appendChild(document.createTextNode('Ange ärendepart separat'));
+  toggleDiv.appendChild(toggleLabel);
+  kontaktFältRad.after(toggleDiv);
+
+  // Ärendepart-fält (dolt tills toggle aktiveras)
+  const ärendepartFältRad = document.createElement('div');
+  ärendepartFältRad.className = 'falt-rad';
+  ärendepartFältRad.id = 'ärendepart-falt-rad';
+  ärendepartFältRad.style.display = 'none';
+  const ärendepartLabel = document.createElement('label');
+  ärendepartLabel.textContent = 'Ärendepart:';
+  const ärendepartInput = document.createElement('input');
+  ärendepartInput.type = 'text';
+  ärendepartInput.id = 'resultat-ärendepart';
+  ärendepartInput.placeholder = 'Skriv eller välj ovan';
+  ärendepartFältRad.appendChild(ärendepartLabel);
+  ärendepartFältRad.appendChild(ärendepartInput);
+  toggleDiv.after(ärendepartFältRad);
+
+  // Ärendepart-knapp i fältväljaren (dold tills toggle aktiveras)
+  const faltKnappar = document.querySelector('.falt-knappar');
+  const ärendepartKnapp = document.createElement('button');
+  ärendepartKnapp.className = 'falt-knapp';
+  ärendepartKnapp.dataset.falt = 'ärendepart';
+  ärendepartKnapp.id = 'faltknapp-ärendepart';
+  ärendepartKnapp.textContent = 'Ärendepart';
+  ärendepartKnapp.style.display = 'none';
+  faltKnappar.appendChild(ärendepartKnapp);
+
+  toggleChk.addEventListener('change', () => {
+    const aktiv = toggleChk.checked;
+    ärendepartFältRad.style.display = aktiv ? '' : 'none';
+    ärendepartKnapp.style.display = aktiv ? '' : 'none';
+    // Om ärendepart var aktivt fält men toggle stängs – byt tillbaka
+    if (!aktiv && aktivtFältId === 'resultat-ärendepart') {
+      väljtFält('kontakt');
+    }
+    // Visa varning om ärendepart redan har ett värde i raden
+    const existerandeVarning = document.getElementById('ärendepart-varning');
+    if (aktiv && befintligÄrendepart) {
+      if (!existerandeVarning) {
+        const varning = document.createElement('div');
+        varning.id = 'ärendepart-varning';
+        varning.style.cssText =
+          'font-size:11px;color:#7a4a00;background:#fff3e0;' +
+          'border-left:3px solid #f0a500;padding:4px 8px;margin-top:4px;border-radius:2px;';
+        varning.textContent =
+          `OBS: Ärendepart är redan satt till "${befintligÄrendepart}" – nytt värde skriver över.`;
+        ärendepartFältRad.after(varning);
+      }
+    } else {
+      existerandeVarning?.remove();
+    }
+  });
 }
 
 // --- Hämta PDF-data från storage ---
@@ -354,6 +408,12 @@ document.querySelectorAll('.falt-knapp').forEach(btn => {
 Object.entries(fältKartläggning).forEach(([nyckel, id]) => {
   document.getElementById(id).addEventListener('focus', () => väljtFält(nyckel));
 });
+
+// I batch-rad-läge: lägg till ärendepart i fältväljarsystemet när elementet finns
+if (document.getElementById('resultat-ärendepart')) {
+  fältKartläggning.ärendepart = 'resultat-ärendepart';
+  document.getElementById('resultat-ärendepart').addEventListener('focus', () => väljtFält('ärendepart'));
+}
 
 // --- Datumnormalisering ---
 // Försöker tolka vanliga datumformat (inklusive OCR-fel med blandade separatorer)
@@ -727,13 +787,12 @@ document.getElementById('btn-anvand').addEventListener('click', async () => {
   // Specialfall: batch-rad – skicka tillbaka värden till massregistreringsfliken
   if (ocrContext?.typ === 'batch-rad') {
     const { radIdx, filIdx } = ocrContext;
-    const valtMål = document.querySelector('input[name="kontakt-mal"]:checked')?.value || 'dokument';
+    const ärendepart = document.getElementById('resultat-ärendepart')?.value.trim() || '';
     const batchUrl = chrome.runtime.getURL('batch.html');
     const [batchTab] = await chrome.tabs.query({ url: batchUrl });
     if (batchTab) {
       const p = chrome.tabs.sendMessage(batchTab.id, {
-        action: 'ocrBatchRad', radIdx, filIdx, kontakt, datum: ankomstdatum, titel,
-        kontaktMål: valtMål,
+        action: 'ocrBatchRad', radIdx, filIdx, kontakt, datum: ankomstdatum, titel, ärendepart,
       });
       p.catch(() => {});
       await Promise.race([p, new Promise(r => setTimeout(r, 400))]);

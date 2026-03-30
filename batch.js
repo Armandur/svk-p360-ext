@@ -879,18 +879,17 @@
 // Skriver tillbaka kontakt, datum och titel till rätt rad i tabellen.
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action !== 'ocrBatchRad') return;
-  const { radIdx, filIdx, kontakt, datum, titel, kontaktMål } = request;
+  const { radIdx, filIdx, kontakt, datum, titel, ärendepart } = request;
   sparaFrånTabell();
   const rad = batchRader[radIdx];
   if (!rad) { sendResponse({ success: false, fel: 'Rad saknas' }); return; }
-  if (kontakt) {
-    if (kontaktMål === 'ärendepart') {
-      rad.Namn = kontakt;
-    } else if (dokKontaktKolumner[filIdx]) {
-      rad[dokKontaktKolumner[filIdx]] = kontakt;
-      // Bocka av arv-kryssrutan – kontakten är nu explicit, inte ärendeparten
-      rad[`DokKontaktArv_${filIdx + 1}`] = false;
-    }
+  if (kontakt && dokKontaktKolumner[filIdx]) {
+    rad[dokKontaktKolumner[filIdx]] = kontakt;
+    // Bocka av arv-kryssrutan – kontakten är nu explicit, inte ärendeparten
+    rad[`DokKontaktArv_${filIdx + 1}`] = false;
+  }
+  if (ärendepart) {
+    rad.Namn = ärendepart;
   }
   if (datum && dokDatumKolumner[filIdx]) {
     rad[dokDatumKolumner[filIdx]] = datum;

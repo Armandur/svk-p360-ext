@@ -313,6 +313,7 @@
     <li><strong>Importera CSV</strong> eller lägg till rader manuellt i tabellen. Kolumner: Titel, Förnamn, Efternamn, Personnummer, Adress, Fil_1, Fil_2 m.m.</li>
     <li><strong>Koppla filer</strong> (valfritt) – klicka "Koppla filer" och välj de PDF:er/filer som nämns i Fil-kolumnerna. Tillägget matchar filnamn automatiskt. Rader utan filer skapar tomma ärendedokument.</li>
     <li><strong>Välj inställningar</strong> – markera eventuellt <em>Stäng ärende</em> (sätter status Avslutat) och/eller <em>Öppna dagboksblad efteråt</em> (öppnar dagboksbladet som popup direkt efter varje ärende).</li>
+    <li><strong>Förhandsgranska</strong> – en sammanfattning visas med alla ärenden och dokument som ska skapas (ärendetitel, ärendepart, dokumentkategori, kontakt, datum, fil). Bekräfta för att starta.</li>
     <li><strong>Starta batch</strong> – ärendena skapas sekventiellt. Du kan avbryta när som helst.</li>
   </ol>
 
@@ -325,8 +326,8 @@
       <tr><th>Kolumn</th><th>Obligatorisk</th><th>Beskrivning</th></tr>
     </thead>
     <tbody>
-      <tr><td>Titel</td><td>Ja</td><td>Ärendetitel</td></tr>
-      <tr><td>Namn</td><td>Ja</td><td>Kontaktpersonens fullständiga namn (ärendepart)</td></tr>
+      <tr><td>Titel <em>(visas som Ärendetitel)</em></td><td>Ja</td><td>Ärendetitel</td></tr>
+      <tr><td>Namn <em>(visas som Ärendepart)</em></td><td>Ja</td><td>Kontaktpersonens fullständiga namn (ärendepart)</td></tr>
       <tr><td>Personnummer</td><td>Nej</td><td>Pers/org-nummer</td></tr>
       <tr><td>Adress</td><td>Nej</td><td>Postadress</td></tr>
       <tr><td>Postnummer</td><td>Nej</td><td>Postnummer</td></tr>
@@ -373,12 +374,16 @@
     OCR-visaren och hämta avsändare/mottagare, datum och titel för just det
     ärendedokumentet. Värdena skrivs tillbaka till rätt <code>DokKontakt_N</code>,
     <code>DokDatum_N</code> och <code>DokTitel_N</code>-kolumner i tabellen.
-    När OCR-kontakten skrivs in bockas kryssrutan <em>Använd ärendepart</em> av
-    automatiskt så att den OCR-extraherade kontakten används.
+    När en OCR-kontakt skrivs in bockas kryssrutan <em>Använd ärendepart</em> av
+    automatiskt så att den OCR-extraherade kontakten används för ärendedokumentet.
   </p>
   <p>
-    Ärendepartens kontakt (<strong>Namn</strong>-kolumnen) sätts separat och påverkas
-    inte av OCR-knappen på fil-cellen.
+    Du kan även sätta <strong>ärendepartens namn</strong> direkt i samma OCR-session:
+    bocka i <em>Ange ärendepart separat</em> för att visa ett extra fält och en
+    <em>Ärendepart</em>-knapp i fältväljaren. Fyll i ärendepartens namn (manuellt
+    eller via klick i textraden) och klicka <strong>Använd</strong> – både
+    dokumentkontakt och ärendepart sparas till tabellen på en gång.
+    Om ärendepart redan är satt för raden visas en varning när du aktiverar togglen.
   </p>
 
   <h3>Resultat och dagboksblad</h3>

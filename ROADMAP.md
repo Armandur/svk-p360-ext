@@ -131,9 +131,13 @@ Funktioner som diskuterats men ännu inte prioriterats.
 | Massregistrering: OCR-knapp per fil-cell (🔍) i batch-tabellen | 2026-03-30 |
 | Massregistrering: DokKontakt_N – oregistrerad kontakt per ärendedokument med explicit kryssruta (ärendepart/annan) per rad | 2026-03-30 |
 | Massregistrering: DokDatum_N – datum per ärendedokument (inkommande/utgående/upprättat) | 2026-03-30 |
-| Massregistrering: kolumnrubrik "Titel" → "Ärendetitel" via visningsnamn | 2026-03-30 |
+| Massregistrering: kolumnrubrik "Titel" → "Ärendetitel" och "Namn" → "Ärendepart" via visningsnamn | 2026-03-30 |
 | OCR: ärendetitel fylls inte längre i automatiskt från OCR i batch-rad-läge | 2026-03-30 |
 | OCR: datumnormalisering hanterar flera separatortecken i följd (t.ex. "2026 -03- 30") | 2026-03-30 |
 | Massregistrering: ladda ned dagboksblad som ZIP | 2026-03-30 |
 | Massregistrering: ladda ned sammanfogad PDF (alla dagboksblad i en fil) | 2026-03-30 |
 | Massregistrering: öppna sammanfogad PDF i ny flik | 2026-03-30 |
+| Massregistrering: inaktivera "Koppla filer" tills rader finns i tabellen | 2026-03-30 |
+| batch.html: utfällbart hjälpavsnitt (flöde, kolumner, OCR, efter körning) | 2026-03-30 |
+| Massregistrering: förhandsvisning av ärenden och ärendedokument innan körning (modal) | 2026-03-30 |
+| OCR batch-rad: toggle för att ange ärendepart separat (kontakt + ärendepart kan sättas i samma OCR-session) | 2026-03-30 |
