@@ -208,15 +208,81 @@ Object.entries(fältKartläggning).forEach(([nyckel, id]) => {
   document.getElementById(id).addEventListener('focus', () => väljtFält(nyckel));
 });
 
+// --- Datumnormalisering ---
+// Försöker tolka vanliga datumformat (inklusive OCR-fel med blandade separatorer)
+// och returnerar YYYY-MM-DD, eller originaltexten om inget format känns igen.
+function normaliseraDatum(text) {
+  const t = text.trim();
+
+  // YYYY-MM-DD (med valfria separatorer inkl. blanktecken, t.ex. "2026 03-30")
+  const ååååFörst = t.match(/^(\d{4})[\s\-./](\d{1,2})[\s\-./](\d{1,2})$/);
+  if (ååååFörst) {
+    const [, å, m, d] = ååååFörst;
+    const dt = new Date(+å, +m - 1, +d);
+    if (dt.getFullYear() === +å && dt.getMonth() === +m - 1 && dt.getDate() === +d) {
+      return `${å}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+    }
+  }
+
+  // DD[-/ .]MM[-/ .]YYYY — europeiskt format
+  const ddFörst = t.match(/^(\d{1,2})[\s\-./](\d{1,2})[\s\-./](\d{4})$/);
+  if (ddFörst) {
+    const [, d, m, å] = ddFörst;
+    const dt = new Date(+å, +m - 1, +d);
+    if (dt.getFullYear() === +å && dt.getMonth() === +m - 1 && dt.getDate() === +d) {
+      return `${å}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+    }
+  }
+
+  // YYYYMMDD — kompakt format
+  const kompakt = t.match(/^(\d{4})(\d{2})(\d{2})$/);
+  if (kompakt) {
+    const [, å, m, d] = kompakt;
+    const dt = new Date(+å, +m - 1, +d);
+    if (dt.getFullYear() === +å && dt.getMonth() === +m - 1 && dt.getDate() === +d) {
+      return `${å}-${m}-${d}`;
+    }
+  }
+
+  // "30 mars 2026", "30 mar 2026" o.dyl. — svenska månadsnamn
+  const månader = {
+    jan: 1, januari: 1, feb: 2, februari: 2,
+    mar: 3, mars: 3, apr: 4, april: 4, maj: 5,
+    jun: 6, juni: 6, jul: 7, juli: 7,
+    aug: 8, augusti: 8, sep: 9, sept: 9, september: 9,
+    okt: 10, oktober: 10, nov: 11, november: 11,
+    dec: 12, december: 12,
+  };
+  const svenMånad = t.toLowerCase().match(/^(\d{1,2})[\s\-.]([a-zåäö]+)[\s\-.](\d{4})$/);
+  if (svenMånad) {
+    const [, d, månStr, å] = svenMånad;
+    const m = månader[månStr];
+    if (m) {
+      const dt = new Date(+å, m - 1, +d);
+      if (dt.getFullYear() === +å && dt.getMonth() === m - 1 && dt.getDate() === +d) {
+        return `${å}-${String(m).padStart(2, '0')}-${d.padStart(2, '0')}`;
+      }
+    }
+  }
+
+  return text; // okänt format – returnera oförändrat
+}
+
 function fyllAktivtFält(text) {
-  document.getElementById(aktivtFältId).value = text;
+  const värde = aktivtFältId === 'resultat-datum' ? normaliseraDatum(text) : text;
+  document.getElementById(aktivtFältId).value = värde;
   // Markera vald textrad visuellt
   document.querySelectorAll('.text-rad').forEach(el => el.classList.remove('vald'));
-  // Hitta och markera den klickade raden (om den finns i listan)
   document.querySelectorAll('.text-rad').forEach(el => {
     if (el.textContent === text) el.classList.add('vald');
   });
 }
+
+// Normalisera datum även vid manuell inmatning (blur)
+document.getElementById('resultat-datum').addEventListener('blur', (e) => {
+  const norm = normaliseraDatum(e.target.value);
+  if (norm !== e.target.value) e.target.value = norm;
+});
 
 // --- Nivå 2: Rektangel-OCR med Tesseract ---
 let aktuelltOverlay = null;
