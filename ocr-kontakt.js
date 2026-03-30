@@ -94,6 +94,27 @@ if (allaPdfFiler.length > 1) {
   hogerKolumn.insertBefore(valjareDiv, sidnav);
 }
 
+// Visa info om mallen har en titel – med kryssruta för att ersätta den
+if (ocrContext?.mallId) {
+  const { dokumentmallar = [] } = await chrome.storage.local.get('dokumentmallar');
+  const dm = dokumentmallar.find(m => m.id === ocrContext.mallId);
+  if (dm?.titel) {
+    const escapad = dm.titel.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const titelRad = document.getElementById('resultat-titel').closest('.falt-rad');
+    const info = document.createElement('div');
+    info.id = 'mall-titel-info';
+    info.style.cssText =
+      'font-size:11px;color:#555;margin-top:4px;padding:5px 8px;' +
+      'background:#fff8e1;border-radius:3px;border-left:3px solid #f0ad4e;';
+    info.innerHTML =
+      `Mallen har redan titel: <em>${escapad}</em><br>` +
+      `<label style="display:flex;align-items:center;gap:5px;margin-top:4px;cursor:pointer;">` +
+      `<input type="checkbox" id="ersätt-mall-titel"> Ersätt med OCR-extraherad titel` +
+      `</label>`;
+    titelRad.appendChild(info);
+  }
+}
+
 function uppdateraSidnav() {
   document.getElementById('sidnav-text').textContent =
     `${aktuelltSidnummer} / ${antalSidor}`;
@@ -490,7 +511,8 @@ async function startaUppladning(kontakt, ankomstdatum, titel) {
   }
   if (kontakt)    mallData.oregistreradKontakt = kontakt;
   if (ankomstdatum) mallData.datum = ankomstdatum;
-  if (titel && !mallData.titel) mallData.titel = titel;
+  const ersättMallTitel = document.getElementById('ersätt-mall-titel')?.checked || false;
+  if (titel && (!mallData.titel || ersättMallTitel)) mallData.titel = titel;
 
   // Bygg dokument-array (enskild fil = alla filer i ett dok, batch = ett dok per fil)
   const dokument = [];
