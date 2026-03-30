@@ -193,6 +193,9 @@
     }
   }
 
+  // Synka slotsar till batch-table.js så att OCR-knappen kan läsa kategori per slot
+  function synkaBatchSlotsar() { uppdateraBatchSlotsar(slotsar); }
+
   // Rendera dokumentslotsar
   function renderaSlotsar() {
     const lista = document.getElementById('slot-lista');
@@ -251,6 +254,7 @@
     });
 
     kontrolleraSlotKompatibilitet();
+    synkaBatchSlotsar();
   }
 
   function renderaSlotRoll(el, slot) {
@@ -598,3 +602,24 @@
     }
   });
 })();
+
+// Lyssnar på OCR-resultat från ocr-kontakt.html (batch-rad-läge).
+// Skriver tillbaka kontakt, datum och titel till rätt rad i tabellen.
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action !== 'ocrBatchRad') return;
+  const { radIdx, filIdx, kontakt, datum, titel } = request;
+  sparaFrånTabell();
+  const rad = batchRader[radIdx];
+  if (!rad) { sendResponse({ success: false, fel: 'Rad saknas' }); return; }
+  if (kontakt) rad.Namn = kontakt;
+  if (datum) {
+    rad.Ankomstdatum = datum;
+    synligaKolumner.add('Ankomstdatum'); // Säkerställ att kolumnen är synlig
+  }
+  if (titel) {
+    if (dokTitelKolumner[filIdx]) rad[dokTitelKolumner[filIdx]] = titel;
+    if (!rad.Titel) rad.Titel = titel; // Fyll ärendetiteln om den är tom
+  }
+  renderaTabell();
+  sendResponse({ success: true });
+});

@@ -7,6 +7,10 @@ let synligaKolumner = new Set(['Titel', 'Namn']);
 let filKolumner = ['Fil_1']; // Standard: en filkolumn
 let dokTitelKolumner = ['DokTitel_1']; // Överlagring av dokumenttitel per slot
 
+// Referens till slotskonfigurationen (sätts av batch.js) – används för att hämta kategori till OCR
+let batchSlotsar = [];
+function uppdateraBatchSlotsar(s) { batchSlotsar = s; }
+
 /**
  * Returnerar aktuella rader (för exekvering).
  */
@@ -239,7 +243,7 @@ function renderaTabell() {
       td.className = 'fil-cell';
       td.dataset.radIdx = idx;
       td.dataset.filIdx = fi;
-      renderaFilCell(td, rad, fi, fk);
+      renderaFilCell(td, rad, fi, fk, idx);
       kopplaDragDropCell(td, idx, fi);
       tr.appendChild(td);
     }
@@ -266,7 +270,7 @@ function renderaTabell() {
 /**
  * Renderar innehållet i en fil-cell.
  */
-function renderaFilCell(td, rad, filIdx, filKolumn) {
+function renderaFilCell(td, rad, filIdx, filKolumn, radIdx) {
   td.innerHTML = '';
   const filObj = rad._filer?.[filIdx];
   const filnamn = filObj ? filObj.name : (rad[filKolumn] || '');
@@ -288,6 +292,35 @@ function renderaFilCell(td, rad, filIdx, filKolumn) {
       if (rad._filer) rad._filer[filIdx] = null;
       renderaTabell();
     });
+
+    // OCR-knapp för PDF-filer med kopplad File-objekt
+    if (filObj && (filObj.type === 'application/pdf' || filObj.name.toLowerCase().endsWith('.pdf'))) {
+      const ocrBtn = document.createElement('button');
+      ocrBtn.className = 'fil-ocr-knapp';
+      ocrBtn.textContent = '🔍';
+      ocrBtn.title = 'Hämta avsändare/mottagare, datum och titel från PDF (OCR)';
+      ocrBtn.style.cssText =
+        'margin-left:3px;padding:1px 5px;font-size:11px;cursor:pointer;' +
+        'border:1px solid #9ab;border-radius:3px;background:#eef4ff;line-height:1.4;';
+      ocrBtn.addEventListener('click', async () => {
+        const base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(filObj);
+        });
+        const kategori = batchSlotsar[filIdx]?.dokumentmall?.kategori || '110';
+        await chrome.storage.local.set({
+          ocrContext: { typ: 'batch-rad', radIdx, filIdx, kategori, tid: Date.now() },
+          tempOcrFil: base64,
+        });
+        chrome.tabs.create({
+          url: chrome.runtime.getURL(`ocr-kontakt.html?storageKey=tempOcrFil&kategori=${kategori}`),
+        });
+      });
+      div.appendChild(ocrBtn);
+    }
+
     td.appendChild(div);
   } else {
     const btn = document.createElement('button');

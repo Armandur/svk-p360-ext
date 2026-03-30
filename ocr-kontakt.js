@@ -708,6 +708,25 @@ document.getElementById('btn-anvand').addEventListener('click', async () => {
   const ankomstdatum = document.getElementById('resultat-datum').value.trim();
   const titel        = document.getElementById('resultat-titel').value.trim();
 
+  // Specialfall: batch-rad – skicka tillbaka värden till massregistreringsfliken
+  if (ocrContext?.typ === 'batch-rad') {
+    const { radIdx, filIdx } = ocrContext;
+    const batchUrl = chrome.runtime.getURL('batch.html');
+    const [batchTab] = await chrome.tabs.query({ url: batchUrl });
+    if (batchTab) {
+      const p = chrome.tabs.sendMessage(batchTab.id, {
+        action: 'ocrBatchRad', radIdx, filIdx, kontakt, datum: ankomstdatum, titel,
+      });
+      p.catch(() => {});
+      await Promise.race([p, new Promise(r => setTimeout(r, 400))]);
+      await chrome.storage.local.remove(['ocrContext', storageKey]);
+      chrome.tabs.update(batchTab.id, { active: true });
+    }
+    if (tesseractWorker) { try { await tesseractWorker.terminate(); } catch { /* ignorera */ } }
+    window.close();
+    return;
+  }
+
   // I batch-läge: spara aktuell fils värden till perFilVärden innan uppladdning
   if (ärBatch) {
     perFilVärden[aktivFilIndex] = { kontakt, datum: ankomstdatum, titel };
