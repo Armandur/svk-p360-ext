@@ -217,16 +217,23 @@
       <select id="fil-mall-val" style="width:100%;padding:5px 7px;border:1px solid #ccc;border-radius:3px;font-size:13px;margin-bottom:6px;box-sizing:border-box;">
         <option value="">(ingen mall – enbart fil)</option>
       </select>
-      <!-- OCR-kontaktsektion – visas om vald mall har kategori 110/111 och PDF är vald -->
+      <!-- OCR-sektion – visas om vald mall har kategori 110/111 och PDF är vald -->
       <div id="fil-ocr-sektion" style="display:none;margin-bottom:6px;">
         <button id="btn-fil-ocr" type="button"
           style="width:100%;margin:0;padding:5px;font-size:11px;background:#fff3e0;border:1px solid #ffb74d;border-radius:3px;cursor:pointer;text-align:left;">
-          📄 Hämta avsändare/mottagare från PDF
+          📄 Hämta info från PDF (öppnas i ny flik – återvänd hit)
         </button>
-        <div id="fil-ocr-resultat" style="display:none;margin-top:4px;">
-          <label style="font-size:10px;color:#555;" id="fil-ocr-label">Avsändare:</label>
-          <input id="fil-ocr-namn" type="text"
-            style="width:100%;padding:4px;font-size:12px;border:1px solid #ccc;border-radius:3px;box-sizing:border-box;">
+        <div id="fil-ocr-resultat" style="display:none;margin-top:5px;">
+          <label style="font-size:10px;color:#555;display:block;margin-bottom:1px;" id="fil-ocr-label">Avsändare:</label>
+          <input id="fil-ocr-kontakt" type="text"
+            style="width:100%;padding:4px;font-size:12px;border:1px solid #ccc;border-radius:3px;box-sizing:border-box;margin-bottom:4px;">
+          <label style="font-size:10px;color:#555;display:block;margin-bottom:1px;" id="fil-ocr-datum-label">Ankomstdatum (ÅÅÅÅ-MM-DD):</label>
+          <input id="fil-ocr-datum" type="text"
+            style="width:100%;padding:4px;font-size:12px;border:1px solid #ccc;border-radius:3px;box-sizing:border-box;margin-bottom:4px;">
+          <label style="font-size:10px;color:#555;display:block;margin-bottom:1px;">Titel (från PDF):</label>
+          <input id="fil-ocr-titel" type="text"
+            style="width:100%;padding:4px;font-size:12px;border:1px solid #ccc;border-radius:3px;box-sizing:border-box;margin-bottom:2px;">
+          <div style="font-size:10px;color:#888;">Tomma fält – mallens eller filnamnets värde används.</div>
         </div>
       </div>
       <div style="display:flex;gap:4px;">
@@ -243,10 +250,23 @@
       <select id="batch-mall-val" style="width:100%;padding:5px 7px;border:1px solid #ccc;border-radius:3px;font-size:13px;margin-bottom:6px;box-sizing:border-box;">
         <option value="">(ingen mall – enbart fil)</option>
       </select>
-      <!-- OCR-kontaktsektion för batch -->
+      <!-- OCR-sektion för batch – gemensam info för alla filer -->
       <div id="batch-ocr-sektion" style="display:none;margin-bottom:6px;">
-        <div style="font-size:11px;color:#555;padding:3px 0;">
-          OCR körs automatiskt per PDF-fil när du startar batchen.
+        <button id="btn-batch-ocr" type="button"
+          style="width:100%;margin:0;padding:5px;font-size:11px;background:#fff3e0;border:1px solid #ffb74d;border-radius:3px;cursor:pointer;text-align:left;">
+          📄 Hämta info från PDF (tillämpas på alla filer i batchen)
+        </button>
+        <div id="batch-ocr-resultat" style="display:none;margin-top:5px;">
+          <label style="font-size:10px;color:#555;display:block;margin-bottom:1px;" id="batch-ocr-label">Avsändare:</label>
+          <input id="batch-ocr-kontakt" type="text"
+            style="width:100%;padding:4px;font-size:12px;border:1px solid #ccc;border-radius:3px;box-sizing:border-box;margin-bottom:4px;">
+          <label style="font-size:10px;color:#555;display:block;margin-bottom:1px;" id="batch-ocr-datum-label">Ankomstdatum (ÅÅÅÅ-MM-DD):</label>
+          <input id="batch-ocr-datum" type="text"
+            style="width:100%;padding:4px;font-size:12px;border:1px solid #ccc;border-radius:3px;box-sizing:border-box;margin-bottom:4px;">
+          <label style="font-size:10px;color:#555;display:block;margin-bottom:1px;">Titel (från PDF):</label>
+          <input id="batch-ocr-titel" type="text"
+            style="width:100%;padding:4px;font-size:12px;border:1px solid #ccc;border-radius:3px;box-sizing:border-box;margin-bottom:2px;">
+          <div style="font-size:10px;color:#888;">Tomma fält – mallens värden används per dokument.</div>
         </div>
       </div>
       <div style="display:flex;gap:4px;">

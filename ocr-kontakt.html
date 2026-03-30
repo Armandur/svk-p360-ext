@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
   <meta charset="utf-8">
-  <title>Hämta kontakt från PDF</title>
+  <title>Hämta information från PDF</title>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -31,7 +31,6 @@
     }
     .innehall {
       display: flex;
-      gap: 0;
       height: calc(100vh - 44px);
     }
     .pdf-kolumn {
@@ -67,7 +66,7 @@
       pointer-events: none;
     }
     .hoger-kolumn {
-      width: 300px;
+      width: 310px;
       flex-shrink: 0;
       background: #fff;
       border-left: 1px solid #ddd;
@@ -104,16 +103,17 @@
       border-bottom: 1px solid #eee;
       flex: 1;
       overflow-y: auto;
+      min-height: 80px;
     }
     .text-sektion h3 {
       margin: 0 0 6px 0;
-      font-size: 12px;
+      font-size: 11px;
       text-transform: uppercase;
       color: #888;
       letter-spacing: 0.5px;
     }
     .text-rad {
-      padding: 5px 8px;
+      padding: 4px 8px;
       font-size: 12px;
       cursor: pointer;
       border-radius: 3px;
@@ -125,42 +125,98 @@
       background: #e8f4fd;
       border-color: #90caf9;
     }
-    .text-rad.vald {
-      background: #bbdefb;
-      border-color: #42a5f5;
-    }
     .ocr-tips {
       font-size: 12px;
       color: #666;
       padding: 6px 0;
       line-height: 1.5;
     }
+
+    /* Fältväljare */
+    .falt-valjare {
+      padding: 8px 12px;
+      border-bottom: 1px solid #eee;
+      background: #fafafa;
+    }
+    .falt-valjare .rubrik {
+      font-size: 10px;
+      text-transform: uppercase;
+      color: #888;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
+    }
+    .falt-knappar {
+      display: flex;
+      gap: 4px;
+    }
+    .falt-knapp {
+      flex: 1;
+      padding: 4px 6px;
+      font-size: 11px;
+      cursor: pointer;
+      background: #f0f0f0;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .falt-knapp.aktiv {
+      background: #0078d4;
+      color: #fff;
+      border-color: #0078d4;
+    }
+
+    /* Nedre sektion med fält */
     .nedre-sektion {
       padding: 10px 12px;
       border-top: 1px solid #eee;
     }
-    .nedre-sektion label {
+    .falt-rad {
+      margin-bottom: 7px;
+    }
+    .falt-rad label {
       display: block;
       font-size: 11px;
       color: #555;
-      margin-bottom: 3px;
+      margin-bottom: 2px;
     }
-    .nedre-sektion input[type=text] {
+    .falt-rad input[type=text] {
       width: 100%;
-      padding: 6px 8px;
-      font-size: 13px;
+      padding: 5px 8px;
+      font-size: 12px;
       border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+    .falt-rad input[type=text]:focus {
+      outline: none;
+      border-color: #0078d4;
+    }
+    .falt-rad input[type=text].aktivt-falt {
+      border-color: #0078d4;
+      background: #f0f7ff;
+    }
+    #btn-rita-rektangel {
+      width: 100%;
+      padding: 5px;
+      font-size: 11px;
+      cursor: pointer;
+      background: #fff3e0;
+      border: 1px solid #ffb74d;
       border-radius: 3px;
       margin-bottom: 8px;
     }
-    .nedre-sektion input[type=text]:focus {
-      outline: none;
-      border-color: #0078d4;
+    #btn-rita-rektangel:hover { background: #ffe0b2; }
+    #btn-rita-rektangel.aktiv {
+      background: #ff5722;
+      color: #fff;
+      border-color: #e64a19;
     }
     #ocr-status {
       font-size: 11px;
       color: #0078d4;
-      height: 16px;
+      min-height: 15px;
       margin-bottom: 6px;
     }
     .knapp-rad {
@@ -183,35 +239,11 @@
     }
     #btn-anvand:hover { background: #006cbf; }
     #btn-avbryt:hover { background: #e8e8e8; }
-    #btn-rita-rektangel {
-      width: 100%;
-      padding: 6px;
-      font-size: 12px;
-      cursor: pointer;
-      background: #fff3e0;
-      border: 1px solid #ffb74d;
-      border-radius: 3px;
-      margin-bottom: 8px;
-    }
-    #btn-rita-rektangel:hover { background: #ffe0b2; }
-    #btn-rita-rektangel.aktiv {
-      background: #ff5722;
-      color: #fff;
-      border-color: #e64a19;
-    }
-    .laddar {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 200px;
-      color: #888;
-      font-size: 13px;
-    }
   </style>
 </head>
 <body>
   <div class="huvud">
-    <h1 id="huvud-rubrik">Hämta avsändare från PDF</h1>
+    <h1 id="huvud-rubrik">Hämta information från PDF</h1>
     <span class="sidindikator" id="sid-text"></span>
   </div>
 
@@ -230,18 +262,40 @@
       </div>
 
       <div class="text-sektion" id="text-sektion">
-        <h3>Extraherad text – klicka för att välja</h3>
+        <h3>Extraherad text – klicka för att fylla markerat fält</h3>
         <div id="text-lista"></div>
         <div class="ocr-tips" id="ocr-tips" style="display:none;">
           Inga textrader hittades (skannad PDF). Rita en rektangel kring
-          avsändarnamnet för att köra OCR.
+          texten du vill hämta.
+        </div>
+      </div>
+
+      <!-- Fältväljare: vilket fält textrads-klick och OCR fyller -->
+      <div class="falt-valjare">
+        <div class="rubrik">Fyll i fält</div>
+        <div class="falt-knappar">
+          <button class="falt-knapp aktiv" data-falt="kontakt" id="faltknapp-kontakt">Avsändare</button>
+          <button class="falt-knapp" data-falt="datum" id="faltknapp-datum">Datum</button>
+          <button class="falt-knapp" data-falt="titel" id="faltknapp-titel">Titel</button>
         </div>
       </div>
 
       <div class="nedre-sektion">
         <button id="btn-rita-rektangel">✎ Rita rektangel för OCR</button>
-        <label id="resultat-etikett">Avsändare:</label>
-        <input type="text" id="resultat-namn" placeholder="Skriv eller välj ovan">
+
+        <div class="falt-rad">
+          <label id="kontakt-etikett">Avsändare:</label>
+          <input type="text" id="resultat-kontakt" class="aktivt-falt" placeholder="Skriv eller välj ovan">
+        </div>
+        <div class="falt-rad">
+          <label id="datum-etikett">Ankomstdatum:</label>
+          <input type="text" id="resultat-datum" placeholder="ÅÅÅÅ-MM-DD">
+        </div>
+        <div class="falt-rad">
+          <label>Titel:</label>
+          <input type="text" id="resultat-titel" placeholder="Skriv eller välj ovan">
+        </div>
+
         <div id="ocr-status"></div>
         <div class="knapp-rad">
           <button id="btn-anvand">Använd</button>
@@ -251,7 +305,6 @@
     </div>
   </div>
 
-  <!-- pdf.js laddas som ES-modul -->
   <script type="module" src="ocr-kontakt.js"></script>
 </body>
 </html>

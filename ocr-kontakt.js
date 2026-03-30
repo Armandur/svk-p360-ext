@@ -11,11 +11,15 @@ const storageKey = params.get('storageKey') || 'tempOcrFil';
 const kategori = params.get('kategori') || '110';
 
 // Anpassa etiketter efter kategori
-const ärAvsändare = kategori === '110';
+const ärInkommande = kategori === '110';
 document.getElementById('huvud-rubrik').textContent =
-  ärAvsändare ? 'Hämta avsändare från PDF' : 'Hämta mottagare från PDF';
-document.getElementById('resultat-etikett').textContent =
-  ärAvsändare ? 'Avsändare:' : 'Mottagare:';
+  ärInkommande ? 'Hämta information från PDF – Inkommande' : 'Hämta information från PDF – Utgående';
+document.getElementById('kontakt-etikett').textContent =
+  ärInkommande ? 'Avsändare:' : 'Mottagare:';
+document.getElementById('faltknapp-kontakt').textContent =
+  ärInkommande ? 'Avsändare' : 'Mottagare';
+document.getElementById('datum-etikett').textContent =
+  ärInkommande ? 'Ankomstdatum:' : 'Datum:';
 
 // --- Hämta PDF-data från storage ---
 const storageData = await chrome.storage.local.get(storageKey);
@@ -29,7 +33,7 @@ if (!filBase64) {
   throw new Error('Ingen fildata i storage');
 }
 
-// Konvertera base64 → ArrayBuffer
+// Konvertera base64 → Uint8Array
 const base64Sträng = filBase64.includes(',') ? filBase64.split(',')[1] : filBase64;
 const binär = atob(base64Sträng);
 const bytes = new Uint8Array(binär.length);
@@ -48,7 +52,6 @@ try {
 let aktuelltSidnummer = 1;
 const antalSidor = pdfDok.numPages;
 
-// Uppdatera sidnavigering
 function uppdateraSidnav() {
   document.getElementById('sidnav-text').textContent =
     `${aktuelltSidnummer} / ${antalSidor}`;
@@ -82,7 +85,7 @@ async function extraheraText(sida) {
   const ocrTips = document.getElementById('ocr-tips');
   textLista.innerHTML = '';
 
-  // Gruppera textitems till rader baserat på Y-koordinat (avrundas till heltal)
+  // Gruppera textitems till rader baserat på Y-koordinat
   const radMap = new Map();
   for (const item of textInnehall.items) {
     if (!item.str?.trim()) continue;
@@ -92,8 +95,8 @@ async function extraheraText(sida) {
   }
 
   // Sortera rader uppifrån ned (högre Y = högre upp i PDF-koordinatsystem)
-  const sorterade = [...radMap.entries()].sort((a, b) => b[0] - a[0]);
-  const rader = sorterade
+  const rader = [...radMap.entries()]
+    .sort((a, b) => b[0] - a[0])
     .map(([, delar]) => delar.join(' ').trim())
     .filter(rad => rad.length > 0);
 
@@ -104,10 +107,7 @@ async function extraheraText(sida) {
       div.className = 'text-rad';
       div.textContent = rad;
       div.addEventListener('click', () => {
-        // Avmarkera tidigare val
-        textLista.querySelectorAll('.text-rad.vald').forEach(el => el.classList.remove('vald'));
-        div.classList.add('vald');
-        document.getElementById('resultat-namn').value = rad;
+        fyllAktivtFält(rad);
       });
       textLista.appendChild(div);
     });
@@ -131,8 +131,52 @@ document.getElementById('btn-nasta').addEventListener('click', async () => {
   }
 });
 
+// --- Fältväljare ---
+// Vilket inputfält som text-klick och OCR-resultat fyller
+let aktivtFältId = 'resultat-kontakt';
+
+const fältKartläggning = {
+  kontakt: 'resultat-kontakt',
+  datum:   'resultat-datum',
+  titel:   'resultat-titel',
+};
+
+function väljtFält(faltNyckel) {
+  aktivtFältId = fältKartläggning[faltNyckel];
+
+  // Uppdatera knapp-styling
+  document.querySelectorAll('.falt-knapp').forEach(btn => {
+    btn.classList.toggle('aktiv', btn.dataset.falt === faltNyckel);
+  });
+
+  // Markera aktivt inputfält visuellt
+  Object.values(fältKartläggning).forEach(id => {
+    document.getElementById(id).classList.toggle('aktivt-falt', id === aktivtFältId);
+  });
+
+  document.getElementById(aktivtFältId).focus();
+}
+
+document.querySelectorAll('.falt-knapp').forEach(btn => {
+  btn.addEventListener('click', () => väljtFält(btn.dataset.falt));
+});
+
+// Fokusering av ett inputfält väljer det automatiskt som aktivt
+Object.entries(fältKartläggning).forEach(([nyckel, id]) => {
+  document.getElementById(id).addEventListener('focus', () => väljtFält(nyckel));
+});
+
+function fyllAktivtFält(text) {
+  document.getElementById(aktivtFältId).value = text;
+  // Markera vald textrad visuellt
+  document.querySelectorAll('.text-rad').forEach(el => el.classList.remove('vald'));
+  // Hitta och markera den klickade raden (om den finns i listan)
+  document.querySelectorAll('.text-rad').forEach(el => {
+    if (el.textContent === text) el.classList.add('vald');
+  });
+}
+
 // --- Nivå 2: Rektangel-OCR med Tesseract ---
-let rektangelLägeAktivt = false;
 let aktuelltOverlay = null;
 
 function startaRektangelLäge() {
@@ -143,7 +187,6 @@ function startaRektangelLäge() {
 
   const overlay = document.createElement('div');
   overlay.className = 'ocr-overlay';
-  // Matcha exakt canvas-dimensioner
   overlay.style.width = canvas.offsetWidth + 'px';
   overlay.style.height = canvas.offsetHeight + 'px';
 
@@ -157,10 +200,8 @@ function startaRektangelLäge() {
     startX = e.clientX - rect.left;
     startY = e.clientY - rect.top;
     ritar = true;
-    rektEl.style.left = startX + 'px';
-    rektEl.style.top = startY + 'px';
-    rektEl.style.width = '0';
-    rektEl.style.height = '0';
+    rektEl.style.cssText =
+      `left:${startX}px;top:${startY}px;width:0;height:0`;
     overlay.appendChild(rektEl);
   });
 
@@ -169,16 +210,16 @@ function startaRektangelLäge() {
     const rect = overlay.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    rektEl.style.left = Math.min(startX, x) + 'px';
-    rektEl.style.top = Math.min(startY, y) + 'px';
-    rektEl.style.width = Math.abs(x - startX) + 'px';
+    rektEl.style.left   = Math.min(startX, x) + 'px';
+    rektEl.style.top    = Math.min(startY, y) + 'px';
+    rektEl.style.width  = Math.abs(x - startX) + 'px';
     rektEl.style.height = Math.abs(y - startY) + 'px';
   });
 
   overlay.addEventListener('mouseup', async () => {
     ritar = false;
     const bredd = parseFloat(rektEl.style.width);
-    const höjd = parseFloat(rektEl.style.height);
+    const höjd  = parseFloat(rektEl.style.height);
     if (bredd < 5 || höjd < 5) {
       overlay.remove();
       aktuelltOverlay = null;
@@ -189,32 +230,24 @@ function startaRektangelLäge() {
     // Skala från visningskoordinater till canvas-pixelkoordinater
     const scaleX = canvas.width / overlay.offsetWidth;
     const scaleY = canvas.height / overlay.offsetHeight;
-    const beskärning = {
-      x: parseFloat(rektEl.style.left) * scaleX,
-      y: parseFloat(rektEl.style.top) * scaleY,
-      w: bredd * scaleX,
-      h: höjd * scaleY,
-    };
+    const bx = parseFloat(rektEl.style.left)   * scaleX;
+    const by = parseFloat(rektEl.style.top)    * scaleY;
+    const bw = bredd * scaleX;
+    const bh = höjd  * scaleY;
 
     // Beskär till offscreen-canvas
     const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = beskärning.w;
-    tempCanvas.height = beskärning.h;
-    tempCanvas.getContext('2d').drawImage(
-      canvas,
-      beskärning.x, beskärning.y, beskärning.w, beskärning.h,
-      0, 0, beskärning.w, beskärning.h
-    );
+    tempCanvas.width  = bw;
+    tempCanvas.height = bh;
+    tempCanvas.getContext('2d').drawImage(canvas, bx, by, bw, bh, 0, 0, bw, bh);
 
     overlay.remove();
     aktuelltOverlay = null;
     rektangelKnapp.classList.remove('aktiv');
 
-    // Kör OCR
-    await kördOCR(tempCanvas);
+    await körOCR(tempCanvas);
   });
 
-  // Escape avbryter rektangelläge
   const escLyssnare = (e) => {
     if (e.key === 'Escape') {
       overlay.remove();
@@ -304,18 +337,21 @@ function laddaSkript(url) {
   });
 }
 
-async function kördOCR(canvas) {
+async function körOCR(canvas) {
   const statusEl = document.getElementById('ocr-status');
   statusEl.style.color = '#0078d4';
-
   try {
     const worker = await hämtaTesseractWorker();
     statusEl.textContent = 'Kör OCR…';
     const resultat = await worker.recognize(canvas);
     const text = resultat.data.text.trim();
-    document.getElementById('resultat-namn').value = text;
-    statusEl.textContent = text ? '' : 'Ingen text hittades – prova en större rektangel.';
-    if (!text) statusEl.style.color = '#b36b00';
+    if (text) {
+      fyllAktivtFält(text);
+      statusEl.textContent = '';
+    } else {
+      statusEl.textContent = 'Ingen text hittades – prova en större rektangel.';
+      statusEl.style.color = '#b36b00';
+    }
   } catch (e) {
     statusEl.textContent = 'OCR-fel: ' + e.message;
     statusEl.style.color = '#c0392b';
@@ -324,14 +360,20 @@ async function kördOCR(canvas) {
 
 // --- Bekräfta och returnera resultat ---
 document.getElementById('btn-anvand').addEventListener('click', async () => {
-  const namn = document.getElementById('resultat-namn').value.trim();
-  if (!namn) {
-    document.getElementById('resultat-namn').focus();
+  const kontakt     = document.getElementById('resultat-kontakt').value.trim();
+  const ankomstdatum = document.getElementById('resultat-datum').value.trim();
+  const titel       = document.getElementById('resultat-titel').value.trim();
+
+  if (!kontakt && !ankomstdatum && !titel) {
+    // Inget ifyllt – markera aktivt fält
+    document.getElementById(aktivtFältId).focus();
     return;
   }
-  await chrome.storage.local.set({ ocrResultat: { namn, tid: Date.now() } });
+
+  await chrome.storage.local.set({
+    ocrResultat: { kontakt, ankomstdatum, titel, tid: Date.now() },
+  });
   await chrome.storage.local.remove(storageKey);
-  // Avsluta Tesseract-worker om aktiv
   if (tesseractWorker) {
     try { await tesseractWorker.terminate(); } catch { /* ignorera */ }
   }
