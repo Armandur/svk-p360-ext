@@ -141,3 +141,6 @@ Funktioner som diskuterats men ännu inte prioriterats.
 | batch.html: utfällbart hjälpavsnitt (flöde, kolumner, OCR, efter körning) | 2026-03-30 |
 | Massregistrering: förhandsvisning av ärenden och ärendedokument innan körning (modal) | 2026-03-30 |
 | OCR batch-rad: toggle för att ange ärendepart separat (kontakt + ärendepart kan sättas i samma OCR-session) | 2026-03-30 |
+| Refaktorering: popup.js → popup-mallar.js + popup-fil.js; batch.js → batch-preview.js + batch-dagboksblad.js | 2026-03-30 |
+| Buggfix: ärendedokumentmall från popup fyllde inte i formuläret (waitForNyIframe + väntaPåPRM) | 2026-03-30 |
+| Dagboksblad: ny flik med fokus + webbläsarens utskriftsdialog via service worker (ControlID-fetch, ersätter PostBack+popup) | 2026-03-30 |

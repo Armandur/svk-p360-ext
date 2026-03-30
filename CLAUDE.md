@@ -101,18 +101,17 @@ document.getElementById(
 ### MAIN-world körordning (manifest.json)
 
 1. `page-utils.js`
-2. `page-dagboksblad.js`
-3. `page-status.js`
-4. `page-arende-options.js`
-5. `page-arende-contacts.js`
-6. `page-arende-create.js`
-7. `page-document-options.js`
-8. `page-document-validate.js`
-9. `page-document-fill.js`
-10. `page-document-upload.js`
-11. `page-document-steps.js`
-12. `page-document-create.js`
-13. `page.js` (router)
+2. `page-status.js`
+3. `page-arende-options.js`
+4. `page-arende-contacts.js`
+5. `page-arende-create.js`
+6. `page-document-options.js`
+7. `page-document-validate.js`
+8. `page-document-fill.js`
+9. `page-document-upload.js`
+10. `page-document-steps.js`
+11. `page-document-create.js`
+12. `page.js` (router)
 
 ## Dokumentmallar och instansmodell
 
