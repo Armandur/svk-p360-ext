@@ -731,6 +731,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (!rad) { sendResponse({ success: false, fel: 'Rad saknas' }); return; }
   if (kontakt && dokKontaktKolumner[filIdx]) {
     rad[dokKontaktKolumner[filIdx]] = kontakt;
+    // Bocka av arv-kryssrutan – kontakten är nu explicit, inte ärendeparten
+    rad[`DokKontaktArv_${filIdx + 1}`] = false;
   }
   if (datum && dokDatumKolumner[filIdx]) {
     rad[dokDatumKolumner[filIdx]] = datum;

@@ -52,6 +52,9 @@ function läggTillRad(data) {
   }
   for (const ck of dokKontaktKolumner) {
     rad[ck] = data?.[ck] || '';
+    // Arv-flagga: default true (använd ärendepart); false om explicit kontakt angetts
+    const arvKey = `DokKontaktArv_${dokKontaktKolumner.indexOf(ck) + 1}`;
+    rad[arvKey] = data?.[arvKey] !== undefined ? data[arvKey] : true;
   }
   for (const dk of dokTitelKolumner) {
     rad[dk] = data?.[dk] || '';
@@ -102,8 +105,11 @@ function importeraRader(csvRader) {
     for (const fk of filKolumner) {
       ny[fk] = rad[fk] || '';
     }
-    for (const ck of dokKontaktKolumner) {
+    for (let i = 0; i < dokKontaktKolumner.length; i++) {
+      const ck = dokKontaktKolumner[i];
       ny[ck] = rad[ck] || '';
+      // Arv deriveras från om explicit kontakt finns i CSV; annars default true
+      ny[`DokKontaktArv_${i + 1}`] = !ny[ck];
     }
     for (const dk of dokTitelKolumner) {
       ny[dk] = rad[dk] || '';
@@ -127,7 +133,11 @@ function sparaFrånTabell() {
   trRader.forEach((tr, idx) => {
     if (idx >= batchRader.length) return;
     tr.querySelectorAll('input[data-kol]').forEach(inp => {
-      batchRader[idx][inp.dataset.kol] = inp.value;
+      if (inp.type === 'checkbox') {
+        batchRader[idx][inp.dataset.kol] = inp.checked;
+      } else {
+        batchRader[idx][inp.dataset.kol] = inp.value;
+      }
     });
     tr.querySelectorAll('select[data-kol]').forEach(sel => {
       batchRader[idx][sel.dataset.kol] = sel.value;
@@ -251,14 +261,36 @@ function renderaTabell() {
 
     // DokKontakt + DokTitel + DokDatum + Fil-celler (per slot)
     for (let fi = 0; fi < filKolumner.length; fi++) {
-      // DokKontakt_N – kontakt-override per ärendedokument
+      // DokKontakt_N – kryssruta (ärendepart) + valfritt textfält
       const ck = dokKontaktKolumner[fi];
+      const arvKey = `DokKontaktArv_${fi + 1}`;
+      const arvChecked = rad[arvKey] !== false; // default true
       const tdKontakt = document.createElement('td');
+      tdKontakt.style.whiteSpace = 'nowrap';
+
+      const arvChk = document.createElement('input');
+      arvChk.type = 'checkbox';
+      arvChk.dataset.kol = arvKey;
+      arvChk.checked = arvChecked;
+      arvChk.title = 'Använd ärendepart (Namn) som kontakt för detta ärendedokument';
+      arvChk.style.cssText = 'margin-right:4px;vertical-align:middle;cursor:pointer;';
+
       const kontaktInp = document.createElement('input');
       kontaktInp.type = 'text';
       kontaktInp.dataset.kol = ck;
       kontaktInp.value = rad[ck] || '';
-      kontaktInp.placeholder = 'Kontakt (lämna tom = ärendepart)';
+      kontaktInp.placeholder = 'Annan kontakt…';
+      kontaktInp.style.cssText = 'width:110px;';
+      kontaktInp.disabled = arvChecked;
+      if (arvChecked) kontaktInp.placeholder = '(ärendepart)';
+
+      arvChk.addEventListener('change', () => {
+        kontaktInp.disabled = arvChk.checked;
+        kontaktInp.placeholder = arvChk.checked ? '(ärendepart)' : 'Annan kontakt…';
+        if (arvChk.checked) kontaktInp.value = '';
+      });
+
+      tdKontakt.appendChild(arvChk);
       tdKontakt.appendChild(kontaktInp);
       tr.appendChild(tdKontakt);
 
@@ -448,8 +480,9 @@ function initDragZon() {
       for (const fk of filKolumner) {
         rad[fk] = '';
       }
-      for (const ck of dokKontaktKolumner) {
-        rad[ck] = '';
+      for (let i = 0; i < dokKontaktKolumner.length; i++) {
+        rad[dokKontaktKolumner[i]] = '';
+        rad[`DokKontaktArv_${i + 1}`] = true; // default: använd ärendepart
       }
       for (const dk of dokTitelKolumner) {
         rad[dk] = '';

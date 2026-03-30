@@ -332,9 +332,12 @@ function byggMallFrånRad(baseMall, rad, slots, aktivaKolumner) {
       dokMall.titel = rad[dokTitelKolumn];
     }
 
-    // Oregistrerad kontakt per slot (DokKontakt_N) – prioriteras; fallback: ärendets kontakt
+    // Oregistrerad kontakt per slot – styrs av DokKontaktArv_N-kryssrutan
+    // true (eller saknas) = använd ärendepart; false = använd DokKontakt_N-fältet
     const dokKontaktKolumn = `DokKontakt_${s + 1}`;
-    const dokKontaktNamn = rad[dokKontaktKolumn] || kontakt.namn;
+    const arvNyckel = `DokKontaktArv_${s + 1}`;
+    const brukArv = rad[arvNyckel] !== false;
+    const dokKontaktNamn = brukArv ? (kontakt.namn || '') : (rad[dokKontaktKolumn] || '');
     if (dokKontaktNamn) {
       dokMall.oregistreradKontakt = dokKontaktNamn;
     }
