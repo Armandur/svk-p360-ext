@@ -298,9 +298,13 @@
       const { headers, rader } = parsCSV(csvText);
       // Detektera filkolumner i CSV
       const csvFilKol = detekteraFilKolumner(headers);
+      const csvDokKontaktKol = detekteraDokKontaktKolumner(headers);
       const csvDokTitelKol = detekteraDokTitelKolumner(headers);
       const csvDokDatumKol = detekteraDokDatumKolumner(headers);
-      const maxSlots = Math.max(csvFilKol.length, csvDokTitelKol.length, csvDokDatumKol.length);
+      const maxSlots = Math.max(
+        csvFilKol.length, csvDokKontaktKol.length,
+        csvDokTitelKol.length, csvDokDatumKol.length,
+      );
       if (maxSlots > 0) {
         // Uppdatera antal slots om CSV har fler fil-/titelkolumner
         while (slotsar.length < maxSlots) {
@@ -612,7 +616,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   sparaFrånTabell();
   const rad = batchRader[radIdx];
   if (!rad) { sendResponse({ success: false, fel: 'Rad saknas' }); return; }
-  if (kontakt) rad.Namn = kontakt;
+  if (kontakt && dokKontaktKolumner[filIdx]) {
+    rad[dokKontaktKolumner[filIdx]] = kontakt;
+  }
   if (datum && dokDatumKolumner[filIdx]) {
     rad[dokDatumKolumner[filIdx]] = datum;
   }

@@ -199,6 +199,18 @@ function detekteraDokTitelKolumner(headers) {
 }
 
 /**
+ * Identifierar DokKontakt_N-kolumner i CSV-headers.
+ * @returns {string[]} T.ex. ['DokKontakt_1', 'DokKontakt_2']
+ */
+function detekteraDokKontaktKolumner(headers) {
+  return headers.filter(h => /^DokKontakt_\d+$/i.test(h)).sort((a, b) => {
+    const na = parseInt(a.split('_')[1]);
+    const nb = parseInt(b.split('_')[1]);
+    return na - nb;
+  });
+}
+
+/**
  * Identifierar DokDatum_N-kolumner i CSV-headers.
  * @returns {string[]} T.ex. ['DokDatum_1', 'DokDatum_2']
  */
@@ -320,10 +332,11 @@ function byggMallFrånRad(baseMall, rad, slots, aktivaKolumner) {
       dokMall.titel = rad[dokTitelKolumn];
     }
 
-    // Lägg till kontaktperson som avsändare/mottagare via oregistreradKontakt
-    // (fyllDokumentFormulär använder dok.oregistreradKontakt för snabb-fältet)
-    if (kontakt.namn) {
-      dokMall.oregistreradKontakt = kontakt.namn;
+    // Oregistrerad kontakt per slot (DokKontakt_N) – prioriteras; fallback: ärendets kontakt
+    const dokKontaktKolumn = `DokKontakt_${s + 1}`;
+    const dokKontaktNamn = rad[dokKontaktKolumn] || kontakt.namn;
+    if (dokKontaktNamn) {
+      dokMall.oregistreradKontakt = dokKontaktNamn;
     }
 
     // Datum per slot (DokDatum_N) – prioriteras; fallback: Ankomstdatum för inkommande
@@ -381,7 +394,10 @@ function exporteraBatchCSV(metadata) {
   for (const [namn] of Object.entries(BATCH_KOLUMNER)) {
     if (batchRader.some(r => r[namn])) aktiva.push(namn);
   }
-  // Lägg till fil-, dokumenttitel- och dokumentdatumkolumner
+  // Lägg till fil- och per-slot-kolumner
+  for (const ck of dokKontaktKolumner) {
+    if (batchRader.some(r => r[ck])) aktiva.push(ck);
+  }
   for (const dk of dokTitelKolumner) {
     if (batchRader.some(r => r[dk])) aktiva.push(dk);
   }

@@ -5,6 +5,7 @@
 let batchRader = [];
 let synligaKolumner = new Set(['Titel', 'Namn']);
 let filKolumner = ['Fil_1']; // Standard: en filkolumn
+let dokKontaktKolumner = ['DokKontakt_1']; // Oregistrerad kontakt per slot (override)
 let dokTitelKolumner = ['DokTitel_1']; // Överlagring av dokumenttitel per slot
 let dokDatumKolumner = ['DokDatum_1']; // Datum per slot (ankomst/skickat/upprättat)
 
@@ -25,10 +26,12 @@ function hämtaBatchRader() {
  */
 function uppdateraFilKolumner(antalSlots) {
   filKolumner = [];
+  dokKontaktKolumner = [];
   dokTitelKolumner = [];
   dokDatumKolumner = [];
   for (let i = 1; i <= Math.max(antalSlots, 1); i++) {
     filKolumner.push(`Fil_${i}`);
+    dokKontaktKolumner.push(`DokKontakt_${i}`);
     dokTitelKolumner.push(`DokTitel_${i}`);
     dokDatumKolumner.push(`DokDatum_${i}`);
   }
@@ -46,6 +49,9 @@ function läggTillRad(data) {
   }
   for (const fk of filKolumner) {
     rad[fk] = data?.[fk] || '';
+  }
+  for (const ck of dokKontaktKolumner) {
+    rad[ck] = data?.[ck] || '';
   }
   for (const dk of dokTitelKolumner) {
     rad[dk] = data?.[dk] || '';
@@ -95,6 +101,9 @@ function importeraRader(csvRader) {
     }
     for (const fk of filKolumner) {
       ny[fk] = rad[fk] || '';
+    }
+    for (const ck of dokKontaktKolumner) {
+      ny[ck] = rad[ck] || '';
     }
     for (const dk of dokTitelKolumner) {
       ny[dk] = rad[dk] || '';
@@ -182,6 +191,9 @@ function renderaTabell() {
     huvud.appendChild(th);
   }
   for (let fi = 0; fi < filKolumner.length; fi++) {
+    const thKontakt = document.createElement('th');
+    thKontakt.textContent = dokKontaktKolumner[fi];
+    huvud.appendChild(thKontakt);
     const thTitel = document.createElement('th');
     thTitel.textContent = dokTitelKolumner[fi];
     huvud.appendChild(thTitel);
@@ -237,8 +249,19 @@ function renderaTabell() {
       tr.appendChild(td);
     }
 
-    // Dokumenttitel + Dokumentdatum + Fil-celler (per slot)
+    // DokKontakt + DokTitel + DokDatum + Fil-celler (per slot)
     for (let fi = 0; fi < filKolumner.length; fi++) {
+      // DokKontakt_N – kontakt-override per ärendedokument
+      const ck = dokKontaktKolumner[fi];
+      const tdKontakt = document.createElement('td');
+      const kontaktInp = document.createElement('input');
+      kontaktInp.type = 'text';
+      kontaktInp.dataset.kol = ck;
+      kontaktInp.value = rad[ck] || '';
+      kontaktInp.placeholder = 'Kontakt (lämna tom = ärendepart)';
+      tdKontakt.appendChild(kontaktInp);
+      tr.appendChild(tdKontakt);
+
       // DokTitel_N – textinput för titelöverstyrning
       const dk = dokTitelKolumner[fi];
       const tdTitel = document.createElement('td');
@@ -424,6 +447,9 @@ function initDragZon() {
       rad.Titel = fil.name.replace(/\.[^.]+$/, '');
       for (const fk of filKolumner) {
         rad[fk] = '';
+      }
+      for (const ck of dokKontaktKolumner) {
+        rad[ck] = '';
       }
       for (const dk of dokTitelKolumner) {
         rad[dk] = '';
