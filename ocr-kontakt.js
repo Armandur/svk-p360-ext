@@ -13,6 +13,13 @@ const kategori = params.get('kategori') || '110';
 // Hämta OCR-kontext (innehåller lista över alla filer för uppladdning)
 const { ocrContext } = await chrome.storage.local.get('ocrContext');
 
+const ärBatch   = ocrContext?.typ === 'batch';
+const filerData = ocrContext?.filerData || [];
+
+// Per-fil OCR-värden i batch-läge; indexeras med filerData
+let aktivFilIndex = 0;
+const perFilVärden = filerData.map(() => ({ kontakt: '', datum: '', titel: '' }));
+
 // Anpassa etiketter efter kategori
 const ärInkommande = kategori === '110';
 document.getElementById('huvud-rubrik').textContent =
@@ -57,11 +64,11 @@ async function öppnaPdf(base64Str) {
   await renderaSida(1);
 }
 
-// Visa PDF-väljare om kontexten innehåller flera PDF-filer
-const allaPdfFiler = (ocrContext?.filerData || []).filter(
+// Visa PDF-väljare om kontexten innehåller flera PDF-filer (ej i batch – där sköter filnavigatorn det)
+const allaPdfFiler = filerData.filter(
   f => f.typ === 'application/pdf' || (f.namn || '').toLowerCase().endsWith('.pdf')
 );
-if (allaPdfFiler.length > 1) {
+if (!ärBatch && allaPdfFiler.length > 1) {
   const valjareDiv = document.createElement('div');
   valjareDiv.style.cssText =
     'padding:6px 12px;border-bottom:1px solid #eee;background:#fafafa;';
@@ -113,6 +120,109 @@ if (ocrContext?.mallId) {
       `</label>`;
     titelRad.appendChild(info);
   }
+}
+
+// --- Filnavigator i batch-läge ---
+// Visar "Fil X/Y: filnamn" med ◀/▶ och sparar/laddar per-fils OCR-värden.
+if (ärBatch && filerData.length > 1) {
+  const navDiv = document.createElement('div');
+  navDiv.id = 'fil-nav';
+  navDiv.style.cssText =
+    'padding:5px 8px;border-bottom:1px solid #dde;background:#eef2ff;' +
+    'display:flex;align-items:center;gap:5px;';
+
+  const knappstil =
+    'padding:2px 8px;border:1px solid #aac;border-radius:3px;background:#fff;' +
+    'cursor:pointer;font-size:13px;line-height:1.4;';
+
+  const prevBtn = document.createElement('button');
+  prevBtn.textContent = '◀';
+  prevBtn.style.cssText = knappstil;
+  prevBtn.title = 'Föregående fil';
+
+  const counter = document.createElement('span');
+  counter.id = 'fil-nav-text';
+  counter.style.cssText =
+    'flex:1;text-align:center;font-size:11px;overflow:hidden;' +
+    'text-overflow:ellipsis;white-space:nowrap;';
+
+  const nextBtn = document.createElement('button');
+  nextBtn.textContent = '▶';
+  nextBtn.style.cssText = knappstil;
+  nextBtn.title = 'Nästa fil';
+
+  navDiv.appendChild(prevBtn);
+  navDiv.appendChild(counter);
+  navDiv.appendChild(nextBtn);
+
+  const hogerKolumn = document.querySelector('.hoger-kolumn');
+  const sidnav      = document.querySelector('.sidnav');
+  hogerKolumn.insertBefore(navDiv, sidnav);
+
+  function uppdateraFilnav() {
+    counter.textContent =
+      `Fil ${aktivFilIndex + 1} / ${filerData.length}: ${filerData[aktivFilIndex].namn}`;
+    prevBtn.disabled = aktivFilIndex === 0;
+    nextBtn.disabled = aktivFilIndex === filerData.length - 1;
+  }
+
+  async function sparaOchByttFil(nyIndex) {
+    // Spara aktuell fils fältvärden
+    perFilVärden[aktivFilIndex] = {
+      kontakt:      document.getElementById('resultat-kontakt').value.trim(),
+      datum:        document.getElementById('resultat-datum').value.trim(),
+      titel:        document.getElementById('resultat-titel').value.trim(),
+    };
+
+    aktivFilIndex = nyIndex;
+
+    // Ladda den nya filens sparade värden
+    const v = perFilVärden[aktivFilIndex];
+    document.getElementById('resultat-kontakt').value = v.kontakt;
+    document.getElementById('resultat-datum').value   = v.datum;
+    document.getElementById('resultat-titel').value   = v.titel;
+
+    // Visa PDF om filen är en PDF – annars platshållare
+    const f = filerData[aktivFilIndex];
+    const ärPdfFil =
+      f.typ === 'application/pdf' || (f.namn || '').toLowerCase().endsWith('.pdf');
+    if (ärPdfFil) {
+      document.getElementById('ocr-status').textContent = 'Laddar PDF…';
+      await öppnaPdf(f.base64);
+      document.getElementById('ocr-status').textContent = '';
+      document.getElementById('btn-rita-rektangel').disabled = false;
+    } else {
+      // Ingen PDF-förhandsvisning för denna fil
+      const canvas = document.getElementById('pdf-canvas');
+      canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+      canvas.width  = 400;
+      canvas.height = 200;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#f4f4f4';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#999';
+      ctx.font = '14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(f.namn, canvas.width / 2, canvas.height / 2 - 10);
+      ctx.font = '12px sans-serif';
+      ctx.fillText('(ingen förhandsvisning)', canvas.width / 2, canvas.height / 2 + 14);
+      document.getElementById('text-lista').innerHTML = '';
+      document.getElementById('ocr-tips').style.display = '';
+      document.getElementById('btn-rita-rektangel').disabled = true;
+      uppdateraSidnav();
+    }
+
+    uppdateraFilnav();
+  }
+
+  prevBtn.addEventListener('click', () => {
+    if (aktivFilIndex > 0) sparaOchByttFil(aktivFilIndex - 1);
+  });
+  nextBtn.addEventListener('click', () => {
+    if (aktivFilIndex < filerData.length - 1) sparaOchByttFil(aktivFilIndex + 1);
+  });
+
+  uppdateraFilnav();
 }
 
 function uppdateraSidnav() {
@@ -491,32 +601,35 @@ async function körOCR(canvas) {
 // Bygger dokument-arrayen från ocrContext + OCR-värden och skickar till P360-fliken.
 // Returnerar true om meddelandet skickades, false om ingen P360-flik hittades.
 async function startaUppladning(kontakt, ankomstdatum, titel) {
-  const { ocrContext } = await chrome.storage.local.get('ocrContext');
   if (!ocrContext) return false;
 
   // Kräver en öppen P360-flik
   const [tab] = await chrome.tabs.query({ url: 'https://p360.svenskakyrkan.se/*' });
   if (!tab) return false;
 
-  const { mallId, filerData, typ } = ocrContext;
+  const { mallId, typ } = ocrContext;
 
-  // Hämta och förbered malldata
+  // Hämta och förbered malldata – basMall används som ren kopia per dokument
   const { dokumentmallar = [] } = await chrome.storage.local.get('dokumentmallar');
   const dm = dokumentmallar.find(m => m.id === mallId);
-  let mallData = {};
+  const basMall = {};
   if (dm) {
-    mallData = { ...dm };
-    delete mallData.id;
-    delete mallData.skapad;
+    Object.assign(basMall, dm);
+    delete basMall.id;
+    delete basMall.skapad;
   }
-  if (kontakt)    mallData.oregistreradKontakt = kontakt;
-  if (ankomstdatum) mallData.datum = ankomstdatum;
-  const ersättMallTitel = document.getElementById('ersätt-mall-titel')?.checked || false;
-  if (titel && (!mallData.titel || ersättMallTitel)) mallData.titel = titel;
 
-  // Bygg dokument-array (enskild fil = alla filer i ett dok, batch = ett dok per fil)
+  const ersättTitel = document.getElementById('ersätt-mall-titel')?.checked || false;
+
+  // Bygg dokument-array
   const dokument = [];
   if (typ === 'fil') {
+    // Alla filer i ett enda dokument – använd de gemensamma fältvärdena
+    const mallData = { ...basMall };
+    if (kontakt)      mallData.oregistreradKontakt = kontakt;
+    if (ankomstdatum) mallData.datum = ankomstdatum;
+    if (titel && (!mallData.titel || ersättTitel)) mallData.titel = titel;
+
     const filerBase64 = filerData.map(f => ({
       namn: f.namn, typ: f.typ,
       base64: f.base64.includes(',') ? f.base64.split(',')[1] : f.base64,
@@ -526,11 +639,16 @@ async function startaUppladning(kontakt, ankomstdatum, titel) {
       ? filerData[0].namn.replace(/\.[^.]+$/, '') : '';
     dokument.push(dok);
   } else {
-    for (const f of filerData) {
+    // Batch: ett dokument per fil – varje fil får sina egna OCR-värden
+    for (let i = 0; i < filerData.length; i++) {
+      const f = filerData[i];
+      const v = perFilVärden[i];
       const base64 = f.base64.includes(',') ? f.base64.split(',')[1] : f.base64;
-      const dok = { ...mallData, filerBase64: [{ namn: f.namn, typ: f.typ, base64 }] };
+      const dok = { ...basMall, filerBase64: [{ namn: f.namn, typ: f.typ, base64 }] };
       if (!dok.titel) dok.titel = f.namn.replace(/\.[^.]+$/, '');
-      if (titel && !mallData.titel) dok.titel = titel;
+      if (v.kontakt)  dok.oregistreradKontakt = v.kontakt;
+      if (v.datum)    dok.datum = v.datum;
+      if (v.titel && (!basMall.titel || ersättTitel)) dok.titel = v.titel;
       dokument.push(dok);
     }
   }
@@ -590,7 +708,15 @@ document.getElementById('btn-anvand').addEventListener('click', async () => {
   const ankomstdatum = document.getElementById('resultat-datum').value.trim();
   const titel        = document.getElementById('resultat-titel').value.trim();
 
-  if (!kontakt && !ankomstdatum && !titel) {
+  // I batch-läge: spara aktuell fils värden till perFilVärden innan uppladdning
+  if (ärBatch) {
+    perFilVärden[aktivFilIndex] = { kontakt, datum: ankomstdatum, titel };
+  }
+
+  // Avbryt om inga fält är ifyllda (i batch: kolla alla filer)
+  const harVärden = kontakt || ankomstdatum || titel ||
+    (ärBatch && perFilVärden.some(v => v.kontakt || v.datum || v.titel));
+  if (!harVärden) {
     document.getElementById(aktivtFältId).focus();
     return;
   }
