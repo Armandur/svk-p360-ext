@@ -84,7 +84,8 @@ document.getElementById(
 ├── background.js                # Service worker – tangentbordskommandon
 ├── mall.html / mall-data.js / mall-kontakter.js / mall-dokument.js / mall.js
 ├── dokument-mall.html / dokument-mall.js   # Dokumentmallredigerare (?instans=1)
-├── batch.html / batch-data.js / batch-table.js / batch-utils.js / batch-run.js / batch.js
+├── batch.html / batch-data.js / batch-table.js / batch-utils.js / batch-run.js / batch-export.js / batch.js
+│                                      # batch-export.js: ZIP-skapande (pure JS) + PDF-merge (pdf-lib)
 ├── help.html / help.js          # Inbyggd hjälpsida
 ├── arendepaus.html              # Paussida vid ärendeskapande
 ├── ocr-kontakt.html / ocr-kontakt.js  # PDF-visare med OCR: kontakt, datum, titel (kat 110/111)

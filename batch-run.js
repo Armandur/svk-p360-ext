@@ -371,4 +371,9 @@ function visaResultat(resultat) {
 
   html += '</tbody></table>';
   innehåll.innerHTML = html;
+
+  // Visa/dölj extra dagboksblads-knappar baserat på antal lyckade
+  if (typeof uppdateraDagsboksbladsKnappar === 'function') {
+    uppdateraDagsboksbladsKnappar(lyckade);
+  }
 }

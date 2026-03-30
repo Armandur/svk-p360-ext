@@ -441,10 +441,15 @@
     <div id="resultat-panel" class="sektion">
       <h3>Resultat</h3>
       <div id="resultat-innehåll"></div>
-      <div style="margin-top:10px;display:flex;gap:8px;">
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
         <button id="btn-ladda-ned-csv">Ladda ned resultat-CSV</button>
-        <button id="btn-öppna-dagboksblad">Öppna dagboksblad</button>
+        <span style="width:1px;height:20px;background:#ddd;display:inline-block;"></span>
+        <button id="btn-öppna-dagboksblad">Öppna dagboksblad (flikar)</button>
+        <button id="btn-öppna-sammanfogad-pdf" style="display:none;">Öppna sammanfogad PDF</button>
+        <span style="width:1px;height:20px;background:#ddd;display:inline-block;"></span>
         <button id="btn-ladda-ned-dagboksblad">Ladda ned dagboksblad (PDF)</button>
+        <button id="btn-ladda-ned-zip" style="display:none;">Ladda ned som ZIP</button>
+        <button id="btn-ladda-ned-sammanfogad-pdf" style="display:none;">Ladda ned sammanfogad PDF</button>
       </div>
     </div>
   </div>
@@ -461,6 +466,8 @@
   <script src="batch-table.js"></script>
   <script src="batch-utils.js"></script>
   <script src="batch-run.js"></script>
+  <script src="lib/pdf-lib.min.js"></script>
+  <script src="batch-export.js"></script>
   <script src="batch.js"></script>
 </body>
 </html>
