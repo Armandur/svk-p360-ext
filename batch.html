@@ -329,6 +329,53 @@
   <div class="container">
     <h2>Massregistrering</h2>
 
+    <!-- Utfällbar hjälp -->
+    <details style="margin-bottom:16px;">
+      <summary style="cursor:pointer;font-size:13px;color:#0078d4;user-select:none;padding:4px 0;">
+        ℹ Hur fungerar massregistrering?
+      </summary>
+      <div style="margin-top:10px;padding:14px 16px;background:#f0f6ff;border:1px solid #b8d4f0;border-radius:6px;font-size:13px;line-height:1.6;">
+        <strong>Flöde</strong>
+        <ol style="margin:6px 0 12px 18px;padding:0;">
+          <li>Välj en <strong>ärendemall</strong> – gemensam grund för alla ärenden.</li>
+          <li>Konfigurera <strong>dokumentslotsar</strong> – koppla varje Fil_N-kolumn till en dokumentmall. Kategori (inkommande/utgående/upprättat) styr kontaktroll och datumfält.</li>
+          <li>Fyll i <strong>tabellen</strong> manuellt eller importera via <strong>CSV</strong>. Koppla filer med drag-and-drop eller knappen Koppla filer.</li>
+          <li>Klicka <strong>Starta batch</strong> – ärenden skapas sekventiellt. Håll 360°-fliken synlig.</li>
+        </ol>
+
+        <strong>Tabellkolumner</strong>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;margin:6px 0 12px;">
+          <thead><tr style="background:#e0ecfa;">
+            <th style="text-align:left;padding:4px 8px;border:1px solid #c0d8f0;">Kolumn</th>
+            <th style="text-align:left;padding:4px 8px;border:1px solid #c0d8f0;">Beskrivning</th>
+          </tr></thead>
+          <tbody>
+            <tr><td style="padding:4px 8px;border:1px solid #d0e4f8;"><strong>Ärendetitel</strong></td><td style="padding:4px 8px;border:1px solid #d0e4f8;">Titel på ärendet (obligatorisk)</td></tr>
+            <tr><td style="padding:4px 8px;border:1px solid #d0e4f8;"><strong>Ärendepart</strong></td><td style="padding:4px 8px;border:1px solid #d0e4f8;">Oregistrerad kontaktperson på ärendet (obligatorisk)</td></tr>
+            <tr><td style="padding:4px 8px;border:1px solid #d0e4f8;"><strong>DokKontakt_N</strong></td><td style="padding:4px 8px;border:1px solid #d0e4f8;">Kontakt per ärendedokument. Kryssrutan <em>Använd ärendepart</em> är ikryssad som standard – avbocka för att ange en annan kontakt eller lämna tomt för ingen dokumentkontakt.</td></tr>
+            <tr><td style="padding:4px 8px;border:1px solid #d0e4f8;"><strong>DokTitel_N</strong></td><td style="padding:4px 8px;border:1px solid #d0e4f8;">Överstyr dokumenttiteln i mallen per ärendedokument</td></tr>
+            <tr><td style="padding:4px 8px;border:1px solid #d0e4f8;"><strong>DokDatum_N</strong></td><td style="padding:4px 8px;border:1px solid #d0e4f8;">Datum per ärendedokument (ÅÅÅÅ-MM-DD). Ankomst-/exp-/upprättat-datum beroende på dokumentkategori.</td></tr>
+            <tr><td style="padding:4px 8px;border:1px solid #d0e4f8;"><strong>Fil_N</strong></td><td style="padding:4px 8px;border:1px solid #d0e4f8;">Fil att bifoga ärendedokumentet. Dra PDF direkt till cellen eller använd 📎-knappen.</td></tr>
+            <tr><td style="padding:4px 8px;border:1px solid #d0e4f8;"><strong>Ankomstdatum</strong></td><td style="padding:4px 8px;border:1px solid #d0e4f8;">Fallback-datum för inkommande dokument om DokDatum_N saknas. Sätts även på ärendenivå.</td></tr>
+          </tbody>
+        </table>
+
+        <strong>OCR – hämta info från PDF</strong>
+        <p style="margin:4px 0 10px;">
+          Klicka 🔍 i en fil-cell för att öppna PDF:en i OCR-läsaren. Kontakt, datum och titel
+          extraheras och skrivs tillbaka till rätt DokKontakt/DokDatum/DokTitel-kolumn.
+          Kryssrutan <em>Använd ärendepart</em> bockas av automatiskt när en OCR-kontakt skrivs in.
+        </p>
+
+        <strong>Efter körning</strong>
+        <p style="margin:4px 0 0;">
+          Resultatpanelen visar status per rad. Vid fler än ett lyckat ärende visas även
+          <em>Ladda ned som ZIP</em>, <em>Ladda ned sammanfogad PDF</em> och
+          <em>Öppna sammanfogad PDF</em> för att hantera alla dagboksblad på en gång.
+        </p>
+      </div>
+    </details>
+
     <!-- 360°-flik-varning -->
     <div id="flik-varning" class="sektion" style="background:#fff8e1;border-color:#f0c36d;">
       <div style="display:flex;align-items:center;gap:10px;">
