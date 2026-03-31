@@ -39,9 +39,9 @@ jobs:
         env:
           CRX_PRIVATE_KEY: ${{ secrets.CRX_PRIVATE_KEY }}
         run: |
-          # Kopiera tillägget till en temporär katalog
-          mkdir -p /tmp/ext
-          rsync -a . /tmp/ext/ \
+          # Kopiera tillägget till en katalog åtkomlig för snap-Chromium
+          mkdir -p "$HOME/ext"
+          rsync -a . "$HOME/ext/" \
             --exclude='.git' \
             --exclude='.github' \
             --exclude='CLAUDE.md' \
@@ -50,12 +50,12 @@ jobs:
             --exclude='hosting'
 
           # Återskapa privat nyckel från secret
-          echo "$CRX_PRIVATE_KEY" | base64 -d > /tmp/svk-p360-ext.pem
+          echo "$CRX_PRIVATE_KEY" | base64 -d > "$HOME/svk-p360-ext.pem"
 
           # Packa och signera tillägget
-          chromium-browser --pack-extension=/tmp/ext --pack-extension-key=/tmp/svk-p360-ext.pem
+          chromium-browser --pack-extension="$HOME/ext" --pack-extension-key="$HOME/svk-p360-ext.pem"
 
-          mv /tmp/ext.crx svk-p360-ext.crx
+          mv "$HOME/ext.crx" svk-p360-ext.crx
 
       - name: Generera index.html med version och datum
         run: |
