@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>360° Hjälptillägg – Svenska kyrkan</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 15px;
+      color: #222;
+      background: #f7f7f7;
+      line-height: 1.6;
+    }
+    header {
+      background: #004b87;
+      color: #fff;
+      padding: 28px 24px 24px;
+    }
+    header h1 { margin: 0 0 4px; font-size: 22px; font-weight: 600; }
+    header p  { margin: 0; font-size: 13px; opacity: .8; }
+    main {
+      max-width: 680px;
+      margin: 32px auto;
+      padding: 0 20px 60px;
+    }
+    .kort {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .kort h2 {
+      margin: 0 0 16px;
+      font-size: 16px;
+      color: #004b87;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 8px;
+    }
+    .varning {
+      background: #fff8e1;
+      border-left: 4px solid #f9a825;
+      padding: 10px 14px;
+      border-radius: 0 4px 4px 0;
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+    .info {
+      background: #e8f4fd;
+      border-left: 4px solid #0078d4;
+      padding: 10px 14px;
+      border-radius: 0 4px 4px 0;
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+    ol.steg {
+      padding-left: 0;
+      list-style: none;
+      counter-reset: steg;
+    }
+    ol.steg li {
+      counter-increment: steg;
+      padding: 10px 10px 10px 44px;
+      position: relative;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    ol.steg li:last-child { border-bottom: none; }
+    ol.steg li::before {
+      content: counter(steg);
+      position: absolute;
+      left: 10px;
+      top: 12px;
+      width: 24px;
+      height: 24px;
+      background: #004b87;
+      color: #fff;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 24px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .btn-ladda-ned {
+      display: inline-block;
+      background: #004b87;
+      color: #fff;
+      padding: 12px 28px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 15px;
+      margin-top: 4px;
+    }
+    .btn-ladda-ned:hover { background: #003d70; }
+    .version-badge {
+      display: inline-block;
+      background: #e8f0fe;
+      color: #004b87;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 10px;
+      border-radius: 20px;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+    kbd {
+      background: #eee;
+      border: 1px solid #bbb;
+      border-radius: 3px;
+      padding: 1px 6px;
+      font-size: 12px;
+      font-family: monospace;
+    }
+    code {
+      background: #f3f3f3;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 13px;
+    }
+    a { color: #004b87; }
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: #aaa;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>360° Hjälptillägg <span class="version-badge" id="version-badge">{{VERSION}}</span></h1>
+  <p>Svenska kyrkan &mdash; Hjälpmedel för Public 360°</p>
+</header>
+
+<main>
+
+  <div class="varning">
+    <strong>Obs:</strong> Tillägget fungerar enbart för medarbetare inom Svenska kyrkan
+    med tillgång till <code>p360.svenskakyrkan.se</code>.
+  </div>
+
+  <!-- Nedladdning -->
+  <div class="kort">
+    <h2>Ladda ned tillägget</h2>
+    <p>
+      Ladda ned den senaste versionen av tillägget som en <code>.crx</code>-fil
+      och följ installationsguiden nedan.
+    </p>
+    <a class="btn-ladda-ned" href="extension.crx" download>
+      ↓ Ladda ned tillägg ({{VERSION}})
+    </a>
+    <p style="margin-top:12px;font-size:12px;color:#888;">
+      Senast uppdaterad: <span id="datum">{{DATE}}</span>
+    </p>
+  </div>
+
+  <!-- Installation -->
+  <div class="kort">
+    <h2>Installationsguide – Microsoft Edge</h2>
+
+    <div class="info">
+      Eftersom tillägget distribueras utanför Edge Add-ons Store behöver du
+      aktivera <strong>"Tillåt tillägg från andra butiker"</strong> i Edge. Det är ett engångssteg.
+    </div>
+
+    <ol class="steg">
+      <li>
+        Öppna <strong>Tillägg</strong> i Edge: skriv <code>edge://extensions</code>
+        i adressfältet och tryck Enter.
+      </li>
+      <li>
+        Klicka på <strong>"Tillåt tillägg från andra butiker"</strong> längst ned till vänster
+        och bekräfta i dialogen som visas.
+      </li>
+      <li>
+        Ladda ned filen ovan (<code>extension.crx</code>) om du inte redan gjort det.
+      </li>
+      <li>
+        Dra och släpp den nedladdade <code>.crx</code>-filen
+        till <code>edge://extensions</code>-sidan i webbläsaren.
+      </li>
+      <li>
+        Klicka <strong>Lägg till tillägg</strong> i bekräftelsedialogen.
+      </li>
+      <li>
+        Klart! Tilläggsikonen visas i verktygsfältet. Om den är dold,
+        klicka på pusselbitikonen och fäst tillägget.
+      </li>
+    </ol>
+  </div>
+
+  <!-- Chrome -->
+  <div class="kort">
+    <h2>Installationsguide – Google Chrome</h2>
+    <ol class="steg">
+      <li>Öppna <code>chrome://extensions</code>.</li>
+      <li>Aktivera <strong>Utvecklarläge</strong> via reglaget uppe till höger.</li>
+      <li>Dra och släpp <code>extension.crx</code> till sidan.</li>
+      <li>Klicka <strong>Lägg till tillägg</strong>.</li>
+    </ol>
+  </div>
+
+  <!-- Uppdatering -->
+  <div class="kort">
+    <h2>Uppdatera tillägget</h2>
+    <p>
+      När en ny version finns tillgänglig: ladda ned den nya <code>.crx</code>-filen
+      och dra in den på tilläggssidan igen. Edge/Chrome ersätter den gamla versionen
+      automatiskt.
+    </p>
+    <p>
+      Alternativt: avinstallera det befintliga tillägget och installera om.
+    </p>
+  </div>
+
+  <!-- Snabbkommandon -->
+  <div class="kort">
+    <h2>Snabbkommandon</h2>
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead>
+        <tr style="background:#f5f5f5;">
+          <th style="text-align:left;padding:6px 8px;border:1px solid #ddd;">Funktion</th>
+          <th style="text-align:left;padding:6px 8px;border:1px solid #ddd;">Tangenter</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style="padding:6px 8px;border:1px solid #ddd;">Dagboksblad + utskrift</td><td style="padding:6px 8px;border:1px solid #ddd;"><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd></td></tr>
+        <tr><td style="padding:6px 8px;border:1px solid #ddd;">Växla status</td><td style="padding:6px 8px;border:1px solid #ddd;"><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd></td></tr>
+        <tr><td style="padding:6px 8px;border:1px solid #ddd;">Redigera egenskaper</td><td style="padding:6px 8px;border:1px solid #ddd;"><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd></td></tr>
+        <tr><td style="padding:6px 8px;border:1px solid #ddd;">Makulera</td><td style="padding:6px 8px;border:1px solid #ddd;"><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</main>
+
+<footer>
+  360° Hjälptillägg &mdash; Svenska kyrkan
+</footer>
+
+
+</body>
+</html>

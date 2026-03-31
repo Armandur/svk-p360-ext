@@ -29,7 +29,16 @@ jobs:
             --exclude ".github/*" \
             --exclude "CLAUDE.md" \
             --exclude "ROADMAP.md" \
-            --exclude "docs/*"
+            --exclude "docs/*" \
+            --exclude "hosting/*"
+
+      - name: Generera index.html med version och datum
+        run: |
+          VERSION="v${{ steps.version.outputs.version }}"
+          DATE=$(date +'%-d %B %Y' --locale=sv_SE 2>/dev/null || date +'%Y-%m-%d')
+          sed -e "s/{{VERSION}}/$VERSION/g" \
+              -e "s/{{DATE}}/$DATE/g" \
+              hosting/index.html > index.html
 
       # --- Utvecklingsbygge (dev / claude/**) ---
       - name: Ladda upp som artefakt (utvecklingsbygge)
@@ -37,7 +46,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tillagg-dev-${{ github.sha }}
-          path: extension-${{ steps.version.outputs.version }}.zip
+          path: |
+            extension-${{ steps.version.outputs.version }}.zip
+            index.html
           retention-days: 14
 
       # --- Release (main) ---
@@ -48,7 +59,23 @@ jobs:
           tag_name: v${{ steps.version.outputs.version }}
           name: Version ${{ steps.version.outputs.version }}
           body: |
-            Automatiskt byggd release från main.
-            Ladda in `extension-${{ steps.version.outputs.version }}.zip` som ett okomprimerat tillägg i Chrome eller Edge.
-          files: extension-${{ steps.version.outputs.version }}.zip
+            ## Installation via webbsida (rekommenderat)
+
+            Lägg `index.html` och `extension.crx` på din webbserver. Användarna öppnar sidan och drar in `.crx`-filen på `edge://extensions`.
+
+            ## Installation manuellt (utan webbserver)
+
+            1. Ladda ned `extension-${{ steps.version.outputs.version }}.zip` nedan.
+            2. Packa upp ZIP-filen till en valfri mapp på din dator.
+               Mappen ska innehålla `manifest.json` direkt – inte en undermapp.
+            3. Öppna `edge://extensions` (Edge) eller `chrome://extensions` (Chrome).
+            4. Aktivera **Utvecklarläge** med reglaget uppe till vänster.
+            5. Klicka **Läs in okomprimerat tillägg** och välj mappen.
+
+            **Uppdatering (manuell):** packa upp den nya ZIP-filen till samma mapp och klicka ⟳ på tilläggssidan.
+
+            Fullständig dokumentation: [README](https://github.com/Armandur/svk-p360-ext#readme)
+          files: |
+            extension-${{ steps.version.outputs.version }}.zip
+            index.html
           fail_on_unmatched_files: true
