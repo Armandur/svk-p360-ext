@@ -59,9 +59,22 @@ jobs:
           tag_name: v${{ steps.version.outputs.version }}
           name: Version ${{ steps.version.outputs.version }}
           body: |
-            Automatiskt byggd release från main.
-            Ladda in `extension-${{ steps.version.outputs.version }}.zip` som ett okomprimerat tillägg i Chrome eller Edge.
-            Ladda ned `index.html` och lägg på din webbserver tillsammans med `extension.crx`.
+            ## Installation via webbsida (rekommenderat)
+
+            Lägg `index.html` och `extension.crx` på din webbserver. Användarna öppnar sidan och drar in `.crx`-filen på `edge://extensions`.
+
+            ## Installation manuellt (utan webbserver)
+
+            1. Ladda ned `extension-${{ steps.version.outputs.version }}.zip` nedan.
+            2. Packa upp ZIP-filen till en valfri mapp på din dator.
+               Mappen ska innehålla `manifest.json` direkt – inte en undermapp.
+            3. Öppna `edge://extensions` (Edge) eller `chrome://extensions` (Chrome).
+            4. Aktivera **Utvecklarläge** med reglaget uppe till vänster.
+            5. Klicka **Läs in okomprimerat tillägg** och välj mappen.
+
+            **Uppdatering (manuell):** packa upp den nya ZIP-filen till samma mapp och klicka ⟳ på tilläggssidan.
+
+            Fullständig dokumentation: [README](https://github.com/Armandur/svk-p360-ext#readme)
           files: |
             extension-${{ steps.version.outputs.version }}.zip
             index.html
