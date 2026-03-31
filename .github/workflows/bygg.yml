@@ -27,7 +27,9 @@ jobs:
           zip -r extension.zip . \
             --exclude "*.git*" \
             --exclude ".github/*" \
-            --exclude "CLAUDE.md"
+            --exclude "CLAUDE.md" \
+            --exclude "ROADMAP.md" \
+            --exclude "docs/*"
 
       # --- Utvecklingsbygge (dev / claude/**) ---
       - name: Ladda upp som artefakt (utvecklingsbygge)
