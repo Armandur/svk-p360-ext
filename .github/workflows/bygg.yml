@@ -24,7 +24,7 @@ jobs:
 
       - name: Skapa zip
         run: |
-          zip -r extension.zip . \
+          zip -r extension-${{ steps.version.outputs.version }}.zip . \
             --exclude "*.git*" \
             --exclude ".github/*" \
             --exclude "CLAUDE.md" \
@@ -49,6 +49,7 @@ jobs:
           path: |
             extension.zip
             index.html
+          path: extension-${{ steps.version.outputs.version }}.zip
           retention-days: 14
 
       # --- Release (main) ---
@@ -65,4 +66,6 @@ jobs:
           files: |
             extension.zip
             index.html
+            Ladda in `extension-${{ steps.version.outputs.version }}.zip` som ett okomprimerat tillägg i Chrome eller Edge.
+          files: extension-${{ steps.version.outputs.version }}.zip
           fail_on_unmatched_files: true

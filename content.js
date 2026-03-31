@@ -15,8 +15,18 @@ function ärPåÄrendesida() {
   );
 }
 
+/**
+ * Kontrollerar om den aktiva sidan är en dokumentdetaljsida i 360°.
+ */
+function ärPåDokumentsida() {
+  return window.location.pathname.includes('/DMS/Document/Details/');
+}
+
 // Åtgärder som inte kräver att vi är på en ärendesida (fungerar på hela p360-domänen)
 var ÅTGÄRDER_UTAN_SIDKRAV = new Set(['skapaFrånMall', 'läsInAlternativ', 'läsDiarienummer']);
+
+// Åtgärder som fungerar både på ärendesida och dokumentdetaljsida
+var ÅTGÄRDER_ÄVEN_PÅ_DOKUMENT = new Set(['redigeraEgenskaper']);
 
 /**
  * Skickar ett anrop till page.js (MAIN world) och väntar på svar via CustomEvent.
@@ -281,12 +291,19 @@ window.__p360OnMessageHandler = (request, sender, sendResponse) => {
     return true; // håll kanalen öppen för async svar
   }
 
-  if (!ÅTGÄRDER_UTAN_SIDKRAV.has(request.action) && !ärPåÄrendesida()) {
+  const påÄrendesida = ärPåÄrendesida();
+  const påDokumentsida = ärPåDokumentsida();
+  if (!ÅTGÄRDER_UTAN_SIDKRAV.has(request.action) &&
+      !påÄrendesida &&
+      !(ÅTGÄRDER_ÄVEN_PÅ_DOKUMENT.has(request.action) && påDokumentsida)) {
     sendResponse({ success: false, fel: 'Navigera till ett ärende i 360° först.' });
     return;
   }
 
   const data = {};
+  if (ÅTGÄRDER_ÄVEN_PÅ_DOKUMENT.has(request.action)) {
+    data.sidTyp = påDokumentsida ? 'dokument' : 'ärende';
+  }
   if (request.action === 'sättStatus') data.statusVärde = request.statusVärde;
   if (request.action === 'skapaFrånMall') data.mall = request.mall;
   if (request.action === 'skapaÄrendedokument') {
