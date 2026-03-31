@@ -8,6 +8,98 @@
 //                            triggaDokumentSlutför, triggaCompleteViaDom, säkerställGenerelltFlik)
 
 /**
+ * Visar en dialogruta för att ange datum för ett ärendedokument.
+ * Returnerar datumsträngen ('idag' eller 'YYYY-MM-DD') eller null om avbruten.
+ * @param {Object} dok – Dokumentmall (används för titel och kategori-etikett)
+ */
+function visaDatumPrompt(dok) {
+  function esc(s) {
+    return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  const katLabel = { '110': 'Ankomstdatum', '111': 'Färdigst/exp-datum', '60005': 'Färdigst/exp-datum', '112': 'Färdigst/exp-datum' }[dok.kategori] || 'Datum';
+  const idag = new Date();
+  const idagISO = `${idag.getFullYear()}-${String(idag.getMonth() + 1).padStart(2, '0')}-${String(idag.getDate()).padStart(2, '0')}`;
+
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.style.cssText =
+      'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99995;' +
+      'display:flex;align-items:center;justify-content:center;font-family:sans-serif;';
+
+    const dialog = document.createElement('div');
+    dialog.style.cssText =
+      'background:#fff;border-radius:8px;padding:24px;width:360px;max-width:95vw;' +
+      'font-size:14px;box-shadow:0 4px 24px rgba(0,0,0,0.3);box-sizing:border-box;';
+
+    dialog.innerHTML = `
+      <h3 style="margin:0 0 16px;font-size:16px;color:#1a5276;">Ange ${esc(katLabel.toLowerCase())} för "${esc(dok.titel || '(dokument)')}"</h3>
+      <div style="margin-bottom:16px;">
+        <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:8px;">${esc(katLabel)} <span style="color:#c0392b;">*</span></label>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">
+          <input type="radio" name="p360dt-typ" id="p360dt-idag" value="idag" style="width:auto;margin:0;">
+          <label for="p360dt-idag" style="display:inline;font-weight:normal;font-size:13px;cursor:pointer;">Dagens datum (${esc(idagISO)})</label>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="radio" name="p360dt-typ" id="p360dt-specifikt" value="datum" checked style="width:auto;margin:0;">
+          <label for="p360dt-specifikt" style="display:inline;font-weight:normal;font-size:13px;cursor:pointer;">Ange datum:</label>
+          <input type="date" id="p360dt-datum" value="${esc(idagISO)}"
+            style="flex:1;padding:5px 7px;border:1px solid #ccc;border-radius:4px;font-size:13px;">
+        </div>
+      </div>
+      <div id="p360dt-fel" style="display:none;color:#c0392b;font-size:12px;margin-bottom:8px;"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button id="p360dt-avbryt" style="padding:7px 18px;background:#fff;color:#333;border:1px solid #ccc;border-radius:4px;cursor:pointer;font-size:13px;font-family:sans-serif;">Avbryt</button>
+        <button id="p360dt-ok" style="padding:7px 18px;background:#0078d4;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-family:sans-serif;">OK</button>
+      </div>
+    `;
+
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
+    dialog.querySelector('#p360dt-datum').focus();
+
+    // Aktivera/avaktivera datuminput baserat på val
+    dialog.querySelectorAll('input[name="p360dt-typ"]').forEach(r => {
+      r.addEventListener('change', () => {
+        dialog.querySelector('#p360dt-datum').disabled = (r.value === 'idag');
+      });
+    });
+
+    dialog.querySelector('#p360dt-ok').addEventListener('click', () => {
+      const vald = dialog.querySelector('input[name="p360dt-typ"]:checked')?.value;
+      if (vald === 'idag') {
+        overlay.remove();
+        resolve('idag');
+        return;
+      }
+      const val = dialog.querySelector('#p360dt-datum').value;
+      if (!val) {
+        const fel = dialog.querySelector('#p360dt-fel');
+        fel.textContent = 'Ange ett datum.';
+        fel.style.display = '';
+        dialog.querySelector('#p360dt-datum').focus();
+        return;
+      }
+      overlay.remove();
+      resolve(val);
+    });
+
+    dialog.querySelector('#p360dt-avbryt').addEventListener('click', () => {
+      overlay.remove();
+      resolve(null);
+    });
+
+    overlay.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        dialog.querySelector('#p360dt-ok').click();
+      } else if (e.key === 'Escape') {
+        dialog.querySelector('#p360dt-avbryt').click();
+      }
+    });
+  });
+}
+
+/**
  * Skapar ett enskilt ärendedokument via formuläret på ärendesidan.
  * Förutsätter att vi befinner oss på en ärendedetaljsida.
  *
@@ -18,6 +110,15 @@
  */
 async function skapaÄrendedokument(dok, visaStatus, ärAvbruten) {
   visaStatus = visaStatus || (() => {});
+
+  // ---------------------------------------------------------------
+  // 0a. Datum-prompt om mallen kräver det
+  // ---------------------------------------------------------------
+  if (dok.promptaDatum) {
+    const promptatDatum = await visaDatumPrompt(dok);
+    if (promptatDatum === null) return { cancelled: true };
+    dok = { ...dok, datum: promptatDatum };
+  }
 
   // ---------------------------------------------------------------
   // 0. Validera handlingstyp mot ärendets klassificering
