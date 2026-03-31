@@ -60,11 +60,63 @@ async function skapaFrånMall(mall) {
     `;
     iDoc.head.appendChild(layoutStyle);
 
-    visaStatus('Fyller i fält…');
-
     if (mall.diarieenhet?.value) {
+      visaStatus('Fyller i fält…');
       await sättSel('PlaceHolderMain_MainView_JournalUnitComboControl', mall.diarieenhet.value);
       await sleep(800);
+    } else {
+      // Diarieenhet saknas i mallen – vänta tills Selectize laddat alternativ och be användaren välja
+      await new Promise(resolve => {
+        const start = Date.now();
+        const check = setInterval(() => {
+          const el = iDoc.getElementById('PlaceHolderMain_MainView_JournalUnitComboControl');
+          const antal = el?.selectize
+            ? Object.keys(el.selectize.options || {}).length
+            : (el?.options?.length ?? 0);
+          if (antal > 0 || Date.now() - start > 8000) { clearInterval(check); resolve(); }
+        }, 200);
+      });
+
+      visaStatus('Välj diarieenhet i formuläret nedan och klicka Fortsätt.');
+
+      const promptRad = document.createElement('div');
+      promptRad.style.cssText =
+        'display:flex;align-items:center;gap:8px;margin:6px 0 4px;flex-wrap:wrap;';
+
+      const promptText = document.createElement('span');
+      promptText.style.cssText =
+        'color:#fff;font-family:sans-serif;font-size:13px;' +
+        'background:rgba(160,70,0,0.9);padding:5px 12px;border-radius:4px;';
+      promptText.textContent =
+        'Diarieenhet saknas i mallen – välj en i formuläret nedan och klicka Fortsätt.';
+
+      const fortsättKnapp = document.createElement('button');
+      fortsättKnapp.textContent = 'Fortsätt';
+      fortsättKnapp.style.cssText =
+        'padding:6px 16px;background:#1a5276;color:#fff;' +
+        'border:none;border-radius:4px;cursor:pointer;font-size:13px;font-family:sans-serif;';
+
+      const avbrytKnapp = document.createElement('button');
+      avbrytKnapp.textContent = 'Avbryt';
+      avbrytKnapp.style.cssText =
+        'padding:6px 16px;background:#666;color:#fff;' +
+        'border:none;border-radius:4px;cursor:pointer;font-size:13px;font-family:sans-serif;';
+
+      promptRad.appendChild(promptText);
+      promptRad.appendChild(fortsättKnapp);
+      promptRad.appendChild(avbrytKnapp);
+      overlay.insertBefore(promptRad, iframe);
+
+      const fortsätt = await new Promise(resolve => {
+        fortsättKnapp.onclick = () => { promptRad.remove(); resolve(true); };
+        avbrytKnapp.onclick = () => resolve(false);
+      });
+
+      if (!fortsätt) { overlay.remove(); return; }
+
+      // Vänta på att UpdatePanel hinner uppdatera beroende fält (t.ex. delarkiv)
+      await sleep(800);
+      visaStatus('Fyller i fält…');
     }
     if (mall.delarkiv?.value)
       await sättSelTyst('PlaceHolderMain_MainView_CaseSubArchiveComboControl', mall.delarkiv.value);
