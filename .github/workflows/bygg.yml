@@ -109,3 +109,21 @@ jobs:
             svk-p360-ext.crx
             index.html
           fail_on_unmatched_files: true
+
+      - name: Förbered GitHub Pages-katalog
+        if: github.ref_name == 'main'
+        run: |
+          mkdir -p deploy
+          cp index.html deploy/index.html
+          cp extension-${{ steps.version.outputs.version }}.zip deploy/
+          cp svk-p360-ext.crx deploy/
+          cp presentation.html deploy/presentation.html
+          touch deploy/.nojekyll
+
+      - name: Publicera till GitHub Pages
+        if: github.ref_name == 'main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./deploy
+          force_orphan: true
