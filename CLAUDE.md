@@ -61,6 +61,21 @@ document.getElementById(
 // eller: window.location.pathname.includes('/DMS/Case/Details/')
 ```
 
+### Identifiera dokumentdetaljsida
+
+```js
+window.location.pathname.includes('/DMS/Document/Details/')
+// URL: /locator/DMS/Document/Details/Simplified/61000?recno=...
+```
+
+### PostBack-nyckel: Redigera egenskaper (dokumentnivå)
+
+```js
+__doPostBack('ctl00$PlaceHolderMain$MainView$MainContextMenu_DropDownMenu', 'DocumentEdit')
+```
+
+Samma target som ärendesidan, nyckeln är `DocumentEdit` (vs `EditCase` på ärendesidan).
+
 ## Projektstruktur
 
 ```
