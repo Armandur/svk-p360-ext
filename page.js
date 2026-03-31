@@ -10,7 +10,7 @@ window.addEventListener('p360-anrop', async (event) => {
   const { id, action, data } = event.detail;
 
   const postbackNycklar = {
-    redigeraEgenskaper:   'EditCase',
+    redigeraEgenskaper:   data.sidTyp === 'dokument' ? 'DocumentEdit' : 'EditCase',
     registreraUtlaning:   'RegisterLoan',
     gallring:             'SetScrapCode',
     sparaSomNytt:         'SaveCaseAsNew',
