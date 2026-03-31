@@ -69,8 +69,8 @@ Funktioner som diskuterats men ännu inte prioriterats.
   när man är på ett ärende (kräver att content.js läser DOM och returnerar data)
 - **Konfigurerbar statusväxling** – låt användaren välja vilka statusvärden som ska
   ingå i växlingen (t.ex. Öppet ↔ Avslutat från handläggare istället)
-- **Stöd för dokumentsidor** – utöka tillägget till att fungera även på dokumentvyer,
-  inte bara ärendesidor
+- **Stöd för dokumentsidor** – utöka tillägget till att fungera även på dokumentvyer;
+  idag stöds enbart "Redigera egenskaper" på dokumentdetaljsidan
 - **Inställningssida** – chrome-extension-sida för att konfigurera tillägget utan att
   redigera koden
 
@@ -144,3 +144,4 @@ Funktioner som diskuterats men ännu inte prioriterats.
 | Refaktorering: popup.js → popup-mallar.js + popup-fil.js; batch.js → batch-preview.js + batch-dagboksblad.js | 2026-03-30 |
 | Buggfix: ärendedokumentmall från popup fyllde inte i formuläret (waitForNyIframe + väntaPåPRM) | 2026-03-30 |
 | Dagboksblad: ny flik med fokus + webbläsarens utskriftsdialog via service worker (ControlID-fetch, ersätter PostBack+popup) | 2026-03-30 |
+| Redigera egenskaper fungerar även på dokumentdetaljsidor (DocumentEdit PostBack) | 2026-03-31 |
