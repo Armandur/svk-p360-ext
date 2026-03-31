@@ -127,6 +127,18 @@
       color: #aaa;
       margin-top: 40px;
     }
+    details summary {
+      cursor: pointer;
+      color: #004b87;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+    details > div {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #eee;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
@@ -147,10 +159,10 @@
   <div class="kort">
     <h2>Ladda ned tillägget</h2>
     <p>
-      Ladda ned den senaste versionen av tillägget som en <code>.crx</code>-fil
+      Ladda ned den senaste versionen som en <code>.zip</code>-fil
       och följ installationsguiden nedan.
     </p>
-    <a class="btn-ladda-ned" href="svk-p360-ext.crx" download>
+    <a class="btn-ladda-ned" href="extension-{{VERSION_PLAIN}}.zip" download>
       ↓ Ladda ned tillägg ({{VERSION}})
     </a>
     <p style="margin-top:12px;font-size:12px;color:#888;">
@@ -158,49 +170,54 @@
     </p>
   </div>
 
-  <!-- Installation -->
+  <!-- Installation Edge -->
   <div class="kort">
     <h2>Installationsguide – Microsoft Edge</h2>
 
     <div class="info">
-      Eftersom tillägget distribueras utanför Edge Add-ons Store behöver du
-      aktivera <strong>"Tillåt tillägg från andra butiker"</strong> i Edge. Det är ett engångssteg.
+      Tillägget distribueras utanför Edge Add-ons Store och installeras som ett
+      <strong>okomprimerat tillägg</strong> via utvecklarläge. Det tar ungefär en minut.
     </div>
 
     <ol class="steg">
+      <li>
+        Ladda ned ZIP-filen ovan och packa upp den till en mapp på din dator,
+        t.ex. <code>Dokument\svk-p360-ext</code>.<br>
+        <strong>Flytta inte mappen efteråt</strong> – Edge behöver hitta den vid varje start.
+      </li>
       <li>
         Öppna <strong>Tillägg</strong> i Edge: skriv <code>edge://extensions</code>
         i adressfältet och tryck Enter.
       </li>
       <li>
-        Klicka på <strong>"Tillåt tillägg från andra butiker"</strong> längst ned till vänster
-        och bekräfta i dialogen som visas.
+        Aktivera <strong>Utvecklarläge</strong> med reglaget uppe till vänster.
       </li>
       <li>
-        Ladda ned filen ovan (<code>svk-p360-ext.crx</code>) om du inte redan gjort det.
+        Klicka på knappen <strong>"Läs in okomprimerat tillägg"</strong> som visas.
       </li>
       <li>
-        Dra och släpp den nedladdade <code>.crx</code>-filen
-        till <code>edge://extensions</code>-sidan i webbläsaren.
-      </li>
-      <li>
-        Klicka <strong>Lägg till tillägg</strong> i bekräftelsedialogen.
+        Välj mappen du packade upp i steg 1 (den som innehåller <code>manifest.json</code> direkt).
       </li>
       <li>
         Klart! Tilläggsikonen visas i verktygsfältet. Om den är dold,
         klicka på pusselbitikonen och fäst tillägget.
       </li>
     </ol>
+
+    <div class="varning" style="margin-top:16px;margin-bottom:0;">
+      <strong>Notera:</strong> Edge visar en notis om "tillägg i utvecklarläge" vid webbläsarstart.
+      Klicka <em>Inaktivera inte</em> för att behålla tillägget aktiverat.
+    </div>
   </div>
 
-  <!-- Chrome -->
+  <!-- Installation Chrome -->
   <div class="kort">
     <h2>Installationsguide – Google Chrome</h2>
     <ol class="steg">
+      <li>Ladda ned och packa upp ZIP-filen till en fast mapp på din dator.</li>
       <li>Öppna <code>chrome://extensions</code>.</li>
       <li>Aktivera <strong>Utvecklarläge</strong> via reglaget uppe till höger.</li>
-      <li>Dra och släpp <code>svk-p360-ext.crx</code> till sidan.</li>
-      <li>Klicka <strong>Lägg till tillägg</strong>.</li>
+      <li>Klicka <strong>"Läs in okomprimerat tillägg"</strong> och välj mappen.</li>
     </ol>
   </div>
 
@@ -208,13 +225,12 @@
   <div class="kort">
     <h2>Uppdatera tillägget</h2>
     <p>
-      När en ny version finns tillgänglig: ladda ned den nya <code>.crx</code>-filen
-      och dra in den på tilläggssidan igen. Edge/Chrome ersätter den gamla versionen
-      automatiskt.
+      När en ny version finns:
     </p>
-    <p>
-      Alternativt: avinstallera det befintliga tillägget och installera om.
-    </p>
+    <ol class="steg">
+      <li>Ladda ned och packa upp den nya ZIP-filen <strong>till samma mapp</strong> som du använde vid installationen (skriv över de gamla filerna).</li>
+      <li>Öppna <code>edge://extensions</code> (eller <code>chrome://extensions</code>) och klicka på uppdateringsikonen (⟳) på tillägget, eller klicka <strong>Uppdatera</strong> högst upp på sidan.</li>
+    </ol>
   </div>
 
   <!-- Snabbkommandon -->
@@ -236,12 +252,27 @@
     </table>
   </div>
 
+  <!-- IT-admin -->
+  <div class="kort">
+    <h2>För IT-administratörer – distribution via grupprincip</h2>
+    <p style="font-size:13px;">
+      På <strong>domänanslutna datorer</strong> (Active Directory eller Intune/MDM) kan tillägget
+      distribueras tyst via <code>ExtensionInstallForcelist</code>-policyn utan att användaren
+      behöver göra något. Kontakta din IT-avdelning och hänvisa till
+      <a href="https://learn.microsoft.com/en-us/deployedge/microsoft-edge-manage-extensions-policies" target="_blank" rel="noopener">
+        Microsofts dokumentation om tilläggshantering
+      </a>.
+    </p>
+    <p style="font-size:13px;margin-bottom:0;">
+      En förpackad <code>.crx</code>-fil för enterprise-distribution medföljer varje release.
+    </p>
+  </div>
+
 </main>
 
 <footer>
   360° Hjälptillägg &mdash; Svenska kyrkan
 </footer>
-
 
 </body>
 </html>

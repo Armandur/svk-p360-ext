@@ -21,6 +21,7 @@ jobs:
         run: |
           VERSION=$(jq -r '.version' manifest.json)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version_plain=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Skapa zip
         run: |
@@ -58,7 +59,9 @@ jobs:
         run: |
           VERSION="v${{ steps.version.outputs.version }}"
           DATE=$(date +'%-d %B %Y' --locale=sv_SE 2>/dev/null || date +'%Y-%m-%d')
+          VERSION_PLAIN=$(jq -r '.version' manifest.json)
           sed -e "s/{{VERSION}}/$VERSION/g" \
+              -e "s/{{VERSION_PLAIN}}/$VERSION_PLAIN/g" \
               -e "s/{{DATE}}/$DATE/g" \
               hosting/index.html > index.html
 
@@ -82,20 +85,21 @@ jobs:
           tag_name: v${{ steps.version.outputs.version }}
           name: Version ${{ steps.version.outputs.version }}
           body: |
-            ## Installation via webbsida (rekommenderat)
-
-            Lägg `index.html` och `svk-p360-ext.crx` på din webbserver. Användarna öppnar sidan och drar in `.crx`-filen på `edge://extensions`.
-
-            ## Installation manuellt (utan webbserver)
+            ## Installation
 
             1. Ladda ned `extension-${{ steps.version.outputs.version }}.zip` nedan.
-            2. Packa upp ZIP-filen till en valfri mapp på din dator.
-               Mappen ska innehålla `manifest.json` direkt – inte en undermapp.
+            2. Packa upp ZIP-filen till en **fast** mapp på din dator (t.ex. `Dokument\svk-p360-ext`).
+               Mappen ska innehålla `manifest.json` direkt – inte en undermapp. Flytta inte mappen efteråt.
             3. Öppna `edge://extensions` (Edge) eller `chrome://extensions` (Chrome).
             4. Aktivera **Utvecklarläge** med reglaget uppe till vänster.
-            5. Klicka **Läs in okomprimerat tillägg** och välj mappen.
+            5. Klicka **Läs in okomprimerat tillägg** och välj mappen från steg 2.
 
-            **Uppdatering (manuell):** packa upp den nya ZIP-filen till samma mapp och klicka ⟳ på tilläggssidan.
+            **Uppdatering:** packa upp den nya ZIP-filen till samma mapp (skriv över) och klicka ⟳ på tilläggssidan.
+
+            ## För IT-administratörer
+
+            `svk-p360-ext.crx` medföljer för distribution via `ExtensionInstallForcelist`-grupprincip
+            på domänanslutna datorer (AD/Intune). Se [Microsofts dokumentation](https://learn.microsoft.com/en-us/deployedge/microsoft-edge-manage-extensions-policies).
 
             Fullständig dokumentation: [README](https://github.com/Armandur/svk-p360-ext#readme)
           files: |
