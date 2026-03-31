@@ -206,11 +206,6 @@ async function fyllDokumentFormulär(iDoc, iWin, dok, visaStatus) {
     }
   }
 
-  // Sparat på papper / media – tyst
-  if (dok.sparatPaPapper !== undefined && dok.sparatPaPapper !== '') {
-    await sättSelTyst('PlaceHolderMain_MainView_PaperControl', dok.sparatPaPapper);
-  }
-
   // Oregistrerad kontakt – sätts EFTER alla UpdatePanel-postbacks (skyddskod,
   // kategori) men FÖRE datum och titel, eftersom kontakt-knappen triggar
   // en egen UpdatePanel som nollställer datumfältet.
@@ -233,6 +228,12 @@ async function fyllDokumentFormulär(iDoc, iWin, dok, visaStatus) {
         kontaktLagdTill = true;
       }
     }
+  }
+
+  // Sparat på papper / media – sätts EFTER kontakt-UpdatePanel så att
+  // UpdatePanel-svaret inte nollställer det till ärendets ärvda värde.
+  if (dok.sparatPaPapper !== undefined && dok.sparatPaPapper !== '') {
+    await sättSelTyst('PlaceHolderMain_MainView_PaperControl', dok.sparatPaPapper);
   }
 
   // Datum – sätts EFTER alla UpdatePanel-postbacks.

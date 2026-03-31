@@ -385,7 +385,7 @@ function fyllFormulärFrånData(d) {
   document.getElementById('dok-kategori').value = d.kategori || '';
   document.getElementById('dok-skyddskod').value = d.skyddskod || '0';
   document.getElementById('dok-oregistrerad-kontakt').value = d.oregistreradKontakt || '';
-  document.getElementById('dok-sparat-papper').value = d.sparatPaPapper || '0';
+  document.getElementById('dok-sparat-papper').value = d.sparatPaPapper ?? '';
   // Datum – "idag", "YYYY-MM-DD" eller "" (bakåtkompatibel med ankomstdatum)
   const datumVärde = d.datum || d.ankomstdatum || '';
   if (datumVärde === 'idag') {
