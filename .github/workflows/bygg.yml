@@ -32,6 +32,31 @@ jobs:
             --exclude "docs/*" \
             --exclude "hosting/*"
 
+      - name: Installera Chromium
+        run: sudo apt-get install -y chromium-browser
+
+      - name: Paketera CRX
+        env:
+          CRX_PRIVATE_KEY: ${{ secrets.CRX_PRIVATE_KEY }}
+        run: |
+          # Kopiera tillägget till en katalog åtkomlig för snap-Chromium
+          mkdir -p "$HOME/ext"
+          rsync -a . "$HOME/ext/" \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='CLAUDE.md' \
+            --exclude='ROADMAP.md' \
+            --exclude='docs' \
+            --exclude='hosting'
+
+          # Återskapa privat nyckel från secret
+          echo "$CRX_PRIVATE_KEY" | base64 -d > "$HOME/svk-p360-ext.pem"
+
+          # Packa och signera tillägget
+          chromium-browser --pack-extension="$HOME/ext" --pack-extension-key="$HOME/svk-p360-ext.pem"
+
+          mv "$HOME/ext.crx" svk-p360-ext.crx
+
       - name: Generera index.html med version och datum
         run: |
           VERSION="v${{ steps.version.outputs.version }}"
@@ -48,6 +73,7 @@ jobs:
           name: tillagg-dev-${{ github.sha }}
           path: |
             extension-${{ steps.version.outputs.version }}.zip
+            svk-p360-ext.crx
             index.html
           retention-days: 14
 
@@ -61,7 +87,7 @@ jobs:
           body: |
             ## Installation via webbsida (rekommenderat)
 
-            Lägg `index.html` och `extension.crx` på din webbserver. Användarna öppnar sidan och drar in `.crx`-filen på `edge://extensions`.
+            Lägg `index.html` och `svk-p360-ext.crx` på din webbserver. Användarna öppnar sidan och drar in `.crx`-filen på `edge://extensions`.
 
             ## Installation manuellt (utan webbserver)
 
@@ -77,5 +103,6 @@ jobs:
             Fullständig dokumentation: [README](https://github.com/Armandur/svk-p360-ext#readme)
           files: |
             extension-${{ steps.version.outputs.version }}.zip
+            svk-p360-ext.crx
             index.html
           fail_on_unmatched_files: true
