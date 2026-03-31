@@ -8,818 +8,581 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --svk-blue:  #003D87;
-      --svk-light: #0066CC;
-      --svk-gold:  #C8A84B;
-      --svk-bg:    #F4F6FA;
-      --done:      #1A7F4A;
-      --wip:       #B36800;
-      --plan:      #5A5A8A;
-      --text:      #1A1A2E;
-      --muted:     #6B7280;
-      --card-bg:   #FFFFFF;
-      --radius:    12px;
+      --blue:   #003D87;
+      --light:  #0066CC;
+      --gold:   #B8943A;
+      --green:  #1A7F4A;
+      --bg:     #F5F7FB;
+      --text:   #1A1A2E;
+      --muted:  #5A6070;
+      --border: #DDE2EC;
+      --white:  #FFFFFF;
     }
 
     body {
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: var(--svk-bg);
+      background: var(--bg);
       color: var(--text);
-      font-size: 15px;
+      font-size: 14px;
       line-height: 1.6;
     }
 
-    /* ── Hero ── */
-    .hero {
-      background: linear-gradient(135deg, var(--svk-blue) 0%, #001f4d 100%);
+    /* ── Omslag / cover ── */
+    .cover {
+      background: linear-gradient(150deg, var(--blue) 0%, #001f50 100%);
       color: #fff;
-      padding: 64px 24px 56px;
+      padding: 72px 40px 60px;
       text-align: center;
       position: relative;
-      overflow: hidden;
+      page-break-after: always;
     }
-    .hero::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    }
-    .hero-badge {
+    .cover-badge {
       display: inline-block;
-      background: rgba(200,168,75,0.25);
-      border: 1px solid var(--svk-gold);
-      color: var(--svk-gold);
+      border: 1px solid rgba(184,148,58,0.7);
+      color: rgba(255,255,255,0.75);
       border-radius: 20px;
-      padding: 4px 14px;
-      font-size: 12px;
+      padding: 4px 16px;
+      font-size: 11px;
       font-weight: 600;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
-      margin-bottom: 18px;
+      margin-bottom: 28px;
     }
-    .hero h1 {
-      font-size: clamp(26px, 4vw, 42px);
-      font-weight: 700;
+    .cover h1 {
+      font-size: 38px;
+      font-weight: 800;
       letter-spacing: -0.02em;
-      margin-bottom: 12px;
+      line-height: 1.1;
+      margin-bottom: 8px;
     }
-    .hero h1 span { color: var(--svk-gold); }
-    .hero p {
-      font-size: 17px;
-      color: rgba(255,255,255,0.8);
-      max-width: 580px;
-      margin: 0 auto 28px;
+    .cover h1 em {
+      font-style: normal;
+      color: #E8C96A;
     }
-    .hero-meta {
-      display: flex;
-      justify-content: center;
-      gap: 28px;
-      flex-wrap: wrap;
+    .cover-tagline {
+      font-size: 18px;
+      color: rgba(255,255,255,0.75);
+      max-width: 520px;
+      margin: 0 auto 48px;
+      font-weight: 400;
+    }
+    .cover-divider {
+      width: 48px;
+      height: 3px;
+      background: var(--gold);
+      margin: 0 auto 40px;
+      border-radius: 2px;
+    }
+    .cover-meta {
       font-size: 13px;
-      color: rgba(255,255,255,0.6);
+      color: rgba(255,255,255,0.55);
+      line-height: 2;
     }
-    .hero-meta span { display: flex; align-items: center; gap: 6px; }
-
-    /* ── Layout ── */
-    .container {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 0 20px;
+    .cover-meta strong {
+      color: rgba(255,255,255,0.85);
+      font-weight: 600;
+      display: block;
     }
-
-    /* ── Sections ── */
-    section { padding: 56px 0; }
-    section + section { border-top: 1px solid #E5E7EB; }
-
-    .section-label {
+    .cover-meta .org {
+      color: rgba(255,255,255,0.5);
+      font-size: 12px;
+    }
+    .cover-ai {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      font-size: 11px;
+      margin-top: 28px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      padding: 8px 18px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.6);
+    }
+    .cover-ai svg {
+      opacity: 0.7;
+    }
+
+    /* ── Sida / page wrapper ── */
+    .page {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    /* ── Sektion ── */
+    .section {
+      padding: 52px 0 44px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section:last-of-type { border-bottom: none; }
+
+    .section-eyebrow {
+      font-size: 10px;
       font-weight: 700;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: var(--svk-light);
-      margin-bottom: 10px;
-    }
-    .section-label::before {
-      content: '';
-      display: inline-block;
-      width: 20px;
-      height: 2px;
-      background: var(--svk-light);
-      border-radius: 2px;
-    }
-    .section-title {
-      font-size: clamp(22px, 3vw, 30px);
-      font-weight: 700;
-      letter-spacing: -0.01em;
+      color: var(--light);
       margin-bottom: 8px;
     }
-    .section-sub {
-      color: var(--muted);
+    .section-title {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--blue);
+      margin-bottom: 10px;
+    }
+    .section-lead {
       font-size: 15px;
-      max-width: 600px;
+      color: var(--muted);
+      max-width: 620px;
       margin-bottom: 36px;
     }
 
-    /* ── Benefit cards ── */
-    .benefit-grid {
+    /* ── Feature-kort ── */
+    .feature-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
     }
-    .benefit-card {
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      padding: 28px 24px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
-      border: 1px solid #E8EDF5;
-      transition: transform 0.18s, box-shadow 0.18s;
-    }
-    .benefit-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 4px 20px rgba(0,61,135,0.1);
-    }
-    .benefit-icon {
-      width: 44px;
-      height: 44px;
+    .feature-card {
+      background: var(--white);
+      border: 1px solid var(--border);
       border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      margin-bottom: 16px;
-      background: #EEF3FB;
+      padding: 24px 20px;
     }
-    .benefit-card h3 {
-      font-size: 15px;
+    .feature-icon {
+      font-size: 26px;
+      margin-bottom: 12px;
+      display: block;
+    }
+    .feature-card h3 {
+      font-size: 14px;
       font-weight: 700;
       margin-bottom: 6px;
+      color: var(--blue);
     }
-    .benefit-card p {
-      font-size: 13.5px;
+    .feature-card p {
+      font-size: 13px;
       color: var(--muted);
       line-height: 1.55;
     }
 
-    /* ── Feature list ── */
-    .feature-cols {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 40px;
-    }
-    @media (max-width: 640px) { .feature-cols { grid-template-columns: 1fr; } }
-
-    .feature-group h3 {
-      font-size: 13px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      margin-bottom: 14px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid #E5E7EB;
-    }
-    .feature-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 8px 0;
-      border-bottom: 1px solid #F0F2F5;
-      font-size: 14px;
-    }
-    .feature-item:last-child { border-bottom: none; }
-    .feature-check {
-      flex-shrink: 0;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 700;
-      margin-top: 1px;
-    }
-    .check-done  { background: #D1FAE5; color: var(--done); }
-    .check-wip   { background: #FEF3C7; color: var(--wip); }
-    .check-plan  { background: #EDE9FE; color: var(--plan); }
-    .check-done::before  { content: '✓'; }
-    .check-wip::before   { content: '▶'; }
-    .check-plan::before  { content: '◇'; }
-
-    /* ── Workflow steps ── */
+    /* ── Stegmodell ── */
     .steps {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
       gap: 0;
       position: relative;
-      flex-wrap: wrap;
-    }
-    .steps::before {
-      content: '';
-      position: absolute;
-      top: 22px;
-      left: 22px;
-      right: 22px;
-      height: 2px;
-      background: #E5E7EB;
-      z-index: 0;
     }
     .step {
-      flex: 1;
-      min-width: 140px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       text-align: center;
+      padding: 0 12px 24px;
       position: relative;
-      z-index: 1;
-      padding: 0 8px;
+    }
+    .step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 20px;
+      right: -1px;
+      width: 2px;
+      height: 40px;
+      background: var(--border);
     }
     .step-num {
-      width: 44px;
-      height: 44px;
+      width: 42px;
+      height: 42px;
       border-radius: 50%;
-      background: var(--svk-blue);
+      background: var(--blue);
       color: #fff;
       font-weight: 700;
       font-size: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 12px;
-      box-shadow: 0 0 0 4px var(--svk-bg);
+      margin-bottom: 12px;
+      flex-shrink: 0;
     }
-    .step p { font-size: 13px; color: var(--muted); margin-top: 4px; }
-    .step strong { font-size: 14px; display: block; margin-bottom: 2px; }
-
-    /* ── Status badges ── */
-    .status-bar {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      margin-bottom: 28px;
-    }
-    .status-pill {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--card-bg);
-      border: 1px solid #E5E7EB;
-      border-radius: 20px;
-      padding: 6px 16px;
+    .step strong {
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
+      display: block;
+      margin-bottom: 4px;
     }
-    .dot {
-      width: 8px; height: 8px; border-radius: 50%;
+    .step p {
+      font-size: 12px;
+      color: var(--muted);
     }
-    .dot-done { background: var(--done); }
-    .dot-wip  { background: var(--wip); }
-    .dot-plan { background: var(--plan); }
 
-    /* ── Roadmap timeline ── */
-    .timeline { display: flex; flex-direction: column; gap: 16px; }
-    .timeline-item {
-      display: flex;
+    /* ── Kortkommando-tabell ── */
+    .shortcut-list {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .sc-row {
+      display: contents;
+    }
+    .sc-row:nth-child(odd) .sc-key,
+    .sc-row:nth-child(odd) .sc-desc {
+      background: #F9FAFC;
+    }
+    .sc-key {
+      padding: 12px 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--blue);
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      background: var(--white);
+    }
+    .sc-row:last-child .sc-key,
+    .sc-row:last-child .sc-desc {
+      border-bottom: none;
+    }
+    .sc-desc {
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+      background: var(--white);
+    }
+    kbd {
+      display: inline-block;
+      background: var(--white);
+      border: 1px solid #C0CAD8;
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--blue);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    }
+
+    /* ── Ingångspunkter ── */
+    .entry-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
       gap: 16px;
+    }
+    .entry-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      display: flex;
+      gap: 14px;
       align-items: flex-start;
     }
-    .timeline-dot {
-      flex-shrink: 0;
+    .entry-num {
       width: 32px;
       height: 32px;
       border-radius: 50%;
+      background: var(--bg);
+      border: 2px solid var(--blue);
+      color: var(--blue);
+      font-weight: 700;
+      font-size: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 14px;
-      margin-top: 2px;
+      flex-shrink: 0;
     }
-    .td-wip  { background: #FEF3C7; }
-    .td-plan { background: #EDE9FE; }
-    .td-idea { background: #F0F9FF; }
-    .timeline-body h4 { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
-    .timeline-body p  { font-size: 13.5px; color: var(--muted); }
-    .tag {
-      display: inline-block;
-      font-size: 11px;
+    .entry-card h4 {
+      font-size: 13px;
       font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 10px;
       margin-bottom: 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
+      color: var(--blue);
     }
-    .tag-wip  { background: #FEF3C7; color: var(--wip); }
-    .tag-plan { background: #EDE9FE; color: var(--plan); }
-    .tag-idea { background: #F0F9FF; color: #1D6FA4; }
-
-    /* ── Keyboard ── */
-    kbd {
-      display: inline-block;
-      background: #F3F4F6;
-      border: 1px solid #D1D5DB;
-      border-bottom-width: 2px;
-      border-radius: 5px;
-      padding: 2px 7px;
-      font-family: monospace;
-      font-size: 12px;
-      color: #374151;
-    }
-    .shortcut-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 16px;
-      background: var(--card-bg);
-      border: 1px solid #E5E7EB;
-      border-radius: 8px;
-      margin-bottom: 8px;
-      font-size: 14px;
-    }
-    .shortcut-row:last-child { margin-bottom: 0; }
-
-    /* ── Quote ── */
-    .quote-block {
-      background: linear-gradient(135deg, #EEF3FB 0%, #F4F0FB 100%);
-      border-left: 4px solid var(--svk-blue);
-      border-radius: 0 var(--radius) var(--radius) 0;
-      padding: 24px 28px;
-      margin: 36px 0;
-    }
-    .quote-block p {
-      font-size: 16px;
-      font-style: italic;
-      color: var(--text);
-      line-height: 1.65;
-    }
-    .quote-block cite {
-      display: block;
-      margin-top: 10px;
-      font-size: 13px;
+    .entry-card p {
+      font-size: 12.5px;
       color: var(--muted);
-      font-style: normal;
+      line-height: 1.5;
     }
 
-    /* ── Stats strip ── */
-    .stats-strip {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 1px;
-      background: #E5E7EB;
-      border-radius: var(--radius);
-      overflow: hidden;
-      margin-bottom: 40px;
+    /* ── Citat / lyftruta ── */
+    .pullquote {
+      border-left: 4px solid var(--gold);
+      padding: 16px 20px;
+      margin: 32px 0;
+      background: #FEFBF3;
+      border-radius: 0 8px 8px 0;
+      font-size: 15px;
+      color: #4A3B10;
+      line-height: 1.6;
+      font-style: italic;
     }
-    .stat {
-      background: var(--card-bg);
-      padding: 24px 20px;
-      text-align: center;
-    }
-    .stat-num {
-      font-size: 32px;
-      font-weight: 800;
-      color: var(--svk-blue);
-      line-height: 1;
-      margin-bottom: 4px;
-    }
-    .stat-label { font-size: 12px; color: var(--muted); }
 
-    /* ── Footer ── */
-    footer {
-      background: var(--text);
-      color: rgba(255,255,255,0.5);
+    /* ── Footer / signatur ── */
+    .footer-section {
+      background: var(--blue);
+      color: rgba(255,255,255,0.75);
+      padding: 48px 40px;
       text-align: center;
-      padding: 28px 20px;
+    }
+    .footer-section p {
       font-size: 13px;
+      line-height: 1.8;
     }
-    footer strong { color: rgba(255,255,255,0.85); }
+    .footer-section strong {
+      color: #fff;
+      font-size: 15px;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .footer-section .org {
+      color: rgba(255,255,255,0.5);
+      font-size: 12px;
+    }
+    .footer-divider {
+      width: 32px;
+      height: 2px;
+      background: var(--gold);
+      margin: 20px auto;
+      border-radius: 2px;
+    }
+    .footer-ai {
+      font-size: 12px;
+      color: rgba(255,255,255,0.45);
+      margin-top: 8px;
+    }
 
     /* ── Print ── */
     @media print {
-      .hero { background: var(--svk-blue) !important; print-color-adjust: exact; }
-      body { background: #fff; }
-      .benefit-card, .shortcut-row { break-inside: avoid; }
+      body { background: #fff; font-size: 12px; }
+      .cover { padding: 56px 32px 48px; page-break-after: always; }
+      .cover h1 { font-size: 30px; }
+      .section { padding: 36px 0 28px; page-break-inside: avoid; }
+      .feature-grid { grid-template-columns: repeat(3, 1fr); }
+      .entry-grid { grid-template-columns: repeat(2, 1fr); }
+      .footer-section { padding: 36px; }
+      .feature-card, .entry-card { box-shadow: none; }
+      .benefit-card:hover { transform: none; }
     }
   </style>
 </head>
 <body>
 
-<!-- ══ HERO ══════════════════════════════════════════════════════════════════ -->
-<div class="hero">
-  <div class="hero-badge">Chrome-tillägg · Svenska kyrkan</div>
-  <h1>360° <span>Hjälptillägg</span></h1>
-  <p>Automatiserar repetitiva arbetsmoment i P360 för registratorer och handläggare
-     inom Svenska kyrkans pastorat och stift.</p>
-  <div class="hero-meta">
-    <span>📅 Status mars 2026</span>
-    <span>🏛 p360.svenskakyrkan.se</span>
-    <span>🔒 Ingen data lämnar webbläsaren</span>
+<!-- ══════════════ OMSLAG ══════════════ -->
+<div class="cover">
+  <div class="cover-badge">Svenska kyrkan &nbsp;·&nbsp; P360 / 360°</div>
+  <h1>360° <em>Hjälptillägg</em></h1>
+  <p class="cover-tagline">Ett webbläsartillägg som automatiserar det repetitiva arbetet i 360° – så att du kan fokusera på det som faktiskt kräver din uppmärksamhet.</p>
+  <div class="cover-divider"></div>
+  <div class="cover-meta">
+    <strong>Rasmus Pettersson Vik</strong>
+    <span class="org">Härnösands pastorat</span>
+  </div>
+  <div class="cover-ai">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+    Utvecklat i dialog med Claude Code (Anthropic)
   </div>
 </div>
 
-<div class="container">
+<!-- ══════════════ INNEHÅLL ══════════════ -->
+<div class="page">
 
-  <!-- ══ VARFÖR ════════════════════════════════════════════════════════════════ -->
-  <section>
-    <div class="section-label">Varför tillägget</div>
-    <h2 class="section-title">360° är kraftfullt – men manuellt arbete tar tid</h2>
-    <p class="section-sub">
-      Registratorer lägger varje dag tid på att fylla i samma fält om och om igen,
-      navigera i menyer och klicka sig fram i formulär. Det här tillägget tar hand
-      om det repetitiva.
+  <!-- ── Varför ── -->
+  <div class="section">
+    <div class="section-eyebrow">Bakgrund</div>
+    <h2 class="section-title">Varför finns tillägget?</h2>
+    <p class="section-lead">
+      Att skapa ärenden, registrera handlingar och skriva ut dagboksblad i 360° kräver
+      ofta många klick och manuell inmatning av samma uppgifter gång på gång.
+      Tillägget tar bort den friktionen.
     </p>
 
-    <div class="benefit-grid">
-      <div class="benefit-card">
-        <div class="benefit-icon">⚡</div>
-        <h3>Dramatiskt snabbare ärendeskapande</h3>
-        <p>Spara inställningar som mallar. Nästa gång: välj mall → ange titel → klicka.
-           Klassificering, åtkomstgrupp, ansvarig enhet m.m. fylls i automatiskt.</p>
+    <div class="pullquote">
+      "Istället för att manuellt fylla i klassificering, skyddskod, ansvarig enhet och
+      status varje gång – spara en mall en gång och skapa nästa ärende med ett enda
+      knapptryck."
+    </div>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <span class="feature-icon">⚡</span>
+        <h3>Snabbare vardag</h3>
+        <p>Ärendemallar, snabbkommandon och automatisk ifyllning sparar tid vid varje registrering.</p>
       </div>
-      <div class="benefit-card">
-        <div class="benefit-icon">📋</div>
-        <h3>Massregistrering via CSV</h3>
-        <p>Registrera hundratals ärenden från en Excel/CSV-fil med ett knapptryck.
-           Kontakter, ärendedokument och filer bifogas automatiskt per rad.</p>
+      <div class="feature-card">
+        <span class="feature-icon">🔁</span>
+        <h3>Färre klick</h3>
+        <p>Dagboksblad, statusväxling och egenskapsdialog nås med en knapptryckning – utan att navigera i menyer.</p>
       </div>
-      <div class="benefit-card">
-        <div class="benefit-icon">⌨️</div>
-        <h3>Snabbkommandon utan popup</h3>
-        <p>Växla status, öppna dagboksblad eller redigera egenskaper direkt med
-           tangentbordsgenvägar – utan att behöva klicka i menyer.</p>
+      <div class="feature-card">
+        <span class="feature-icon">📋</span>
+        <h3>Enhetlighet</h3>
+        <p>Mallar säkerställer att rätt klassificering, åtkomstgrupp och status alltid används – oavsett vem som registrerar.</p>
       </div>
-      <div class="benefit-card">
-        <div class="benefit-icon">📄</div>
-        <h3>Ärendedokument i ett steg</h3>
-        <p>Dokumentmallar (inkommande, utgående, upprättat, protokoll) med
-           förifyllda fält, kontakter och bifogade filer – skapas automatiskt
-           som del av ärendeflödet.</p>
-      </div>
-      <div class="benefit-card">
-        <div class="benefit-icon">🔒</div>
-        <h3>Fullständigt sekretessstöd</h3>
-        <p>Skyddskod, KO/OSL-paragraf, offentlig titel och skyddade kontakter
-           hanteras korrekt i alla formulärflöden – inklusive UpdatePanel-sekvenser.</p>
-      </div>
-      <div class="benefit-card">
-        <div class="benefit-icon">🛡️</div>
-        <h3>Säkert och lokalt</h3>
-        <p>All data stannar i webbläsaren. Inga externa API-anrop, ingen inloggning
-           och inga tredjepartstjänster. Mallar sparas i <code>chrome.storage.local</code>.</p>
+      <div class="feature-card">
+        <span class="feature-icon">🔒</span>
+        <h3>Säkert &amp; lokalt</h3>
+        <p>All data stannar i webbläsaren. Inga externa API-anrop, inga servrar, ingen inloggning utöver 360° själv.</p>
       </div>
     </div>
-  </section>
+  </div>
 
-  <!-- ══ SÅ HÄR FUNGERAR DET ══════════════════════════════════════════════════ -->
-  <section>
-    <div class="section-label">Arbetsflöde</div>
-    <h2 class="section-title">Från mall till färdigt ärende – fyra steg</h2>
-    <p class="section-sub">Det fullständiga flödet från mall till ärendesida med dokument
-       och kontakter tar under tio sekunder.</p>
+  <!-- ── Funktioner ── -->
+  <div class="section">
+    <div class="section-eyebrow">Funktioner</div>
+    <h2 class="section-title">Vad kan tillägget göra?</h2>
+    <p class="section-lead">Tillägget arbetar direkt mot 360° i webbläsaren och lägger sig aldrig i vägen – det syns bara när du behöver det.</p>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <span class="feature-icon">📁</span>
+        <h3>Ärendemallar</h3>
+        <p>Spara en ärendekonfiguration – klassificering, skyddskod, ansvarig enhet, status m.m. – och återanvänd med ett klick. Mallen kan även innehålla externa kontakter och ärendedokument.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📄</span>
+        <h3>Dokumentmallar</h3>
+        <p>Skapa ärendedokument med förifyllda fält: handlingstyp, kategori, datum, kontakt. Passar inkommande, utgående, upprättade och protokoll.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🖨️</span>
+        <h3>Dagboksblad</h3>
+        <p>Hämtar dagboksbladet och öppnar utskriftsdialogen automatiskt. En knapptryckning – inget letande i menyer.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔄</span>
+        <h3>Statushantering</h3>
+        <p>Växla ett ärende mellan Öppet och Avslutat, eller sätt ett specifikt statusvärde. Fungerar direkt utan att redigera egenskaper manuellt.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔍</span>
+        <h3>OCR – info från PDF</h3>
+        <p>Läs automatiskt ut avsändare, datum och titel ur en PDF-handling. Stöd för både digitala PDF:er och skannade dokument via Tesseract OCR.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📊</span>
+        <h3>Massregistrering</h3>
+        <p>Skapa många ärenden i ett svep från en CSV-fil. Varje rad blir ett ärende med kontakt, ärendedokument och valfri statusändring. Exportera dagboksblad i bulk som ZIP eller sammanslagen PDF.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Så här fungerar ärendemallen ── -->
+  <div class="section">
+    <div class="section-eyebrow">Exempel</div>
+    <h2 class="section-title">Skapa ett ärende med mall</h2>
+    <p class="section-lead">Från tomma händer till registrerat ärende – utan att fylla i ett enda standardfält manuellt.</p>
 
     <div class="steps">
       <div class="step">
         <div class="step-num">1</div>
-        <strong>Välj mall</strong>
-        <p>Klicka på "Använd" i popup-menyn bredvid önskad mall</p>
+        <strong>Öppna tillägget</strong>
+        <p>Klicka på tilläggsikonen i webbläsarens verktygsfält.</p>
       </div>
       <div class="step">
         <div class="step-num">2</div>
-        <strong>Ange titel</strong>
-        <p>Fyll i ärendetiteln (övriga fält är redan ifyllda)</p>
+        <strong>Välj mall</strong>
+        <p>Klicka <em>Använd</em> bredvid rätt ärendemall.</p>
       </div>
       <div class="step">
         <div class="step-num">3</div>
-        <strong>Klicka Skapa</strong>
-        <p>Tillägget fyller i formuläret och skickar</p>
+        <strong>Ange titel</strong>
+        <p>Fyll i ärendetiteln – allt annat är redan ifyllt.</p>
       </div>
       <div class="step">
         <div class="step-num">4</div>
+        <strong>Skapa ärende</strong>
+        <p>Klicka <em>Skapa ärende</em>. Tillägget sköter resten.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
         <strong>Klart!</strong>
-        <p>Direkt på ärendesidan, dokument och kontakter tillagda</p>
+        <p>Du hamnar direkt på det nya ärendet – redo att jobba.</p>
       </div>
     </div>
+  </div>
 
-    <div class="quote-block" style="margin-top:40px;">
-      <p>"Istället för att navigera i menyer, klicka sig fram i formulär och komma ihåg
-         vilka fält som ska fyllas i – kan registratorn lägga sin tid på det som faktiskt
-         kräver mänsklig bedömning."</p>
-      <cite>— Målbilden för tillägget</cite>
-    </div>
-  </section>
+  <!-- ── Snabbkommandon ── -->
+  <div class="section">
+    <div class="section-eyebrow">Snabbkommandon</div>
+    <h2 class="section-title">Tangentbordsgenvägar</h2>
+    <p class="section-lead">Fungerar direkt på en ärendesida – popup-menyn behöver inte vara öppen.</p>
 
-  <!-- ══ NULÄGE ════════════════════════════════════════════════════════════════ -->
-  <section>
-    <div class="section-label">Nuläge</div>
-    <h2 class="section-title">Vad som finns idag</h2>
-    <p class="section-sub">Alla funktioner nedan är implementerade och testade med rollen
-       registrator/huvudregistrator i Svenska kyrkans installation.</p>
-
-    <div class="stats-strip">
-      <div class="stat">
-        <div class="stat-num">40+</div>
-        <div class="stat-label">Levererade funktioner</div>
+    <div class="shortcut-list">
+      <div class="sc-row">
+        <div class="sc-key"><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd></div>
+        <div class="sc-desc"><strong>Dagboksblad</strong> – öppnar dagboksbladet som PDF i ny flik och visar utskriftsdialogen direkt</div>
       </div>
-      <div class="stat">
-        <div class="stat-num">4</div>
-        <div class="stat-label">Tangentbordsgenvägar</div>
+      <div class="sc-row">
+        <div class="sc-key"><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd></div>
+        <div class="sc-desc"><strong>Växla status</strong> – Öppet → Avslutat, Avslutat → Öppet</div>
       </div>
-      <div class="stat">
-        <div class="stat-num">4</div>
-        <div class="stat-label">Dokumentkategorier</div>
+      <div class="sc-row">
+        <div class="sc-key"><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd></div>
+        <div class="sc-desc"><strong>Redigera egenskaper</strong> – öppnar redigeringsdialogen för ärende eller dokument</div>
       </div>
-      <div class="stat">
-        <div class="stat-num">∞</div>
-        <div class="stat-label">Ärenden i batch</div>
+      <div class="sc-row">
+        <div class="sc-key"><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd></div>
+        <div class="sc-desc"><strong>Makulera</strong> – öppnar statusdialogen förinställd på Makulerat</div>
       </div>
     </div>
+  </div>
 
-    <div class="feature-cols">
-      <div class="feature-group">
-        <h3>Snabbåtgärder på ärende</h3>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Dagboksblad – öppna PDF och utskriftsdialog automatiskt
-        </div>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Växla status Öppet ↔ Avslutat med ett klick
-        </div>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Sätt valfritt statusvärde (inkl. Makulerat, AH)
-        </div>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Redigera egenskaper, gallring, registrera utlåning
-        </div>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Spara som nytt ärende, kopiera hyperlänk
-        </div>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Ärendesammanfattning, processplan
-        </div>
+  <!-- ── Installation ── -->
+  <div class="section">
+    <div class="section-eyebrow">Komma igång</div>
+    <h2 class="section-title">Installation</h2>
+    <p class="section-lead">Tillägget installeras som ett okomprimerat tillägg i Edge eller Chrome. Ingen IT-biljett krävs – det görs på under en minut.</p>
 
-        <h3 style="margin-top:28px;">Ärendemallar</h3>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Förifyllda fält: klassificering, åtkomstgrupp, ansvarig enhet/person, status
-        </div>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Skyddskod (Offentlig / KO / OSL) med paragraf och offentlig titel
-        </div>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Projekt och Fastighet (typeahead med sökning)
-        </div>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Externa kontakter (oregistrerade) med dra-och-släpp-sortering
-        </div>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Ärendedokument i mallar – instansmodell med egna fält
-        </div>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Pausa-läge för manuell granskning före skicka
+    <div class="entry-grid">
+      <div class="entry-card">
+        <div class="entry-num">1</div>
+        <div>
+          <h4>Ladda ned ZIP-filen</h4>
+          <p>Hämta senaste versionen från GitHub Releases och packa upp till en fast mapp på datorn.</p>
         </div>
       </div>
-
-      <div class="feature-group">
-        <h3>Dokumentmallar</h3>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Inkommande (avsändare + ankomstdatum)
+      <div class="entry-card">
+        <div class="entry-num">2</div>
+        <div>
+          <h4>Öppna tilläggssidan</h4>
+          <p>Gå till <code>edge://extensions</code> (Edge) eller <code>chrome://extensions</code> (Chrome) och aktivera <em>Utvecklarläge</em>.</p>
         </div>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Utgående (mottagare + expedieringsdatum)
+      </div>
+      <div class="entry-card">
+        <div class="entry-num">3</div>
+        <div>
+          <h4>Läs in tillägg</h4>
+          <p>Klicka <em>Läs in okomprimerat tillägg</em> och välj mappen. Klart!</p>
         </div>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Upprättat och Protokoll
-        </div>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Handlingstyp med validering mot ärendets klassificering
-        </div>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Filuppladdning – en fil per dokument eller batch-läge
-        </div>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Fristående dokumentskapande direkt från popup på befintligt ärende
-        </div>
-
-        <h3 style="margin-top:28px;">Massregistrering</h3>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Import av CSV (semikolon- eller kommaseparerad)
-        </div>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Redigerbar tabell med kolumntogglar
-        </div>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Dokumentslotsar: Fil_1, Fil_2 … kopplade till dokumentmallar
-        </div>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Automatisk filkoppling via filnamn (Koppla filer-knapp)
-        </div>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Avbryt-signal som propageras hela kedjan
-        </div>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Resultatrapport med CSV-nedladdning
-        </div>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Öppna dagboksblad som PDF-flikar för alla skapade ärenden
-        </div>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Ladda ned dagboksblad som PDF-filer direkt från resultatpanelen
-        </div>
-        <div class="feature-item">
-          <span class="feature-check check-done"></span>
-          Tomma ärendedokument skapas om fil saknas i slotten
+      </div>
+      <div class="entry-card">
+        <div class="entry-num">4</div>
+        <div>
+          <h4>Skapa din första mall</h4>
+          <p>Öppna tilläggets popup, klicka <em>＋ Ny mall</em> och konfigurera dina standardvärden.</p>
         </div>
       </div>
     </div>
-  </section>
+  </div>
 
-  <!-- ══ SNABBKOMMANDON ════════════════════════════════════════════════════════ -->
-  <section>
-    <div class="section-label">Tangentbordsgenvägar</div>
-    <h2 class="section-title">Utan händerna från tangentbordet</h2>
-    <p class="section-sub">Fungerar direkt på en ärendesida – utan att öppna popup-menyn.
-       Kan anpassas i webbläsarens tilläggsinställningar.</p>
+</div><!-- /page -->
 
-    <div style="max-width: 520px;">
-      <div class="shortcut-row">
-        <span>Öppna dagboksblad och skriv ut</span>
-        <span><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd></span>
-      </div>
-      <div class="shortcut-row">
-        <span>Växla status Öppet ↔ Avslutat</span>
-        <span><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd></span>
-      </div>
-      <div class="shortcut-row">
-        <span>Redigera egenskaper</span>
-        <span><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd></span>
-      </div>
-      <div class="shortcut-row">
-        <span>Öppna statusdialog (förifylld: Makulerat)</span>
-        <span><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd></span>
-      </div>
-    </div>
-  </section>
-
-  <!-- ══ MASSREGISTRERING ══════════════════════════════════════════════════════ -->
-  <section>
-    <div class="section-label">Massregistrering</div>
-    <h2 class="section-title">Hundratals ärenden på minuter</h2>
-    <p class="section-sub">Perfekt för digitalisering av pappersärenden, migrering
-       från andra system eller periodisk massregistrering av liknande ärenden.</p>
-
-    <div class="benefit-grid">
-      <div class="benefit-card">
-        <div class="benefit-icon">📊</div>
-        <h3>CSV-import</h3>
-        <p>Importera en semikolon- eller kommaseparerad fil. Tillägget läser kolumnerna
-           Titel, Förnamn, Efternamn, Personnummer, Adress, Fil_1 m.fl.</p>
-      </div>
-      <div class="benefit-card">
-        <div class="benefit-icon">🗂️</div>
-        <h3>Dokumentslotsar</h3>
-        <p>Koppla varje Fil-kolumn i CSV:en till en dokumentmall. Filen bifogas
-           automatiskt till rätt dokumenttyp (inkommande, utgående, upprättat).</p>
-      </div>
-      <div class="benefit-card">
-        <div class="benefit-icon">📎</div>
-        <h3>Automatisk filkoppling</h3>
-        <p>CSV:en anger filnamn, inte filer. Klicka "Koppla filer" och välj PDF:erna
-           – tillägget matchar filnamn mot tabellens värden.</p>
-      </div>
-      <div class="benefit-card">
-        <div class="benefit-icon">📝</div>
-        <h3>Resultatrapport</h3>
-        <p>Efter körningen visas en sammanfattning med diarienummer per rad.
-           Ladda ner rapporten som CSV för vidare bearbetning.</p>
-      </div>
-      <div class="benefit-card">
-        <div class="benefit-icon">📑</div>
-        <h3>Dagboksblad direkt från resultatet</h3>
-        <p>Öppna alla dagboksblad som PDF-flikar i ett klick (redo att skriva ut),
-           eller ladda ned samtliga som separata PDF-filer – ingen extra navigering.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ══ ROADMAP ═══════════════════════════════════════════════════════════════ -->
-  <section>
-    <div class="section-label">Framtida planer</div>
-    <h2 class="section-title">Vad som kommer härnäst</h2>
-    <p class="section-sub">Prioriterade funktioner och idéer – uppdateras löpande.</p>
-
-    <div class="status-bar">
-      <div class="status-pill"><span class="dot dot-wip"></span> Pågående</div>
-      <div class="status-pill"><span class="dot dot-plan"></span> Planerat långsiktigt</div>
-      <div class="status-pill"><span class="dot dot-done" style="background:#1D6FA4;"></span> Idé / förslag</div>
-    </div>
-
-    <div class="timeline">
-      <div class="timeline-item">
-        <div class="timeline-dot td-wip">📥</div>
-        <div class="timeline-body">
-          <div class="tag tag-wip">Pågående</div>
-          <h4>Import av mallar från fil (TSV/CSV)</h4>
-          <p>Dela mallkonfigurationer med kollegor via fil. Exportera befintliga mallar,
-             skicka filen, importera – samma inställningar utan att klicka om allt.</p>
-        </div>
-      </div>
-      <div class="timeline-item">
-        <div class="timeline-dot td-plan">👤</div>
-        <div class="timeline-body">
-          <div class="tag tag-plan">Långsiktigt</div>
-          <h4>Stöd för registrerade kontakter</h4>
-          <p>Kontaktperson och Organisation ur 360°:s kontaktregister, inte bara
-             oregistrerade kopior. Ändringar på källkontakten slår igenom överallt.</p>
-        </div>
-      </div>
-      <div class="timeline-item">
-        <div class="timeline-dot td-plan">📁</div>
-        <div class="timeline-body">
-          <div class="tag tag-plan">Långsiktigt</div>
-          <h4>Fler dokumenttyper (subtype)</h4>
-          <p>Utöka stödet till Arbetsdokument, Avtalsdokument och andra subtype-värden
-             utöver det nuvarande Ärende (61000).</p>
-        </div>
-      </div>
-      <div class="timeline-item">
-        <div class="timeline-dot td-idea">💡</div>
-        <div class="timeline-body">
-          <div class="tag tag-idea">Idé</div>
-          <h4>Snabbsökning och ärendeinfo i popup</h4>
-          <p>Sökfält direkt i popup-menyn, visa ärendets titel och diarienummer
-             utan att navigera till sökformuläret. En-knapps-kopiering av diarienummer.</p>
-        </div>
-      </div>
-      <div class="timeline-item">
-        <div class="timeline-dot td-idea">⚙️</div>
-        <div class="timeline-body">
-          <div class="tag tag-idea">Idé</div>
-          <h4>Inställningssida och konfigurerbar statusväxling</h4>
-          <p>En dedikerad inställningssida i Chrome. Möjlighet att konfigurera
-             vilka statusvärden som ingår i växlingen (t.ex. Öppet ↔ AH).</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ══ TEKNISKA FAKTA ════════════════════════════════════════════════════════ -->
-  <section>
-    <div class="section-label">Teknik och säkerhet</div>
-    <h2 class="section-title">Hur det är byggt</h2>
-    <p class="section-sub">Vanilla JavaScript, Chrome Manifest V3 – inga externa beroenden.</p>
-
-    <div class="benefit-grid">
-      <div class="benefit-card">
-        <div class="benefit-icon">🔧</div>
-        <h3>Chrome Manifest V3</h3>
-        <p>Moderna säkerhetsmodellen för Chrome-tillägg. Content scripts injiceras
-           enbart på <code>p360.svenskakyrkan.se</code>.</p>
-      </div>
-      <div class="benefit-card">
-        <div class="benefit-icon">💾</div>
-        <h3>Lokal datalagring</h3>
-        <p>Mallar sparas i <code>chrome.storage.local</code> – stannar på datorn,
-           aldrig synkroniseras utan att du väljer det.</p>
-      </div>
-      <div class="benefit-card">
-        <div class="benefit-icon">🤖</div>
-        <h3>Ingen server, ingen inloggning</h3>
-        <p>Tillägget har ingen backend. Alla åtgärder sker direkt mot 360°:s egna
-           formulär via <code>__doPostBack</code> och ASP.NET WebForms.</p>
-      </div>
-    </div>
-  </section>
-
-</div><!-- /container -->
-
-<footer>
-  <strong>360° Hjälptillägg</strong> &mdash; Svenska kyrkan &mdash; mars 2026 (uppdaterad 2026-03-29)
-  &nbsp;·&nbsp; Utvecklat i dialog med Claude Code (Anthropic)
-</footer>
+<!-- ══════════════ FOOTER ══════════════ -->
+<div class="footer-section">
+  <p>
+    <strong>Rasmus Pettersson Vik</strong>
+    <span class="org">Härnösands pastorat &nbsp;·&nbsp; Svenska kyrkan</span>
+  </p>
+  <div class="footer-divider"></div>
+  <p>360° Hjälptillägg är ett öppet verktyg framtaget av och för registratorer inom Svenska kyrkan.<br>
+  Källkod och senaste version finns på GitHub.</p>
+  <p class="footer-ai">Utvecklat i dialog med Claude Code (Anthropic)</p>
+</div>
 
 </body>
 </html>
