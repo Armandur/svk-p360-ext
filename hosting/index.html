@@ -132,7 +132,7 @@
 <body>
 
 <header>
-  <h1>360° Hjälptillägg <span class="version-badge" id="version-badge">v1.3</span></h1>
+  <h1>360° Hjälptillägg <span class="version-badge" id="version-badge">{{VERSION}}</span></h1>
   <p>Svenska kyrkan &mdash; Hjälpmedel för Public 360°</p>
 </header>
 
@@ -151,10 +151,10 @@
       och följ installationsguiden nedan.
     </p>
     <a class="btn-ladda-ned" href="extension.crx" download>
-      ↓ Ladda ned tillägg (v1.3)
+      ↓ Ladda ned tillägg ({{VERSION}})
     </a>
     <p style="margin-top:12px;font-size:12px;color:#888;">
-      Senast uppdaterad: <span id="datum">–</span>
+      Senast uppdaterad: <span id="datum">{{DATE}}</span>
     </p>
   </div>
 
@@ -242,14 +242,6 @@
   360° Hjälptillägg &mdash; Svenska kyrkan
 </footer>
 
-<script>
-  // Sätt dagens datum dynamiskt
-  const d = new Date(document.lastModified);
-  if (d && !isNaN(d)) {
-    document.getElementById('datum').textContent =
-      d.toLocaleDateString('sv-SE', { year: 'numeric', month: 'long', day: 'numeric' });
-  }
-</script>
 
 </body>
 </html>
