@@ -31,7 +31,9 @@ jobs:
             --exclude "CLAUDE.md" \
             --exclude "ROADMAP.md" \
             --exclude "docs/*" \
-            --exclude "hosting/*"
+            --exclude "hosting/*" \
+            --exclude "loggar/*" \
+            --exclude "testfiler/*"
 
       - name: Paketera CRX
         env:
@@ -45,7 +47,9 @@ jobs:
             --exclude='CLAUDE.md' \
             --exclude='ROADMAP.md' \
             --exclude='docs' \
-            --exclude='hosting'
+            --exclude='hosting' \
+            --exclude='loggar' \
+            --exclude='testfiler'
 
           # Återskapa privat nyckel från secret
           echo "$CRX_PRIVATE_KEY" | base64 -d > "$HOME/svk-p360-ext.pem"
