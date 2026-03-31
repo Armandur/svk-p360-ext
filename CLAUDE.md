@@ -136,9 +136,18 @@ Samma target som ärendesidan, nyckeln är `DocumentEdit` (vs `EditCase` på är
 
 - Mallar lagras i `chrome.storage.local` under `dokumentmallar`
 - Ärendemallar innehåller djupkopior (instanser) i `ärendedokument`-arrayen
-- Instansformat: `{ dokumentmallId, namn, titel, handlingstyp, kategori, ... }`
+- Instansformat: `{ dokumentmallId, namn, titel, handlingstyp, kategori, ..., ärvKontaktFrånÄrende? }`
+  - `ärvKontaktFrånÄrende: true` → dokumentets `oregistreradKontakt` sätts automatiskt till ärendets externa kontakt
 - Redigering: `tempDokInstans` → `dokument-mall.html?instans=1` → `onChanged` uppdaterar listan
 - Bakåtkompatibilitet: gamla referenser utan egna fältvärden expanderas i `laddaMall()`
+
+## Ärendemall – kontaktprompt
+
+- `mall.promptaKontakt: true` → `visaKontaktInmatning()` visas i 360°-sidan innan ärendet skapas
+  - Stöder max en kontakt; befintlig kontakt i mallen används som förifyllning
+  - Promptad kontakt skickas via CustomEvent `p360-kontakt-för-dokument` (MAIN→ISOLATED) för injicering i `pendingÄrendedokument`
+- Utan prompt (`promptaKontakt: false`): förregistrerade kontakter injiceras direkt vid pre-sparning i `content.js`
+- `pendingÄrendedokument`-flöde: contact.js lyssnar på `p360-kontakt-för-dokument` och sätter `oregistreradKontakt` på berörda docs
 
 ## Snabbkommandon
 
