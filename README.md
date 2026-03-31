@@ -65,7 +65,7 @@ tilläggssidan och klicka på uppdateringsikonen (⟳) – eller inaktivera och 
 ## Distribuera med webbsida (för IT-ansvariga)
 
 Varje [release](https://github.com/Armandur/svk-p360-ext/releases) innehåller en färdig `index.html`
-(nedladdningssida med installationsguide). Lägg den tillsammans med en signerad `extension.crx`
+(nedladdningssida med installationsguide). Lägg den tillsammans med en signerad `svk-p360-ext.crx`
 på valfri intern webbserver.
 
 Källmall finns i [`hosting/index.html`](hosting/index.html) med platshållarna `{{VERSION}}` och
