@@ -58,13 +58,31 @@
     }
     #felmeddelande {
       display: none;
-      margin-top: 8px;
-      padding: 6px 8px;
-      background: #fff3cd;
-      border: 1px solid #ffc107;
-      border-radius: 4px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      margin: -12px -12px 10px -12px;
+      padding: 8px 36px 8px 10px;
+      background: #f8d7da;
+      border-bottom: 2px solid #f5c2c7;
       font-size: 12px;
-      color: #856404;
+      color: #842029;
+      font-weight: 500;
+    }
+    #felmeddelande-stang {
+      position: absolute;
+      top: 50%;
+      right: 8px;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      font-size: 16px;
+      line-height: 1;
+      cursor: pointer;
+      color: #842029;
+      padding: 0 2px;
+      width: auto;
+      margin: 0;
     }
 
     /* Mallsektionen */
@@ -163,6 +181,8 @@
   </style>
 </head>
 <body>
+  <div id="felmeddelande"><button id="felmeddelande-stang" title="Stäng">&#x2715;</button><span id="felmeddelande-text"></span></div>
+
   <h3>360° Verktyg</h3>
 
   <!-- Mallar (ärendemallar + dokumentmallar) -->
@@ -312,8 +332,6 @@
     <button data-action="arendesammanfattning">Ärendesammanfattning</button>
     <button data-action="processplan">Tilldela processplan</button>
   </div>
-
-  <div id="felmeddelande"></div>
 
 <div style="margin-top: 10px; text-align: right;">
     <a id="hjalp-lank" href="#" style="font-size: 11px; color: #888; text-decoration: none;">? Hjälp</a>

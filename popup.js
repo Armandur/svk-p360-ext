@@ -3,17 +3,19 @@
 // Filuppladdning (enskild och batch): popup-fil.js
 
 /**
- * Visar ett felmeddelande i popupen istället för alert.
+ * Visar ett felmeddelande fixerat längst upp i popupen.
  */
 function visaFel(meddelande) {
   const el = document.getElementById('felmeddelande');
-  el.textContent = meddelande;
+  document.getElementById('felmeddelande-text').textContent = meddelande;
   el.style.display = 'block';
 }
 
 function döljFelmeddelande() {
   document.getElementById('felmeddelande').style.display = 'none';
 }
+
+document.getElementById('felmeddelande-stang').addEventListener('click', döljFelmeddelande);
 
 /**
  * Hämtar aktiv flik och kontrollerar att vi är på rätt domän.
