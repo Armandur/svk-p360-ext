@@ -24,7 +24,7 @@ jobs:
 
       - name: Skapa zip
         run: |
-          zip -r extension.zip . \
+          zip -r extension-${{ steps.version.outputs.version }}.zip . \
             --exclude "*.git*" \
             --exclude ".github/*" \
             --exclude "CLAUDE.md" \
@@ -37,7 +37,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tillagg-dev-${{ github.sha }}
-          path: extension.zip
+          path: extension-${{ steps.version.outputs.version }}.zip
           retention-days: 14
 
       # --- Release (main) ---
@@ -49,6 +49,6 @@ jobs:
           name: Version ${{ steps.version.outputs.version }}
           body: |
             Automatiskt byggd release från main.
-            Ladda in `extension.zip` som ett okomprimerat tillägg i Chrome eller Edge.
-          files: extension.zip
+            Ladda in `extension-${{ steps.version.outputs.version }}.zip` som ett okomprimerat tillägg i Chrome eller Edge.
+          files: extension-${{ steps.version.outputs.version }}.zip
           fail_on_unmatched_files: true
