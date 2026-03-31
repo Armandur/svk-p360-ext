@@ -168,6 +168,11 @@ function kopplaHändelser() {
       document.getElementById('dok-off-titel-val').value === '3' ? '' : 'none';
   });
 
+  // Datum – "Fråga om datum vid körning" – dölj datumväljaren när aktivt
+  document.getElementById('dok-prompta-datum').addEventListener('change', () => {
+    uppdateraDatumFält();
+  });
+
   // Datum – visa/dölj datumfält
   document.getElementById('dok-datum-typ').addEventListener('change', () => {
     const typ = document.getElementById('dok-datum-typ').value;
@@ -193,6 +198,18 @@ function uppdateraSekretessFält() {
   const block = document.getElementById('sekretess-falt');
   block.style.display = kod !== '0' ? '' : 'none';
   if (kod !== '0') fyllParagrafer(kod);
+}
+
+function uppdateraDatumFält() {
+  const prompta = document.getElementById('dok-prompta-datum').checked;
+  const datumTypSel = document.getElementById('dok-datum-typ');
+  const datumVärdeFält = document.getElementById('dok-datum-värde');
+  datumTypSel.disabled = prompta;
+  datumVärdeFält.style.display = (!prompta && datumTypSel.value === 'datum') ? '' : 'none';
+  if (prompta) {
+    datumTypSel.value = '';
+    datumVärdeFält.value = '';
+  }
 }
 
 function uppdateraKategoriEtiketter() {
@@ -335,7 +352,8 @@ function hämtaFormulärData(namn) {
       ? { value: atkomstgruppSel.value, label: atkomstgruppSel.options[atkomstgruppSel.selectedIndex]?.text || '' }
       : null,
     oregistreradKontakt: document.getElementById('dok-oregistrerad-kontakt').value.trim(),
-    datum: (() => {
+    promptaDatum: document.getElementById('dok-prompta-datum').checked,
+    datum: document.getElementById('dok-prompta-datum').checked ? '' : (() => {
       const typ = document.getElementById('dok-datum-typ').value;
       if (typ === 'idag') return 'idag';
       if (typ === 'datum') return document.getElementById('dok-datum-värde').value || '';
@@ -387,8 +405,11 @@ function fyllFormulärFrånData(d) {
   document.getElementById('dok-oregistrerad-kontakt').value = d.oregistreradKontakt || '';
   document.getElementById('dok-sparat-papper').value = d.sparatPaPapper ?? '';
   // Datum – "idag", "YYYY-MM-DD" eller "" (bakåtkompatibel med ankomstdatum)
+  document.getElementById('dok-prompta-datum').checked = !!d.promptaDatum;
   const datumVärde = d.datum || d.ankomstdatum || '';
-  if (datumVärde === 'idag') {
+  if (d.promptaDatum) {
+    document.getElementById('dok-datum-typ').value = '';
+  } else if (datumVärde === 'idag') {
     document.getElementById('dok-datum-typ').value = 'idag';
   } else if (/^\d{4}-\d{2}-\d{2}$/.test(datumVärde)) {
     document.getElementById('dok-datum-typ').value = 'datum';
@@ -397,6 +418,7 @@ function fyllFormulärFrånData(d) {
   } else {
     document.getElementById('dok-datum-typ').value = '';
   }
+  uppdateraDatumFält();
 
   // Uppdatera etiketter baserat på kategori
   uppdateraKategoriEtiketter();
