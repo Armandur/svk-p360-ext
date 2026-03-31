@@ -109,6 +109,10 @@ Samma target som ärendesidan, nyckeln är `DocumentEdit` (vs `EditCase` på är
 │                                      # Startar dokumentskapande direkt mot öppen P360-flik
 ├── lib/                         # Bundlade bibliotek (pdf.js v4, Tesseract.js v5 + språkdata)
 ├── docs/                        # P360 teknisk referens (se ovan)
+├── dev/                         # Utvecklingshjälpmedel – ingår EJ i releaser
+│   ├── spy.js                   #   Felsökningsspion för DevTools-konsolen
+│   ├── loggar/                  #   Inspelade spion-loggar (JSON)
+│   └── testfiler/               #   Testdata (CSV, PDF)
 ├── CLAUDE.md
 └── ROADMAP.md
 ```
