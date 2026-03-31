@@ -48,7 +48,17 @@ jobs:
           tag_name: v${{ steps.version.outputs.version }}
           name: Version ${{ steps.version.outputs.version }}
           body: |
-            Automatiskt byggd release från main.
-            Ladda in `extension-${{ steps.version.outputs.version }}.zip` som ett okomprimerat tillägg i Chrome eller Edge.
+            ## Installation
+
+            1. Ladda ned `extension-${{ steps.version.outputs.version }}.zip` nedan.
+            2. Packa upp ZIP-filen till en valfri mapp på din dator (t.ex. `C:\Tillägg\360-hjalptillagg\`).
+               Mappen ska innehålla `manifest.json` direkt – inte en undermapp.
+            3. Öppna **`edge://extensions`** (Edge) eller **`chrome://extensions`** (Chrome).
+            4. Aktivera **Utvecklarläge** med reglaget uppe till vänster.
+            5. Klicka på **Läs in okomprimerat tillägg** och välj den uppackade mappen.
+
+            **Uppdatering:** packa upp den nya ZIP-filen till samma mapp och klicka på ⟳ på tilläggssidan.
+
+            Fullständig dokumentation finns i [README](https://github.com/Armandur/svk-p360-ext#readme).
           files: extension-${{ steps.version.outputs.version }}.zip
           fail_on_unmatched_files: true
