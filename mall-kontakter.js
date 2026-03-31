@@ -3,6 +3,7 @@
 // Använder global variabel: kontakter (definieras i mall.js)
 
 function renderaKontakter() {
+  const promptAktiv = document.getElementById('mall-prompta-kontakt')?.checked || false;
   const lista = document.getElementById('kontaktlista');
   lista.innerHTML = '';
   kontakter.forEach((k, idx) => {
@@ -11,6 +12,9 @@ function renderaKontakter() {
     div.draggable = true;
     div.dataset.idx = idx;
     const roll = KONTAKTROLLER.find(r => r.value === k.roll)?.label || k.roll;
+    const förifyllningNotering = promptAktiv
+      ? `<div class="kontakt-detaljer" style="color:#0078d4;font-style:italic;">Används som förifyllning vid körning</div>`
+      : '';
     div.innerHTML = `
       <div class="kontakt-rubrik"><span class="drag-handle">⠿</span>${escHtml(k.namn) || '(Namnlös)'} <span style="font-weight:normal;color:#888;font-size:12px">– ${escHtml(roll)}</span></div>
       <div class="kontakt-knappar">
@@ -18,6 +22,7 @@ function renderaKontakter() {
         <button data-idx="${idx}" data-action="ta-bort">✕</button>
       </div>
       <div class="kontakt-detaljer">${[k.epost, k.telefon, k.ort].filter(Boolean).map(escHtml).join(' · ')}</div>
+      ${förifyllningNotering}
     `;
     lista.appendChild(div);
   });
@@ -35,6 +40,14 @@ function renderaKontakter() {
       }
     });
   });
+
+  // Begränsa till max 1 kontakt i promptläge
+  const läggTillKnapp = document.getElementById('btn-lagg-till-kontakt');
+  if (läggTillKnapp) {
+    const begränsad = promptAktiv && kontakter.length >= 1;
+    läggTillKnapp.disabled = begränsad;
+    läggTillKnapp.title = begränsad ? 'Promptläge stöder max en kontakt (används som förifyllning)' : '';
+  }
 }
 
 function visaKontaktFormulär(idx) {

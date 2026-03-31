@@ -144,6 +144,11 @@
       background: #fffdf5;
     }
 
+    #btn-lagg-till-kontakt:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
     /* Drag-and-drop */
     .kontakt-kort[draggable="true"],
     .dokument-kort[draggable="true"] {
@@ -541,6 +546,14 @@
         Dra och släpp för att ändra ordning.<br>
         Om namnet liknar en befintlig kontakt i 360° visas en dubblettvarning – tillägget väljer
         alltid <em>Spara/Skapa ny</em> och skapar en ny oregistrerad kontakt.
+      </p>
+      <div class="faltrad" style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <input type="checkbox" id="mall-prompta-kontakt" style="width:auto;margin:0">
+        <label for="mall-prompta-kontakt" style="margin:0;font-weight:normal;cursor:pointer;">Fråga om extern kontakt vid körning</label>
+      </div>
+      <p id="prompta-kontakt-info" style="font-size:12px;color:#555;margin:0 0 8px;padding:8px 10px;background:#f0f6ff;border:1px solid #c2d8f5;border-radius:4px;display:none;">
+        Vid körning visas ett formulär för att ange kontaktuppgifter (stöder max en kontakt).
+        Kontaktuppgifterna nedan används som förifyllning i formuläret.
       </p>
       <div id="kontaktlista"></div>
       <button id="btn-lagg-till-kontakt">＋ Lägg till extern kontakt</button>

@@ -53,11 +53,23 @@ function renderaDokument() {
       ${ursprungInfo ? `<div class="dok-detaljer" style="color:#888;font-style:italic;">${ursprungInfo}</div>` : ''}
       ${klassMismatch ? `<div class="dok-detaljer" style="color:#c0392b;">⚠ Handlingstypen (${escHtml(handlTypText.split(' ')[0])}) matchar inte ärendets klassificering (${escHtml(klassKod)})</div>` : ''}
       ${tommaObl.length ? `<div class="dok-detaljer" style="color:#b36b00;">⚠ Användaren måste fylla i: ${escHtml(tommaObl.join(', '))}</div>` : ''}
+      <label style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#555;cursor:pointer;margin-top:5px;">
+        <input type="checkbox" data-idx="${idx}" data-action="arv-kontakt"
+               ${inst.ärvKontaktFrånÄrende ? 'checked' : ''} style="width:auto;margin:0;">
+        Ärv extern kontakt från ärendet
+      </label>
     `;
     lista.appendChild(div);
   });
 
   kopplaDragDrop(lista, ärendedokument, renderaDokument);
+
+  lista.querySelectorAll('input[data-action="arv-kontakt"]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const idx = parseInt(cb.dataset.idx, 10);
+      ärendedokument[idx].ärvKontaktFrånÄrende = cb.checked;
+    });
+  });
 
   lista.querySelectorAll('button[data-action]').forEach(btn => {
     btn.addEventListener('click', async () => {

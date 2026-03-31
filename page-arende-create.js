@@ -4,10 +4,145 @@
 // läggTillExternKontakt (page-arende-contacts.js)
 
 /**
+ * Visar en dialogruta för att samla in extern kontaktinformation.
+ * Returnerar ett kontaktobjekt eller null om användaren avbröt.
+ * @param {Object} förifyllning - Befintliga kontaktuppgifter från mallen (valfri)
+ */
+function visaKontaktInmatning(förifyllning) {
+  function esc(s) {
+    return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  förifyllning = förifyllning || {};
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.style.cssText =
+      'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:99995;' +
+      'display:flex;align-items:center;justify-content:center;font-family:sans-serif;';
+
+    const dialog = document.createElement('div');
+    dialog.style.cssText =
+      'background:#fff;border-radius:8px;padding:24px;width:460px;max-width:95vw;max-height:90vh;overflow-y:auto;' +
+      'font-size:14px;box-shadow:0 4px 24px rgba(0,0,0,0.3);box-sizing:border-box;';
+
+    dialog.innerHTML = `
+      <h3 style="margin:0 0 16px;font-size:16px;color:#1a5276;">Ange extern kontakt</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:3px;">Namn <span style="color:#c0392b;">*</span></label>
+          <input id="p360pk-namn" type="text" value="${esc(förifyllning.namn || '')}"
+            style="width:100%;padding:7px 9px;border:1px solid #ccc;border-radius:4px;font-size:13px;box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:3px;">Kontaktperson</label>
+          <input id="p360pk-kontaktperson" type="text" value="${esc(förifyllning.kontaktperson || '')}"
+            style="width:100%;padding:7px 9px;border:1px solid #ccc;border-radius:4px;font-size:13px;box-sizing:border-box;">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:3px;">E-post</label>
+          <input id="p360pk-epost" type="email" value="${esc(förifyllning.epost || '')}"
+            style="width:100%;padding:7px 9px;border:1px solid #ccc;border-radius:4px;font-size:13px;box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:3px;">Telefon</label>
+          <input id="p360pk-telefon" type="tel" value="${esc(förifyllning.telefon || '')}"
+            style="width:100%;padding:7px 9px;border:1px solid #ccc;border-radius:4px;font-size:13px;box-sizing:border-box;">
+        </div>
+      </div>
+      <div style="margin-bottom:10px;">
+        <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:3px;">Adress</label>
+        <input id="p360pk-adress" type="text" value="${esc(förifyllning.adress || '')}"
+          style="width:100%;padding:7px 9px;border:1px solid #ccc;border-radius:4px;font-size:13px;box-sizing:border-box;">
+      </div>
+      <div style="display:grid;grid-template-columns:120px 1fr;gap:10px;margin-bottom:16px;">
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:3px;">Postnummer</label>
+          <input id="p360pk-postnummer" type="text" value="${esc(förifyllning.postnummer || '')}"
+            style="width:100%;padding:7px 9px;border:1px solid #ccc;border-radius:4px;font-size:13px;box-sizing:border-box;">
+        </div>
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:3px;">Ort</label>
+          <input id="p360pk-ort" type="text" value="${esc(förifyllning.ort || '')}"
+            style="width:100%;padding:7px 9px;border:1px solid #ccc;border-radius:4px;font-size:13px;box-sizing:border-box;">
+        </div>
+      </div>
+      <div id="p360pk-fel" style="display:none;color:#c0392b;font-size:12px;margin-bottom:8px;"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button id="p360pk-avbryt" style="padding:7px 18px;background:#fff;color:#333;border:1px solid #ccc;border-radius:4px;cursor:pointer;font-size:13px;font-family:sans-serif;">Avbryt</button>
+        <button id="p360pk-ok" style="padding:7px 18px;background:#0078d4;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-family:sans-serif;">OK</button>
+      </div>
+    `;
+
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
+    dialog.querySelector('#p360pk-namn').focus();
+
+    const hämta = () => ({
+      namn:          dialog.querySelector('#p360pk-namn').value.trim(),
+      kontaktperson: dialog.querySelector('#p360pk-kontaktperson').value.trim(),
+      epost:         dialog.querySelector('#p360pk-epost').value.trim(),
+      telefon:       dialog.querySelector('#p360pk-telefon').value.trim(),
+      adress:        dialog.querySelector('#p360pk-adress').value.trim(),
+      postnummer:    dialog.querySelector('#p360pk-postnummer').value.trim(),
+      ort:           dialog.querySelector('#p360pk-ort').value.trim(),
+      roll:          förifyllning.roll || '9',
+      kommentar:     förifyllning.kommentar || '',
+    });
+
+    dialog.querySelector('#p360pk-ok').addEventListener('click', () => {
+      const k = hämta();
+      if (!k.namn) {
+        const fel = dialog.querySelector('#p360pk-fel');
+        fel.textContent = 'Namn är obligatoriskt.';
+        fel.style.display = '';
+        dialog.querySelector('#p360pk-namn').focus();
+        return;
+      }
+      overlay.remove();
+      resolve(k);
+    });
+
+    dialog.querySelector('#p360pk-avbryt').addEventListener('click', () => {
+      overlay.remove();
+      resolve(null);
+    });
+
+    overlay.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        dialog.querySelector('#p360pk-ok').click();
+      } else if (e.key === 'Escape') {
+        dialog.querySelector('#p360pk-avbryt').click();
+      }
+    });
+  });
+}
+
+/**
  * Öppnar nytt-ärende-formuläret som ett synligt överläggsrutefönster och fyller det
  * med malldata, sedan skickar formuläret. Navigerar till det nyskapade ärendet.
  */
 async function skapaFrånMall(mall) {
+  // Steg 0: Kontaktprompt om mallen kräver det
+  let promptadKontakt = null;
+  if (mall.promptaKontakt) {
+    const mallKontakt = mall.externaKontakter?.[0] || {};
+    promptadKontakt = await visaKontaktInmatning(mallKontakt);
+    if (promptadKontakt === null) return; // Användaren avbröt
+    // Signalera till isolated world (content.js) att uppdatera pending ärendedokument med kontakten
+    window.dispatchEvent(new CustomEvent('p360-kontakt-för-dokument', {
+      detail: { namn: promptadKontakt.namn }
+    }));
+  }
+
+  // Lista med kontakter att lägga till i ärendet:
+  // – promptad kontakt ersätter mallens förregistrerade kontakter
+  // – utan prompt används mallens kontaktlista som vanligt
+  const kontakterAttLäggaTill = promptadKontakt
+    ? [promptadKontakt]
+    : (mall.externaKontakter || []);
+
   const overlay = document.createElement('div');
   overlay.id = 'p360-mall-overlay';
   overlay.style.cssText =
@@ -219,13 +354,13 @@ async function skapaFrånMall(mall) {
       await sättSel('PlaceHolderMain_MainView_AccessCodeComboControl', '0');
     }
 
-    const bytteFlik = mall.externaKontakter?.length > 0 || !!mall.kommentar;
+    const bytteFlik = kontakterAttLäggaTill.length > 0 || !!mall.kommentar;
 
-    if (mall.externaKontakter?.length > 0) {
+    if (kontakterAttLäggaTill.length > 0) {
       pb('ctl00$PlaceHolderMain$MainView$WizardNavigationButton', 'ContactsStep');
       visaStatus('Lägger till externa kontakter…');
       await sleep(1500);
-      for (const kontakt of mall.externaKontakter) {
+      for (const kontakt of kontakterAttLäggaTill) {
         await läggTillExternKontakt(kontakt, pb);
         await sleep(500);
       }
