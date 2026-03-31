@@ -32,14 +32,11 @@ jobs:
             --exclude "docs/*" \
             --exclude "hosting/*"
 
-      - name: Installera Chromium
-        run: sudo apt-get install -y chromium-browser
-
       - name: Paketera CRX
         env:
           CRX_PRIVATE_KEY: ${{ secrets.CRX_PRIVATE_KEY }}
         run: |
-          # Kopiera tillägget till en katalog åtkomlig för snap-Chromium
+          # Kopiera tillägget (google-chrome-stable är förinstallerat som deb – ej snap)
           mkdir -p "$HOME/ext"
           rsync -a . "$HOME/ext/" \
             --exclude='.git' \
@@ -52,8 +49,8 @@ jobs:
           # Återskapa privat nyckel från secret
           echo "$CRX_PRIVATE_KEY" | base64 -d > "$HOME/svk-p360-ext.pem"
 
-          # Packa och signera tillägget
-          chromium-browser --pack-extension="$HOME/ext" --pack-extension-key="$HOME/svk-p360-ext.pem"
+          # Packa och signera tillägget med google-chrome-stable (ej snap)
+          google-chrome-stable --pack-extension="$HOME/ext" --pack-extension-key="$HOME/svk-p360-ext.pem"
 
           mv "$HOME/ext.crx" svk-p360-ext.crx
 
