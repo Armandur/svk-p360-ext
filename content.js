@@ -234,6 +234,29 @@ if (!window.__p360ManuellPausHandler) {
   window.addEventListener('p360-batch-manuell-paus', window.__p360ManuellPausHandler);
 }
 
+// Tar emot promptad kontakt från MAIN world (skapaFrånMall) och injicerar i pending ärendedokument
+if (!window.__p360KontaktFörDokumentHandler) {
+  window.__p360KontaktFörDokumentHandler = async (event) => {
+    const { namn } = event.detail || {};
+    if (!namn) return;
+    const stored = await chrome.storage.local.get('pendingÄrendedokument');
+    const pending = stored.pendingÄrendedokument;
+    if (!pending?.dokument?.length) return;
+    let uppdaterad = false;
+    for (const dok of pending.dokument) {
+      if (dok.ärvKontaktFrånÄrende) {
+        dok.oregistreradKontakt = namn;
+        uppdaterad = true;
+      }
+    }
+    if (uppdaterad) {
+      await chrome.storage.local.set({ pendingÄrendedokument: pending });
+      console.log('[p360] Injicerade kontakt "' + namn + '" i pending ärendedokument');
+    }
+  };
+  window.addEventListener('p360-kontakt-för-dokument', window.__p360KontaktFörDokumentHandler);
+}
+
 // Tar emot Handlingstyp-alternativ från MAIN world och sparar i chrome.storage.local
 if (!window.__p360HtHandler) {
   window.__p360HtHandler = async (event) => {
@@ -356,15 +379,29 @@ window.__p360OnMessageHandler = (request, sender, sendResponse) => {
       try {
         const källaUrl = window.location.href;
         const källaRecno = läsRecnoFrånUrl(källaUrl);
+
+        // För förregistrerad kontakt (ej promptläge): injicera kontaktnamnet direkt
+        // i de ärendedokument som är markerade att ärva kontakt från ärendet.
+        // I promptläge sker injiceringen senare via 'p360-kontakt-för-dokument'-eventet.
+        const ärendedokument = data.mall.ärendedokument;
+        if (!data.mall.promptaKontakt && data.mall.externaKontakter?.length > 0) {
+          const kontaktNamn = data.mall.externaKontakter[0].namn;
+          for (const dok of ärendedokument) {
+            if (dok.ärvKontaktFrånÄrende && !dok.oregistreradKontakt) {
+              dok.oregistreradKontakt = kontaktNamn;
+            }
+          }
+        }
+
         await chrome.storage.local.set({
           pendingÄrendedokument: {
-            dokument: data.mall.ärendedokument,
+            dokument: ärendedokument,
             sparad: Date.now(),
             källaUrl,
             källaRecno,
           }
         });
-        console.log(`[p360] Pre-sparade ${data.mall.ärendedokument.length} ärendedokument som pending`);
+        console.log(`[p360] Pre-sparade ${ärendedokument.length} ärendedokument som pending`);
       } catch (err) {
         console.error('[p360] Kunde inte pre-spara pending ärendedokument:', err.message);
       }

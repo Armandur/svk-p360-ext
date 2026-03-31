@@ -76,6 +76,11 @@ function kopplaHändelser() {
     uppdateraSekretessFält();
   });
 
+  document.getElementById('mall-prompta-kontakt').addEventListener('change', () => {
+    uppdateraPromptaKontaktUI();
+    renderaKontakter();
+  });
+
   // Omvalidera ärendedokument vid klassificeringsändring
   document.getElementById('mall-klass-select').addEventListener('change', () => renderaDokument());
   document.getElementById('mall-klass-recno').addEventListener('input', () => renderaDokument());
@@ -85,6 +90,14 @@ function kopplaHändelser() {
     const val = document.getElementById('mall-off-titel-val').value;
     document.getElementById('off-titel-falt').style.display = val === '3' ? '' : 'none';
   });
+}
+
+// ------------------------------------------------------------------
+// Prompta-kontakt-info – synlighet
+// ------------------------------------------------------------------
+function uppdateraPromptaKontaktUI() {
+  const checked = document.getElementById('mall-prompta-kontakt').checked;
+  document.getElementById('prompta-kontakt-info').style.display = checked ? '' : 'none';
 }
 
 // ------------------------------------------------------------------
@@ -280,6 +293,9 @@ async function laddaMall(id) {
       document.getElementById('mall-off-titel').value = mall.offentligTitel || '';
     }
   }
+
+  document.getElementById('mall-prompta-kontakt').checked = !!mall.promptaKontakt;
+  uppdateraPromptaKontaktUI();
 
   kontakter = mall.externaKontakter || [];
   renderaKontakter();

@@ -308,6 +308,7 @@ async function sparaMall() {
     status: document.getElementById('mall-status').value,
     kommentar: document.getElementById('mall-kommentar').value.trim(),
     debugPauseKlassificering: document.getElementById('mall-debug-pause-klass').checked,
+    promptaKontakt: document.getElementById('mall-prompta-kontakt').checked,
     externaKontakter: kontakter,
     ärendedokument: ärendedokument,
   };
