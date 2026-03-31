@@ -47,9 +47,8 @@ jobs:
         with:
           name: tillagg-dev-${{ github.sha }}
           path: |
-            extension.zip
+            extension-${{ steps.version.outputs.version }}.zip
             index.html
-          path: extension-${{ steps.version.outputs.version }}.zip
           retention-days: 14
 
       # --- Release (main) ---
@@ -61,11 +60,9 @@ jobs:
           name: Version ${{ steps.version.outputs.version }}
           body: |
             Automatiskt byggd release från main.
-            Ladda in `extension.zip` som ett okomprimerat tillägg i Chrome eller Edge.
+            Ladda in `extension-${{ steps.version.outputs.version }}.zip` som ett okomprimerat tillägg i Chrome eller Edge.
             Ladda ned `index.html` och lägg på din webbserver tillsammans med `extension.crx`.
           files: |
-            extension.zip
+            extension-${{ steps.version.outputs.version }}.zip
             index.html
-            Ladda in `extension-${{ steps.version.outputs.version }}.zip` som ett okomprimerat tillägg i Chrome eller Edge.
-          files: extension-${{ steps.version.outputs.version }}.zip
           fail_on_unmatched_files: true
