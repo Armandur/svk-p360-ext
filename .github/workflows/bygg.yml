@@ -61,7 +61,7 @@ jobs:
           body: |
             ## Installation via webbsida (rekommenderat)
 
-            Lägg `index.html` och `extension.crx` på din webbserver. Användarna öppnar sidan och drar in `.crx`-filen på `edge://extensions`.
+            Lägg `index.html` och `svk-p360-ext.crx` på din webbserver. Användarna öppnar sidan och drar in `.crx`-filen på `edge://extensions`.
 
             ## Installation manuellt (utan webbserver)
 
