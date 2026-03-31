@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>360° Hjälptillägg – Svenska kyrkan</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 15px;
+      color: #222;
+      background: #f7f7f7;
+      line-height: 1.6;
+    }
+    header {
+      background: #004b87;
+      color: #fff;
+      padding: 28px 24px 24px;
+    }
+    header h1 { margin: 0 0 4px; font-size: 22px; font-weight: 600; }
+    header p  { margin: 0; font-size: 13px; opacity: .8; }
+    main {
+      max-width: 680px;
+      margin: 32px auto;
+      padding: 0 20px 60px;
+    }
+    .kort {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .kort h2 {
+      margin: 0 0 16px;
+      font-size: 16px;
+      color: #004b87;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 8px;
+    }
+    .varning {
+      background: #fff8e1;
+      border-left: 4px solid #f9a825;
+      padding: 10px 14px;
+      border-radius: 0 4px 4px 0;
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+    .info {
+      background: #e8f4fd;
+      border-left: 4px solid #0078d4;
+      padding: 10px 14px;
+      border-radius: 0 4px 4px 0;
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+    ol.steg {
+      padding-left: 0;
+      list-style: none;
+      counter-reset: steg;
+    }
+    ol.steg li {
+      counter-increment: steg;
+      padding: 10px 10px 10px 44px;
+      position: relative;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    ol.steg li:last-child { border-bottom: none; }
+    ol.steg li::before {
+      content: counter(steg);
+      position: absolute;
+      left: 10px;
+      top: 12px;
+      width: 24px;
+      height: 24px;
+      background: #004b87;
+      color: #fff;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 24px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .btn-ladda-ned {
+      display: inline-block;
+      background: #004b87;
+      color: #fff;
+      padding: 12px 28px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 15px;
+      margin-top: 4px;
+    }
+    .btn-ladda-ned:hover { background: #003d70; }
+    .version-badge {
+      display: inline-block;
+      background: #e8f0fe;
+      color: #004b87;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 10px;
+      border-radius: 20px;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+    kbd {
+      background: #eee;
+      border: 1px solid #bbb;
+      border-radius: 3px;
+      padding: 1px 6px;
+      font-size: 12px;
+      font-family: monospace;
+    }
+    code {
+      background: #f3f3f3;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 13px;
+    }
+    a { color: #004b87; }
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: #aaa;
+      margin-top: 40px;
+    }
+    details summary {
+      cursor: pointer;
+      color: #004b87;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+    details > div {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #eee;
+      font-size: 13px;
+    }
+    .resurs-rad {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .resurs-kort {
+      flex: 1;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 18px 20px;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .resurs-kort:hover {
+      border-color: #004b87;
+      box-shadow: 0 2px 8px rgba(0,75,135,.12);
+    }
+    .resurs-kort .resurs-titel {
+      font-size: 14px;
+      font-weight: 600;
+      color: #004b87;
+    }
+    .resurs-kort .resurs-text {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.4;
+    }
+    @media (max-width: 480px) {
+      .resurs-rad { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>360° Hjälptillägg <span class="version-badge" id="version-badge">v1.3.2</span></h1>
+  <p>Svenska kyrkan &mdash; Hjälpmedel för Public 360°</p>
+</header>
+
+<main>
+
+  <div class="varning">
+    <strong>Obs:</strong> Tillägget fungerar enbart för medarbetare inom Svenska kyrkan
+    med tillgång till <code>p360.svenskakyrkan.se</code>.
+  </div>
+
+  <!-- Nedladdning -->
+  <div class="kort">
+    <h2>Ladda ned tillägget</h2>
+    <p>
+      Ladda ned den senaste versionen som en <code>.zip</code>-fil
+      och följ installationsguiden nedan.
+    </p>
+    <a class="btn-ladda-ned" href="extension-1.3.2.zip" download>
+      ↓ Ladda ned tillägg (v1.3.2)
+    </a>
+    <p style="margin-top:12px;font-size:12px;color:#888;">
+      Senast uppdaterad: <span id="datum">2026-03-31</span>
+    </p>
+  </div>
+
+  <!-- Resurser -->
+  <div class="resurs-rad">
+    <a class="resurs-kort" href="presentation.html">
+      <span class="resurs-titel">Presentation</span>
+      <span class="resurs-text">Översikt av tilläggets funktioner – lämplig att dela med kollegor eller chefer.</span>
+    </a>
+    <a class="resurs-kort" href="help.html">
+      <span class="resurs-titel">Hjälp &amp; referens</span>
+      <span class="resurs-text">Detaljerad dokumentation om alla funktioner, fält och snabbkommandon.</span>
+    </a>
+  </div>
+
+  <!-- Installation Edge -->
+  <div class="kort">
+    <h2>Installationsguide – Microsoft Edge</h2>
+
+    <div class="info">
+      Tillägget distribueras utanför Edge Add-ons Store och installeras som ett
+      <strong>okomprimerat tillägg</strong> via utvecklarläge. Det tar ungefär en minut.
+    </div>
+
+    <ol class="steg">
+      <li>
+        Ladda ned ZIP-filen ovan och packa upp den till en mapp på din dator,
+        t.ex. <code>Dokument\svk-p360-ext</code>.<br>
+        <strong>Flytta inte mappen efteråt</strong> – Edge behöver hitta den vid varje start.
+      </li>
+      <li>
+        Öppna <strong>Tillägg</strong> i Edge: skriv <code>edge://extensions</code>
+        i adressfältet och tryck Enter.
+      </li>
+      <li>
+        Aktivera <strong>Utvecklarläge</strong> med reglaget uppe till vänster.
+      </li>
+      <li>
+        Klicka på knappen <strong>"Läs in okomprimerat tillägg"</strong> som visas.
+      </li>
+      <li>
+        Välj mappen du packade upp i steg 1 (den som innehåller <code>manifest.json</code> direkt).
+      </li>
+      <li>
+        Klart! Tilläggsikonen visas i verktygsfältet. Om den är dold,
+        klicka på pusselbitikonen och fäst tillägget.
+      </li>
+    </ol>
+
+    <div class="varning" style="margin-top:16px;margin-bottom:0;">
+      <strong>Notera:</strong> Edge visar en notis om "tillägg i utvecklarläge" vid webbläsarstart.
+      Klicka <em>Inaktivera inte</em> för att behålla tillägget aktiverat.
+    </div>
+  </div>
+
+  <!-- Installation Chrome -->
+  <div class="kort">
+    <h2>Installationsguide – Google Chrome</h2>
+    <ol class="steg">
+      <li>Ladda ned och packa upp ZIP-filen till en fast mapp på din dator.</li>
+      <li>Öppna <code>chrome://extensions</code>.</li>
+      <li>Aktivera <strong>Utvecklarläge</strong> via reglaget uppe till höger.</li>
+      <li>Klicka <strong>"Läs in okomprimerat tillägg"</strong> och välj mappen.</li>
+    </ol>
+  </div>
+
+  <!-- Uppdatering -->
+  <div class="kort">
+    <h2>Uppdatera tillägget</h2>
+    <p>
+      När en ny version finns:
+    </p>
+    <ol class="steg">
+      <li>Ladda ned och packa upp den nya ZIP-filen <strong>till samma mapp</strong> som du använde vid installationen (skriv över de gamla filerna).</li>
+      <li>Öppna <code>edge://extensions</code> (eller <code>chrome://extensions</code>) och klicka på uppdateringsikonen (⟳) på tillägget, eller klicka <strong>Uppdatera</strong> högst upp på sidan.</li>
+    </ol>
+  </div>
+
+  <!-- Snabbkommandon -->
+  <div class="kort">
+    <h2>Snabbkommandon</h2>
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead>
+        <tr style="background:#f5f5f5;">
+          <th style="text-align:left;padding:6px 8px;border:1px solid #ddd;">Funktion</th>
+          <th style="text-align:left;padding:6px 8px;border:1px solid #ddd;">Tangenter</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style="padding:6px 8px;border:1px solid #ddd;">Dagboksblad + utskrift</td><td style="padding:6px 8px;border:1px solid #ddd;"><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd></td></tr>
+        <tr><td style="padding:6px 8px;border:1px solid #ddd;">Växla status</td><td style="padding:6px 8px;border:1px solid #ddd;"><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd></td></tr>
+        <tr><td style="padding:6px 8px;border:1px solid #ddd;">Redigera egenskaper</td><td style="padding:6px 8px;border:1px solid #ddd;"><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd></td></tr>
+        <tr><td style="padding:6px 8px;border:1px solid #ddd;">Makulera</td><td style="padding:6px 8px;border:1px solid #ddd;"><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- IT-admin -->
+  <div class="kort">
+    <h2>För IT-administratörer – distribution via grupprincip</h2>
+    <p style="font-size:13px;">
+      På <strong>domänanslutna datorer</strong> (Active Directory eller Intune/MDM) kan tillägget
+      distribueras tyst via <code>ExtensionInstallForcelist</code>-policyn utan att användaren
+      behöver göra något. Kontakta din IT-avdelning och hänvisa till
+      <a href="https://learn.microsoft.com/en-us/deployedge/microsoft-edge-manage-extensions-policies" target="_blank" rel="noopener">
+        Microsofts dokumentation om tilläggshantering
+      </a>.
+    </p>
+    <p style="font-size:13px;margin-bottom:0;">
+      En förpackad <code>.crx</code>-fil för enterprise-distribution medföljer varje release.
+    </p>
+  </div>
+
+</main>
+
+<footer>
+  360° Hjälptillägg &mdash; Svenska kyrkan
+</footer>
+
+</body>
+</html>

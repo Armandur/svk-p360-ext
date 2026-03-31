@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <title>360° Hjälptillägg – Hjälp</title>
+  <style>
+    body {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 24px 20px 40px;
+      font-family: sans-serif;
+      font-size: 14px;
+      color: #222;
+      line-height: 1.5;
+    }
+    h1 {
+      font-size: 18px;
+      margin: 0 0 4px;
+      color: #1a1a1a;
+    }
+    .version {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 24px;
+    }
+    h2 {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #555;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 4px;
+      margin: 28px 0 10px;
+    }
+    h3 {
+      font-size: 13px;
+      color: #333;
+      margin: 16px 0 6px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th {
+      text-align: left;
+      padding: 5px 8px;
+      background: #f0f0f0;
+      font-weight: 600;
+      border: 1px solid #ddd;
+    }
+    td {
+      padding: 5px 8px;
+      border: 1px solid #ddd;
+      vertical-align: top;
+    }
+    tr:nth-child(even) td {
+      background: #fafafa;
+    }
+    kbd {
+      display: inline-block;
+      background: #eee;
+      border: 1px solid #bbb;
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    .notera {
+      background: #fff8e1;
+      border-left: 3px solid #f9a825;
+      padding: 8px 12px;
+      margin: 12px 0;
+      font-size: 13px;
+    }
+    .steg {
+      counter-reset: steg;
+      padding-left: 0;
+      list-style: none;
+    }
+    .steg li {
+      counter-increment: steg;
+      margin-bottom: 6px;
+      padding-left: 28px;
+      position: relative;
+    }
+    .steg li::before {
+      content: counter(steg);
+      position: absolute;
+      left: 0;
+      width: 20px;
+      height: 20px;
+      background: #0078d4;
+      color: #fff;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .footer {
+      margin-top: 32px;
+      font-size: 12px;
+      color: #aaa;
+      text-align: center;
+    }
+    code {
+      background: #f3f3f3;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>360° Hjälptillägg</h1>
+  <div class="version">Svenska kyrkan &mdash; Hjälpmedel för P360/360° &mdash; v1.3</div>
+
+  <h2>Om tillägget</h2>
+  <p>
+    Tillägget automatiserar vanliga arbetsmoment i 360° och är avsett för registratorer
+    och handläggare inom Svenska kyrkans pastorat och stift. Det fungerar enbart på
+    ärendesidor i 360° (<code>p360.svenskakyrkan.se</code>).
+  </p>
+
+  <h2>Snabbkommandon</h2>
+  <p>
+    Snabbkommandona fungerar direkt på en ärendesida utan att öppna tilläggets popup.
+    De kan anpassas via <a href="#" id="lank-shortcuts">Tillägg &rsaquo; Kortkommandon</a> i webbläsarens tilläggsinställningar.
+  </p>
+  <table>
+    <thead>
+      <tr><th>Kommando</th><th>Standardtangenter</th><th>Funktion</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Dagboksblad</td>
+        <td><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd></td>
+        <td>Öppnar dagboksbladet i en ny flik och visar webbläsarens utskriftsdialog automatiskt</td>
+      </tr>
+      <tr>
+        <td>Växla status</td>
+        <td><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd></td>
+        <td>Växlar ärendets status mellan <em>Öppet</em> och <em>Avslutat</em></td>
+      </tr>
+      <tr>
+        <td>Redigera egenskaper</td>
+        <td><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd></td>
+        <td>Öppnar dialogen för att redigera egenskaper – fungerar både på ärendesidor och dokumentdetaljsidor</td>
+      </tr>
+      <tr>
+        <td>Makulera</td>
+        <td><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd></td>
+        <td>Öppnar statusdialogen förinställd på <em>Makulerat</em></td>
+      </tr>
+      <tr>
+        <td>Spara som nytt ärende</td>
+        <td><em>Ingen standard – tilldela manuellt</em></td>
+        <td>Öppnar dialogen för att spara ärendet som ett nytt ärende</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Ärendemallar</h2>
+  <p>
+    Med mallar kan du skapa nya ärenden med förifyllda fält – klassificering, skyddskod,
+    ansvarig enhet, status med mera – med ett enda knapptryck.
+  </p>
+  <ol class="steg">
+    <li>Klicka <strong>＋ Ny mall</strong> i popup-menyn för att öppna mallredigeraren.</li>
+    <li>Fyll i fälten som alltid ska vara desamma (klassificering, åtkomstgrupp, ansvarig enhet m.m.) och spara med ett namn.</li>
+    <li>Klicka <strong>Använd</strong> bredvid mallen i popupen, justera ärendetiteln och klicka <strong>Skapa ärende</strong>.</li>
+    <li>Tillägget öppnar formuläret i 360°, fyller i alla fält och skickar – du hamnar direkt på det nya ärendet.</li>
+  </ol>
+  <div class="notera">
+    <strong>Tips:</strong> Med inställningen <em>"Pausa innan skicka"</em> stannar
+    tillägget efter att fälten fyllts i så att du kan granska formuläret manuellt
+    innan det skickas.
+  </div>
+
+  <h3>Externa kontakter i mallar</h3>
+  <p>
+    En mall kan inkludera oregistrerade externa kontakter (ärendepart). Kontakternas
+    uppgifter (namn, adress, e-post m.m.) sparas i mallen och läggs till
+    automatiskt vid ärendeskapande. Kontakterna kan sorteras med dra-och-släpp.
+  </p>
+  <p>
+    Alternativt kan du aktivera <strong>Fråga om extern kontakt vid körning</strong>.
+    Då visas ett formulär direkt på 360°-sidan varje gång mallen används, där du
+    fyller i kontaktuppgifterna. Du kan spara en kontakt i mallen som förifyllning
+    i formuläret. Promptläget stöder max en kontakt.
+  </p>
+
+  <h3>Kontaktärvning i ärendedokument</h3>
+  <p>
+    Varje ärendedokument-instans i en ärendemall kan markeras med
+    <strong>Ärv extern kontakt från ärendet</strong>. Då kopieras ärendets externa
+    kontakt automatiskt till dokumentets kontaktfält när ärendedokumentet skapas –
+    oavsett om kontakten är förregistrerad i mallen eller angavs via promptformulär
+    vid körning.
+  </p>
+
+  <h3>Datumprompt i ärendedokument</h3>
+  <p>
+    Varje ärendedokument-instans i en ärendemall kan markeras med
+    <strong>Fråga om datum vid körning</strong>. Då visas en dialogruta direkt
+    på 360°-sidan precis innan dokumentet skapas, där du anger datum för just
+    det dokumentet. Etiketten anpassas automatiskt efter dokumentkategori
+    (Ankomstdatum för inkommande, Färdigst/exp-datum för övriga).
+  </p>
+  <p>
+    Samma kryssruta finns även i den fristående dokumentmallsredigeraren, för
+    mallar som används direkt via <strong>Använd</strong> på ett ärende.
+    När prompten är aktiv sparas inget fördefinierat datum i mallen.
+  </p>
+
+  <h3>Ärendedokument i mallar</h3>
+  <p>
+    Dokumentmallar kan läggas till i en ärendemall. Då skapas en oberoende
+    <em>instans</em> (kopia) som kan redigeras utan att påverka originalmallen.
+    Dokumenten skapas automatiskt efter att ärendet skapats. Du kan även bifoga
+    filer till varje dokumentinstans.
+  </p>
+
+  <h2>Dokumentmallar</h2>
+  <p>
+    Dokumentmallar används för att snabbt skapa ärendedokument (handlingar) med
+    förifyllda fält som handlingstyp, dokumentkategori, skyddskod, datum m.m.
+  </p>
+  <p>
+    Klicka <strong>＋ Ny dokumentmall</strong> i popup-menyn för att skapa en mall.
+    Du kan sedan använda mallen direkt på ett öppet ärende via <strong>Använd</strong>.
+  </p>
+
+  <h3>Stödda dokumentkategorier</h3>
+  <table>
+    <thead>
+      <tr><th>Kategori</th><th>Datumfält</th><th>Kontaktfält</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Inkommande</td>
+        <td>Ankomstdatum</td>
+        <td>Avsändare</td>
+      </tr>
+      <tr>
+        <td>Utgående</td>
+        <td>Färdigst/exp-datum</td>
+        <td>Mottagare</td>
+      </tr>
+      <tr>
+        <td>Upprättat</td>
+        <td>Färdigst/exp-datum</td>
+        <td>–</td>
+      </tr>
+      <tr>
+        <td>Protokoll</td>
+        <td>Färdigst/exp-datum</td>
+        <td>Mottagare</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Handlingstyp och klassificering</h3>
+  <p>
+    Handlingstyper i 360° är kopplade till ärendets klassificering. Om en dokumentmall
+    har en handlingstyp som inte matchar det aktuella ärendets klassificering visas en
+    varningstriangel (<span style="color:#b36b00;">⚠</span>) bredvid mallnamnet i popupen.
+  </p>
+  <div class="notera">
+    <strong>Tips:</strong> Fäll ut ärendets <em>Detaljer</em>-panel innan du öppnar tilläggets
+    popup. Då kan tillägget läsa klassificeringen och visa varningen direkt. Om panelen är
+    ihopfälld visas varningen först när du klickar "Använd".
+  </div>
+
+  <h3>Filuppladdning</h3>
+  <p>
+    Du kan bifoga filer till ärendedokument på två sätt:
+  </p>
+  <ul>
+    <li><strong>Ladda upp fil(er) till nytt ärendedokument</strong> – öppnar dokumentformuläret
+      med filerna redan uppladdade. Välj valfri dokumentmall.</li>
+    <li><strong>Batch: en fil per ärendedokument</strong> – välj flera filer; varje fil skapar
+      ett eget ärendedokument med valfri dokumentmall.</li>
+  </ul>
+
+  <h3>Hämta information från PDF (OCR)</h3>
+  <p>
+    När du laddar upp PDF-filer kan tillägget automatiskt läsa ut avsändare/mottagare,
+    ankomstdatum och titel direkt ur handlingen, utan manuell inmatning.
+    Klicka på knappen <strong>Hämta info från PDF</strong> för att öppna PDF-visaren.
+  </p>
+  <p>
+    I PDF-visaren finns tre sätt att fylla i ett fält:
+  </p>
+  <ul>
+    <li><strong>Klicka på en textrad</strong> i den extraherade textlistan till höger –
+      raden kopieras direkt till det aktiva fältet.</li>
+    <li><strong>Rita en rektangel</strong> (knappen <em>Rita rektangel för OCR</em>) –
+      markera ett valfritt område i PDF-bilden och tillägget kör OCR på det avsnittet
+      med Tesseract. Passar för skannade dokument utan digital text.</li>
+    <li><strong>Skriv manuellt</strong> i fältet.</li>
+  </ul>
+  <p>
+    Välj vilket fält som ska ta emot nästa text med knapparna
+    <em>Avsändare / Mottagare</em>, <em>Datum</em> eller <em>Titel</em>.
+    Datumfältet normaliserar automatiskt vanliga format (t.ex.&nbsp;<code>2026 03-30</code>
+    eller&nbsp;<code>30-03-2026</code>) till&nbsp;<code>ÅÅÅÅ-MM-DD</code>.
+  </p>
+  <div class="notera">
+    <strong>Titel:</strong> Om dokumentmallen redan har en titel definierad visas en
+    informationsruta med mallens titel. Bocka i <em>Ersätt med OCR-extraherad titel</em>
+    om du vill använda den OCR-lästa titeln istället.
+  </div>
+  <p>
+    Klicka <strong>Använd</strong> när du är klar – tillägget startar omedelbart
+    dokumentskapandet i den öppna 360°-fliken och stänger PDF-visaren.
+  </p>
+
+  <h4>Batch – per-fils information</h4>
+  <p>
+    I batch-läget visas en filnavigator (<strong>◀ Fil X/Y: filnamn ▶</strong>)
+    högst upp i högerkolumnen. Navigera mellan filerna och fyll i kontakt,
+    datum och titel individuellt för varje fil. Värden sparas automatiskt
+    när du byter fil, och varje ärendedokument får sina egna uppgifter när
+    du klickar <strong>Använd</strong>.
+  </p>
+  <p>
+    Filer som inte är PDF:er visar en platshållare med filnamnet – du kan
+    ändå fylla i fälten manuellt för den filen.
+  </p>
+
+  <h2>Massregistrering</h2>
+  <p>
+    Massregistrering skapar många ärenden i batch utifrån en CSV-fil eller manuellt
+    tillagda rader. Varje rad blir ett ärende med kontaktperson, valfria ärendedokument
+    och valfri statusändring.
+  </p>
+  <ol class="steg">
+    <li><strong>Välj ärendemall</strong> – gemensam grund för alla ärenden (klassificering, åtkomstgrupp, ansvarig enhet m.m.).</li>
+    <li><strong>Konfigurera dokumentslotsar</strong> – koppla varje <code>Fil_N</code>-kolumn till en dokumentmall. Kontaktrollen (avsändare/mottagare) bestäms av dokumentmallens kategori. Slotsar utan kopplad fil skapar tomma ärendedokument.</li>
+    <li><strong>Importera CSV</strong> eller lägg till rader manuellt i tabellen. Kolumner: Titel, Förnamn, Efternamn, Personnummer, Adress, Fil_1, Fil_2 m.m.</li>
+    <li><strong>Koppla filer</strong> (valfritt) – klicka "Koppla filer" och välj de PDF:er/filer som nämns i Fil-kolumnerna. Tillägget matchar filnamn automatiskt. Rader utan filer skapar tomma ärendedokument.</li>
+    <li><strong>Välj inställningar</strong> – markera eventuellt <em>Stäng ärende</em> (sätter status Avslutat) och/eller <em>Öppna dagboksblad efteråt</em> (öppnar dagboksbladet som popup direkt efter varje ärende).</li>
+    <li><strong>Förhandsgranska</strong> – en sammanfattning visas med alla ärenden och dokument som ska skapas (ärendetitel, ärendepart, dokumentkategori, kontakt, datum, fil). Bekräfta för att starta.</li>
+    <li><strong>Starta batch</strong> – ärendena skapas sekventiellt. Du kan avbryta när som helst.</li>
+  </ol>
+
+  <h3>CSV-format</h3>
+  <p>
+    CSV-filen ska vara semikolon- eller kommaseparerad. Första raden är kolumnrubriker.
+  </p>
+  <table>
+    <thead>
+      <tr><th>Kolumn</th><th>Obligatorisk</th><th>Beskrivning</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Titel <em>(visas som Ärendetitel)</em></td><td>Ja</td><td>Ärendetitel</td></tr>
+      <tr><td>Namn <em>(visas som Ärendepart)</em></td><td>Ja</td><td>Kontaktpersonens fullständiga namn (ärendepart)</td></tr>
+      <tr><td>Personnummer</td><td>Nej</td><td>Pers/org-nummer</td></tr>
+      <tr><td>Adress</td><td>Nej</td><td>Postadress</td></tr>
+      <tr><td>Postnummer</td><td>Nej</td><td>Postnummer</td></tr>
+      <tr><td>Ort</td><td>Nej</td><td>Ort</td></tr>
+      <tr><td>Epost</td><td>Nej</td><td>E-postadress</td></tr>
+      <tr><td>Telefon</td><td>Nej</td><td>Telefonnummer</td></tr>
+      <tr><td>Fil_1, Fil_2, …</td><td>Nej</td><td>Filnamn som kopplas till dokumentslotsar</td></tr>
+      <tr><td>DokKontakt_1, DokKontakt_2, …</td><td>Nej</td><td>Oregistrerad kontakt per ärendedokument. I tabellen styr en kryssruta per cell om ärendepartens namn (<em>Namn</em>) ska användas (ikryssad, default) eller om ett eget värde ska anges (avbockad). Tom avbockad cell = ingen dokumentkontakt. Vid CSV-import: har kolumnen ett värde bockas kryssrutan av automatiskt, annars ikryssad.</td></tr>
+      <tr><td>DokTitel_1, DokTitel_2, …</td><td>Nej</td><td>Dokumenttitel per ärendedokument. Överstyr titeln i dokumentmallen.</td></tr>
+      <tr><td>DokDatum_1, DokDatum_2, …</td><td>Nej</td><td>Datum per ärendedokument (ÅÅÅÅ-MM-DD). Inkommande = ankomstdatum, Utgående = expedierat datum, Upprättat = upprättat datum. Tom = Ankomstdatum används som fallback för inkommande.</td></tr>
+      <tr><td>Kommentar</td><td>Nej</td><td>Ärendekommentar (flik 5 i formuläret)</td></tr>
+      <tr><td>Ankomstdatum</td><td>Nej</td><td>Fallback-datum för inkommande ärendedokument (om DokDatum_N saknas). Sätts även som ärendets ankomstdatum.</td></tr>
+      <tr><td>Status</td><td>Nej</td><td>Överstyr status (t.ex. "Avslutat")</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Filkoppling</h3>
+  <p>
+    CSV-filen innehåller bara filnamn (t.ex. <code>ansökan_eriksson.pdf</code>), inte
+    filerna själva. Använd knappen <strong>Koppla filer</strong> för att välja de faktiska
+    filerna. Tillägget matchar filnamn i tabellen mot de valda filerna.
+  </p>
+  <ul>
+    <li>📄 = fil kopplad</li>
+    <li>⚠ = filnamn i tabellen men ingen fil kopplad</li>
+    <li>Dokumentslotsar utan kopplad fil skapar tomma ärendedokument (ingen fil bifogas)</li>
+  </ul>
+
+  <h3>Under körning</h3>
+  <p>
+    Batchkörningen sker sekventiellt – ett ärende i taget. Håll 360°-fliken synlig
+    under körningen. Om obligatoriska fält saknar värden pausar körningen och
+    väntar på att du fyller i manuellt i 360°.
+  </p>
+  <div class="notera">
+    <strong>Avbryta:</strong> Klicka <strong>Avbryt</strong> för att stoppa efter nästa ärende.
+    Redan skapade ärenden och dokument finns kvar i 360° och måste makuleras manuellt
+    om de inte ska behållas.
+  </div>
+
+  <h3>OCR i massregistrering</h3>
+  <p>
+    Varje PDF-fil i en Fil-cell har en 🔍-knapp. Klicka den för att öppna PDF:en i
+    OCR-visaren och hämta avsändare/mottagare, datum och titel för just det
+    ärendedokumentet. Värdena skrivs tillbaka till rätt <code>DokKontakt_N</code>,
+    <code>DokDatum_N</code> och <code>DokTitel_N</code>-kolumner i tabellen.
+    När en OCR-kontakt skrivs in bockas kryssrutan <em>Använd ärendepart</em> av
+    automatiskt så att den OCR-extraherade kontakten används för ärendedokumentet.
+  </p>
+  <p>
+    Du kan även sätta <strong>ärendepartens namn</strong> direkt i samma OCR-session:
+    bocka i <em>Ange ärendepart separat</em> för att visa ett extra fält och en
+    <em>Ärendepart</em>-knapp i fältväljaren. Fyll i ärendepartens namn (manuellt
+    eller via klick i textraden) och klicka <strong>Använd</strong> – både
+    dokumentkontakt och ärendepart sparas till tabellen på en gång.
+    Om ärendepart redan är satt för raden visas en varning när du aktiverar togglen.
+  </p>
+
+  <h3>Resultat och dagboksblad</h3>
+  <p>
+    När körningen är klar visas en resultatrapport med status per rad. Härifrån kan du:
+  </p>
+  <ul>
+    <li><strong>Ladda ned resultat-CSV</strong> – exporterar resultattabellen som CSV-fil.</li>
+    <li><strong>Öppna dagboksblad (flikar)</strong> – hämtar dagboksbladet för alla lyckade
+      ärenden parallellt och öppnar varje dagboksblad som en PDF-fil i en bakgrundsflik.</li>
+    <li><strong>Öppna sammanfogad PDF</strong> <em>(visas när &gt;1 lyckades)</em> – slår ihop
+      alla dagboksblad till en enda PDF och öppnar den i en ny flik. Praktiskt när alla
+      dagboksblad ska skrivas ut med ett enda utskriftskommando.</li>
+    <li><strong>Ladda ned dagboksblad (PDF)</strong> – sparar en fil per ärende
+      (<code>dagboksblad_{diarienummer}.pdf</code>).</li>
+    <li><strong>Ladda ned som ZIP</strong> <em>(visas när &gt;1 lyckades)</em> – samlar alla
+      dagboksblads-PDF:er i en zip-fil (<code>dagboksblad-ÅÅÅÅ-MM-DD.zip</code>).</li>
+    <li><strong>Ladda ned sammanfogad PDF</strong> <em>(visas när &gt;1 lyckades)</em> – en
+      enda PDF med alla dagboksbladssidor efter varandra.</li>
+  </ul>
+
+  <h2>Funktioner i popup-menyn</h2>
+  <p>Klicka på tilläggsikonen i verktygsfältet för att öppna popup-menyn.</p>
+
+  <table>
+    <thead>
+      <tr><th>Knapp</th><th>Beskrivning</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Dagboksblad</strong></td>
+        <td>
+          Öppnar dagboksbladet som PDF i en ny fokuserad flik och visar
+          webbläsarens utskriftsdialog automatiskt. Välj skrivare och tryck Enter.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Växla status</strong></td>
+        <td>
+          Växlar automatiskt ärendets status: Öppet → Avslutat, Avslutat → Öppet.
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Sätt status</strong></td>
+        <td>
+          Välj ett specifikt statusvärde (Öppet, Avslutat, Avslutat från
+          handläggare, Makulerat) och klicka "Sätt status".
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Redigera egenskaper</strong></td>
+        <td>Öppnar redigera-dialogen för ärendets eller dokumentets egenskaper. Fungerar både på ärendesidor och dokumentdetaljsidor – tillägget väljer rätt dialog automatiskt.</td>
+      </tr>
+      <tr>
+        <td><strong>Registrera utlåning</strong></td>
+        <td>Öppnar dialogen för att registrera utlåning av ärendet.</td>
+      </tr>
+      <tr>
+        <td><strong>Gallring</strong></td>
+        <td>Öppnar gallringsdialogen för ärendet.</td>
+      </tr>
+      <tr>
+        <td><strong>Spara som nytt ärende</strong></td>
+        <td>Skapar ett nytt ärende baserat på det aktuella.</td>
+      </tr>
+      <tr>
+        <td><strong>Kopiera hyperlänk</strong></td>
+        <td>Kopierar en direktlänk till ärendet till urklipp.</td>
+      </tr>
+      <tr>
+        <td><strong>Ärendesammanfattning</strong></td>
+        <td>Producerar en ärendesammanfattning.</td>
+      </tr>
+      <tr>
+        <td><strong>Tilldela processplan</strong></td>
+        <td>Öppnar dialogen för att tilldela en processplan till ärendet.</td>
+      </tr>
+      <tr>
+        <td><strong>Massregistrering</strong></td>
+        <td>Öppnar massregistreringssidan för batch-skapande av ärenden från CSV.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Krav och begränsningar</h2>
+  <div class="notera">
+    De flesta funktioner kräver att du är inloggad i 360° och befinner dig på en
+    <strong>ärendesida</strong>. Knappen <em>Redigera egenskaper</em> och kortkommandot
+    <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> fungerar även på
+    <strong>dokumentdetaljsidor</strong>. Försök att använda övriga funktioner på andra
+    sidor ger ett felmeddelande.
+  </div>
+  <ul>
+    <li>Massregistrering kräver att 360° är öppet i en annan flik.</li>
+    <li>
+      Efter en uppdatering av tillägget kan det behöva laddas om via
+      <code>chrome://extensions</code> (klicka på uppdateringsikonen).
+    </li>
+    <li>Tillägget lagrar eller skickar aldrig känslig information utanför webbläsaren.</li>
+    <li>Tillägget är testat med rollen registrator/huvudregistrator. Andra roller kan ha annorlunda beteende.</li>
+  </ul>
+
+  <div class="footer">360° Hjälptillägg &mdash; Svenska kyrkan</div>
+  <script src="help.js"></script>
+</body>
+</html>

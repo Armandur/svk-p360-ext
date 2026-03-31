@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>360° Hjälptillägg – Presentation</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:   #003D87;
+      --light:  #0066CC;
+      --gold:   #B8943A;
+      --green:  #1A7F4A;
+      --bg:     #F5F7FB;
+      --text:   #1A1A2E;
+      --muted:  #5A6070;
+      --border: #DDE2EC;
+      --white:  #FFFFFF;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ── Omslag / cover ── */
+    .cover {
+      background: linear-gradient(150deg, var(--blue) 0%, #001f50 100%);
+      color: #fff;
+      padding: 72px 40px 60px;
+      text-align: center;
+      position: relative;
+      page-break-after: always;
+    }
+    .cover-badge {
+      display: inline-block;
+      border: 1px solid rgba(184,148,58,0.7);
+      color: rgba(255,255,255,0.75);
+      border-radius: 20px;
+      padding: 4px 16px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+    .cover h1 {
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+    .cover h1 em {
+      font-style: normal;
+      color: #E8C96A;
+    }
+    .cover-tagline {
+      font-size: 18px;
+      color: rgba(255,255,255,0.75);
+      max-width: 520px;
+      margin: 0 auto 48px;
+      font-weight: 400;
+    }
+    .cover-divider {
+      width: 48px;
+      height: 3px;
+      background: var(--gold);
+      margin: 0 auto 40px;
+      border-radius: 2px;
+    }
+    .cover-meta {
+      font-size: 13px;
+      color: rgba(255,255,255,0.55);
+      line-height: 2;
+    }
+    .cover-meta strong {
+      color: rgba(255,255,255,0.85);
+      font-weight: 600;
+      display: block;
+    }
+    .cover-meta .org {
+      color: rgba(255,255,255,0.5);
+      font-size: 12px;
+    }
+    .cover-ai {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 28px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      padding: 8px 18px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.6);
+    }
+    .cover-ai svg {
+      opacity: 0.7;
+    }
+
+    /* ── Sida / page wrapper ── */
+    .page {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    /* ── Sektion ── */
+    .section {
+      padding: 52px 0 44px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section:last-of-type { border-bottom: none; }
+
+    .section-eyebrow {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--light);
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--blue);
+      margin-bottom: 10px;
+    }
+    .section-lead {
+      font-size: 15px;
+      color: var(--muted);
+      max-width: 620px;
+      margin-bottom: 36px;
+    }
+
+    /* ── Feature-kort ── */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .feature-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px 20px;
+    }
+    .feature-icon {
+      font-size: 26px;
+      margin-bottom: 12px;
+      display: block;
+    }
+    .feature-card h3 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--blue);
+    }
+    .feature-card p {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    /* ── Stegmodell ── */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 0;
+      position: relative;
+    }
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 0 12px 24px;
+      position: relative;
+    }
+    .step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 20px;
+      right: -1px;
+      width: 2px;
+      height: 40px;
+      background: var(--border);
+    }
+    .step-num {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: #fff;
+      font-weight: 700;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      flex-shrink: 0;
+    }
+    .step strong {
+      font-size: 13px;
+      font-weight: 700;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .step p {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* ── Kortkommando-tabell ── */
+    .shortcut-list {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .sc-row {
+      display: contents;
+    }
+    .sc-row:nth-child(odd) .sc-key,
+    .sc-row:nth-child(odd) .sc-desc {
+      background: #F9FAFC;
+    }
+    .sc-key {
+      padding: 12px 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--blue);
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      background: var(--white);
+    }
+    .sc-row:last-child .sc-key,
+    .sc-row:last-child .sc-desc {
+      border-bottom: none;
+    }
+    .sc-desc {
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+      background: var(--white);
+    }
+    kbd {
+      display: inline-block;
+      background: var(--white);
+      border: 1px solid #C0CAD8;
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--blue);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    }
+
+    /* ── Ingångspunkter ── */
+    .entry-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .entry-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .entry-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 2px solid var(--blue);
+      color: var(--blue);
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .entry-card h4 {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: var(--blue);
+    }
+    .entry-card p {
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    /* ── Citat / lyftruta ── */
+    .pullquote {
+      border-left: 4px solid var(--gold);
+      padding: 16px 20px;
+      margin: 32px 0;
+      background: #FEFBF3;
+      border-radius: 0 8px 8px 0;
+      font-size: 15px;
+      color: #4A3B10;
+      line-height: 1.6;
+      font-style: italic;
+    }
+
+    /* ── Footer / signatur ── */
+    .footer-section {
+      background: var(--blue);
+      color: rgba(255,255,255,0.75);
+      padding: 48px 40px;
+      text-align: center;
+    }
+    .footer-section p {
+      font-size: 13px;
+      line-height: 1.8;
+    }
+    .footer-section strong {
+      color: #fff;
+      font-size: 15px;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .footer-section .org {
+      color: rgba(255,255,255,0.5);
+      font-size: 12px;
+    }
+    .footer-divider {
+      width: 32px;
+      height: 2px;
+      background: var(--gold);
+      margin: 20px auto;
+      border-radius: 2px;
+    }
+    .footer-ai {
+      font-size: 12px;
+      color: rgba(255,255,255,0.45);
+      margin-top: 8px;
+    }
+
+    /* ── Print ── */
+    @media print {
+      body { background: #fff; font-size: 12px; }
+      .cover { padding: 56px 32px 48px; page-break-after: always; }
+      .cover h1 { font-size: 30px; }
+      .section { padding: 36px 0 28px; page-break-inside: avoid; }
+      .feature-grid { grid-template-columns: repeat(3, 1fr); }
+      .entry-grid { grid-template-columns: repeat(2, 1fr); }
+      .footer-section { padding: 36px; }
+      .feature-card, .entry-card { box-shadow: none; }
+      .benefit-card:hover { transform: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════ OMSLAG ══════════════ -->
+<div class="cover">
+  <div class="cover-badge">Svenska kyrkan &nbsp;·&nbsp; P360 / 360°</div>
+  <h1>360° <em>Hjälptillägg</em></h1>
+  <p class="cover-tagline">Ett webbläsartillägg som automatiserar det repetitiva arbetet i 360° – så att du kan fokusera på det som faktiskt kräver din uppmärksamhet.</p>
+  <div class="cover-divider"></div>
+  <div class="cover-meta">
+    <strong>Rasmus Pettersson Vik</strong>
+    <span class="org">Härnösands pastorat</span>
+  </div>
+  <div class="cover-ai">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+    Utvecklat i dialog med Claude Code (Anthropic)
+  </div>
+</div>
+
+<!-- ══════════════ INNEHÅLL ══════════════ -->
+<div class="page">
+
+  <!-- ── Varför ── -->
+  <div class="section">
+    <div class="section-eyebrow">Bakgrund</div>
+    <h2 class="section-title">Varför finns tillägget?</h2>
+    <p class="section-lead">
+      Att skapa ärenden, registrera handlingar och skriva ut dagboksblad i 360° kräver
+      ofta många klick och manuell inmatning av samma uppgifter gång på gång.
+      Tillägget tar bort den friktionen.
+    </p>
+
+    <div class="pullquote">
+      "Istället för att manuellt fylla i klassificering, skyddskod, ansvarig enhet och
+      status varje gång – spara en mall en gång och skapa nästa ärende med ett enda
+      knapptryck."
+    </div>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <span class="feature-icon">⚡</span>
+        <h3>Snabbare vardag</h3>
+        <p>Ärendemallar, snabbkommandon och automatisk ifyllning sparar tid vid varje registrering.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔁</span>
+        <h3>Färre klick</h3>
+        <p>Dagboksblad, statusväxling och egenskapsdialog nås med en knapptryckning – utan att navigera i menyer.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📋</span>
+        <h3>Enhetlighet</h3>
+        <p>Mallar säkerställer att rätt klassificering, åtkomstgrupp och status alltid används – oavsett vem som registrerar.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔒</span>
+        <h3>Säkert &amp; lokalt</h3>
+        <p>All data stannar i webbläsaren. Inga externa API-anrop, inga servrar, ingen inloggning utöver 360° själv.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Funktioner ── -->
+  <div class="section">
+    <div class="section-eyebrow">Funktioner</div>
+    <h2 class="section-title">Vad kan tillägget göra?</h2>
+    <p class="section-lead">Tillägget arbetar direkt mot 360° i webbläsaren och lägger sig aldrig i vägen – det syns bara när du behöver det.</p>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <span class="feature-icon">📁</span>
+        <h3>Ärendemallar</h3>
+        <p>Spara en ärendekonfiguration – klassificering, skyddskod, ansvarig enhet, status m.m. – och återanvänd med ett klick. Mallen kan även innehålla externa kontakter och ärendedokument.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📄</span>
+        <h3>Dokumentmallar</h3>
+        <p>Skapa ärendedokument med förifyllda fält: handlingstyp, kategori, datum, kontakt. Passar inkommande, utgående, upprättade och protokoll.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🖨️</span>
+        <h3>Dagboksblad</h3>
+        <p>Hämtar dagboksbladet och öppnar utskriftsdialogen automatiskt. En knapptryckning – inget letande i menyer.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔄</span>
+        <h3>Statushantering</h3>
+        <p>Växla ett ärende mellan Öppet och Avslutat, eller sätt ett specifikt statusvärde. Fungerar direkt utan att redigera egenskaper manuellt.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔍</span>
+        <h3>OCR – info från PDF</h3>
+        <p>Läs automatiskt ut avsändare, datum och titel ur en PDF-handling. Stöd för både digitala PDF:er och skannade dokument via Tesseract OCR. <strong>All igenkänning sker lokalt i webbläsaren – inga externa anrop görs och handlingens innehåll lämnar aldrig datorn.</strong></p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📊</span>
+        <h3>Massregistrering</h3>
+        <p>Skapa många ärenden i ett svep från en CSV-fil. Varje rad blir ett ärende med kontakt, ärendedokument och valfri statusändring. Exportera dagboksblad i bulk som ZIP eller sammanslagen PDF.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Så här fungerar ärendemallen ── -->
+  <div class="section">
+    <div class="section-eyebrow">Exempel</div>
+    <h2 class="section-title">Skapa ett ärende med mall</h2>
+    <p class="section-lead">Från tomma händer till registrerat ärende – utan att fylla i ett enda standardfält manuellt.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <strong>Öppna tillägget</strong>
+        <p>Klicka på tilläggsikonen i webbläsarens verktygsfält.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <strong>Välj mall</strong>
+        <p>Klicka <em>Använd</em> bredvid rätt ärendemall.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <strong>Ange titel</strong>
+        <p>Fyll i ärendetiteln – allt annat är redan ifyllt.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <strong>Skapa ärende</strong>
+        <p>Klicka <em>Skapa ärende</em>. Tillägget sköter resten.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <strong>Klart!</strong>
+        <p>Du hamnar direkt på det nya ärendet – redo att jobba.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Snabbkommandon ── -->
+  <div class="section">
+    <div class="section-eyebrow">Snabbkommandon</div>
+    <h2 class="section-title">Tangentbordsgenvägar</h2>
+    <p class="section-lead">Fyra kommandon finns förinställda och fungerar direkt på en ärendesida – popup-menyn behöver inte vara öppen. Fler kommandon kan läggas till och tangentbindningarna anpassas fritt via webbläsarens tilläggsinställningar.</p>
+
+    <div class="shortcut-list">
+      <div class="sc-row">
+        <div class="sc-key"><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd></div>
+        <div class="sc-desc"><strong>Dagboksblad</strong> – öppnar dagboksbladet som PDF i ny flik och visar utskriftsdialogen direkt</div>
+      </div>
+      <div class="sc-row">
+        <div class="sc-key"><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd></div>
+        <div class="sc-desc"><strong>Växla status</strong> – Öppet → Avslutat, Avslutat → Öppet</div>
+      </div>
+      <div class="sc-row">
+        <div class="sc-key"><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd></div>
+        <div class="sc-desc"><strong>Redigera egenskaper</strong> – öppnar redigeringsdialogen för ärende eller dokument</div>
+      </div>
+      <div class="sc-row">
+        <div class="sc-key"><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd></div>
+        <div class="sc-desc"><strong>Makulera</strong> – öppnar statusdialogen förinställd på Makulerat</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Installation ── -->
+  <div class="section">
+    <div class="section-eyebrow">Komma igång</div>
+    <h2 class="section-title">Installation</h2>
+    <p class="section-lead">Tillägget installeras som ett okomprimerat tillägg i Edge eller Chrome. Ingen hjälp från IT behövs – det görs på några minuter.</p>
+
+    <div class="entry-grid">
+      <div class="entry-card">
+        <div class="entry-num">1</div>
+        <div>
+          <h4>Ladda ned ZIP-filen</h4>
+          <p>Hämta senaste versionen på <strong>p360.pettersson-vik.se</strong> (eller från GitHub Releases) och packa upp till en fast mapp på datorn.</p>
+        </div>
+      </div>
+      <div class="entry-card">
+        <div class="entry-num">2</div>
+        <div>
+          <h4>Öppna tilläggssidan</h4>
+          <p>Gå till <code>edge://extensions</code> (Edge) eller <code>chrome://extensions</code> (Chrome) och aktivera <em>Utvecklarläge</em>.</p>
+        </div>
+      </div>
+      <div class="entry-card">
+        <div class="entry-num">3</div>
+        <div>
+          <h4>Läs in tillägg</h4>
+          <p>Klicka <em>Läs in okomprimerat tillägg</em> och välj mappen. Klart!</p>
+        </div>
+      </div>
+      <div class="entry-card">
+        <div class="entry-num">4</div>
+        <div>
+          <h4>Skapa din första mall</h4>
+          <p>Öppna tilläggets popup, klicka <em>＋ Ny mall</em> och konfigurera dina standardvärden.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<!-- ══════════════ FOOTER ══════════════ -->
+<div class="footer-section">
+  <p>
+    <strong>Rasmus Pettersson Vik</strong>
+    <span class="org">Härnösands pastorat &nbsp;·&nbsp; Svenska kyrkan</span>
+  </p>
+  <div class="footer-divider"></div>
+  <p>360° Hjälptillägg är ett öppet verktyg framtaget av och för registratorer inom Svenska kyrkan.<br>
+  Källkod och senaste version finns på GitHub.</p>
+  <p class="footer-ai">Utvecklat i dialog med Claude Code (Anthropic)</p>
+</div>
+
+</body>
+</html>
