@@ -118,6 +118,7 @@ jobs:
           cp extension-${{ steps.version.outputs.version }}.zip deploy/
           cp svk-p360-ext.crx deploy/
           cp presentation.html deploy/presentation.html
+          cp help.html deploy/help.html
           touch deploy/.nojekyll
 
       - name: Publicera till GitHub Pages
