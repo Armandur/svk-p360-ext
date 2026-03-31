@@ -136,8 +136,9 @@ Samma target som ärendesidan, nyckeln är `DocumentEdit` (vs `EditCase` på är
 
 - Mallar lagras i `chrome.storage.local` under `dokumentmallar`
 - Ärendemallar innehåller djupkopior (instanser) i `ärendedokument`-arrayen
-- Instansformat: `{ dokumentmallId, namn, titel, handlingstyp, kategori, ..., ärvKontaktFrånÄrende? }`
+- Instansformat: `{ dokumentmallId, namn, titel, handlingstyp, kategori, ..., ärvKontaktFrånÄrende?, promptaDatum? }`
   - `ärvKontaktFrånÄrende: true` → dokumentets `oregistreradKontakt` sätts automatiskt till ärendets externa kontakt
+  - `promptaDatum: true` → en dialogruta visas innan dokumentet skapas där användaren anger datum; `datum`-fältet sparas som tom sträng i mallen
 - Redigering: `tempDokInstans` → `dokument-mall.html?instans=1` → `onChanged` uppdaterar listan
 - Bakåtkompatibilitet: gamla referenser utan egna fältvärden expanderas i `laddaMall()`
 
